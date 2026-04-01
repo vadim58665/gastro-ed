@@ -125,6 +125,12 @@ export default function BlitzTest({ card, onAnswer }: Props) {
         </div>
       ) : !finished ? (
         <>
+          <div className="w-full h-1 bg-border rounded-full overflow-hidden">
+            <div
+              className="h-full bg-cyan-500 transition-all duration-1000 ease-linear"
+              style={{ width: `${(timeLeft / card.timeLimit) * 100}%` }}
+            />
+          </div>
           <div className="bg-surface rounded-2xl p-5 text-center">
             <div className="text-base font-semibold text-foreground">
               {currentQ + 1}/{total}: {q.question}
@@ -146,7 +152,7 @@ export default function BlitzTest({ card, onAnswer }: Props) {
           </div>
         </>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="animate-result flex flex-col gap-3">
           <div className="text-center text-3xl font-bold text-foreground">
             {correctCount}/{total}{" "}
             {correctCount === total ? "Отлично!" : correctCount >= 3 ? "Хорошо" : "Попробуйте ещё"}

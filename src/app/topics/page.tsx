@@ -4,18 +4,34 @@ import Link from "next/link";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import { demoCards } from "@/data/cards";
+import { useReview } from "@/hooks/useReview";
 import { useMemo } from "react";
 
 export default function TopicsPage() {
+  const { reviewCards } = useReview();
+
+  const answeredIds = useMemo(
+    () => new Set(reviewCards.map((rc) => rc.cardId)),
+    [reviewCards]
+  );
+
   const topics = useMemo(() => {
-    const map = new Map<string, number>();
+    const totalMap = new Map<string, number>();
+    const answeredMap = new Map<string, number>();
     for (const card of demoCards) {
-      map.set(card.topic, (map.get(card.topic) || 0) + 1);
+      totalMap.set(card.topic, (totalMap.get(card.topic) || 0) + 1);
+      if (answeredIds.has(card.id)) {
+        answeredMap.set(card.topic, (answeredMap.get(card.topic) || 0) + 1);
+      }
     }
-    return Array.from(map.entries())
-      .map(([name, count]) => ({ name, count }))
+    return Array.from(totalMap.entries())
+      .map(([name, count]) => ({
+        name,
+        count,
+        answered: answeredMap.get(name) || 0,
+      }))
       .sort((a, b) => b.count - a.count);
-  }, []);
+  }, [answeredIds]);
 
   return (
     <div className="h-screen flex flex-col">
@@ -50,12 +66,23 @@ export default function TopicsPage() {
               href={`/feed?topic=${encodeURIComponent(topic.name)}`}
               className="block"
             >
-              <div className="flex items-baseline justify-between py-4 group">
-                <span className="text-base font-light text-foreground group-hover:text-primary transition-colors">
-                  {topic.name}
-                </span>
-                <span className="text-2xl font-extralight text-foreground tracking-tight">
-                  {topic.count}
+              <div className="py-4 group">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-base font-light text-foreground group-hover:text-primary transition-colors">
+                    {topic.name}
+                  </span>
+                  <span className="text-2xl font-extralight text-foreground tracking-tight">
+                    {topic.count}
+                  </span>
+                </div>
+                <div className="w-full h-0.5 bg-border rounded-full overflow-hidden mt-2">
+                  <div
+                    className="h-full bg-foreground/30 rounded-full transition-all duration-500"
+                    style={{ width: `${(topic.answered / topic.count) * 100}%` }}
+                  />
+                </div>
+                <span className="text-[10px] text-muted mt-1">
+                  {topic.answered} / {topic.count}
                 </span>
               </div>
               {i < topics.length - 1 && (

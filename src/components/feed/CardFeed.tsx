@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import type { Card } from "@/types/card";
 import { useProgress } from "@/hooks/useProgress";
 import { useReview } from "@/hooks/useReview";
 import CardRenderer from "./CardRenderer";
+import DailyGoalCelebration from "@/components/ui/DailyGoalCelebration";
+import { hapticCorrect, hapticWrong } from "@/lib/feedback";
 
 interface Props {
   cards: Card[];
@@ -20,20 +22,32 @@ function shuffleArray<T>(arr: T[]): T[] {
 }
 
 export default function CardFeed({ cards }: Props) {
-  const { recordAnswer } = useProgress();
+  const { progress, recordAnswer } = useProgress();
   const { scheduleCard } = useReview();
   const shuffled = useMemo(() => shuffleArray(cards), [cards]);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const handleAnswer = useCallback(
     (cardId: string, isCorrect: boolean) => {
       recordAnswer(isCorrect, cardId);
+      isCorrect ? hapticCorrect() : hapticWrong();
       scheduleCard(cardId, isCorrect);
+
+      if (progress.todayCardsSeen + 1 === progress.dailyGoal) {
+        setShowCelebration(true);
+      }
     },
-    [recordAnswer, scheduleCard]
+    [recordAnswer, scheduleCard, progress.todayCardsSeen, progress.dailyGoal]
   );
 
   return (
     <div className="feed-scroll h-full">
+      {showCelebration && (
+        <DailyGoalCelebration
+          dailyGoal={progress.dailyGoal}
+          onClose={() => setShowCelebration(false)}
+        />
+      )}
       {shuffled.map((card) => (
         <div
           key={card.id}

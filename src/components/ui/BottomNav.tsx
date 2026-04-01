@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useReview } from "@/hooks/useReview";
 
 const tabs = [
   {
@@ -54,6 +55,7 @@ const tabs = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { dueCount } = useReview();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-border z-50">
@@ -70,7 +72,14 @@ export default function BottomNav() {
                   : "text-muted"
               }`}
             >
-              {tab.icon}
+              <span className="relative">
+                {tab.icon}
+                {tab.href === "/review" && dueCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center bg-rose-500 text-white text-[9px] font-bold rounded-full px-0.5">
+                    {dueCount > 99 ? "99+" : dueCount}
+                  </span>
+                )}
+              </span>
               <span className="text-[10px] font-semibold">{tab.label}</span>
             </Link>
           );

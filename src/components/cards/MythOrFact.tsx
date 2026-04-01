@@ -47,7 +47,7 @@ export default function MythOrFact({ card, onAnswer }: Props) {
         </div>
       ) : (
         <div
-          className={`p-5 rounded-2xl text-sm leading-relaxed ${
+          className={`animate-result p-5 rounded-2xl text-sm leading-relaxed ${
             isCorrect
               ? "bg-success-light border border-success/30 text-emerald-800"
               : "bg-danger-light border border-danger/30 text-rose-800"

@@ -82,7 +82,7 @@ export default function BuildScheme({ card, onAnswer }: Props) {
           Проверить ({selected.size}/{correctCount})
         </button>
       ) : (
-        <div className={`mt-1 p-5 rounded-2xl text-sm font-medium ${
+        <div className={`animate-result mt-1 p-5 rounded-2xl text-sm font-medium ${
           wasCorrect
             ? "bg-success-light border border-success/30 text-emerald-800"
             : "bg-danger-light border border-danger/30 text-rose-800"

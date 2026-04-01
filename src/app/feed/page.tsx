@@ -1,15 +1,28 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import CardFeed from "@/components/feed/CardFeed";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
+import Onboarding from "@/components/ui/Onboarding";
 import { demoCards } from "@/data/cards";
 
 function FeedContent() {
   const searchParams = useSearchParams();
   const topicFilter = searchParams.get("topic");
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem("gastro-ed-onboarding")) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem("gastro-ed-onboarding", "done");
+    setShowOnboarding(false);
+  };
 
   const cards = useMemo(
     () =>
@@ -18,6 +31,10 @@ function FeedContent() {
         : demoCards,
     [topicFilter]
   );
+
+  if (showOnboarding) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <>

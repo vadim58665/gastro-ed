@@ -1,6 +1,7 @@
 "use client";
 
 import { useProgress } from "@/hooks/useProgress";
+import ProgressRing from "./ProgressRing";
 
 export default function StreakBadge() {
   const { progress } = useProgress();
@@ -24,9 +25,7 @@ export default function StreakBadge() {
         </span>
       </div>
       <div className="flex-1" />
-      <div className="text-xs font-semibold text-muted bg-surface px-3 py-1.5 rounded-full">
-        {progress.todayCardsSeen}/{progress.dailyGoal}
-      </div>
+      <ProgressRing current={progress.todayCardsSeen} total={progress.dailyGoal} size={32} />
     </div>
   );
 }

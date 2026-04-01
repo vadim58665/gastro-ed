@@ -93,7 +93,7 @@ export default function RedFlags({ card, onAnswer }: Props) {
           Проверить ({foundCount}/{dangerCount} флагов)
         </button>
       ) : (
-        <div className="mt-1 p-5 rounded-2xl bg-danger-light border border-danger/20 text-rose-800 text-sm leading-relaxed">
+        <div className="animate-result mt-1 p-5 rounded-2xl bg-danger-light border border-danger/20 text-rose-800 text-sm leading-relaxed">
           {card.explanation}
         </div>
       )}

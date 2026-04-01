@@ -9,6 +9,7 @@ import { useProgress } from "@/hooks/useProgress";
 import { demoCards } from "@/data/cards";
 import { Rating } from "ts-fsrs";
 import type { Grade } from "ts-fsrs";
+import { hapticCorrect, hapticWrong } from "@/lib/feedback";
 
 export default function ReviewPage() {
   const { getDueCards, reviewCard, dueCount } = useReview();
@@ -40,6 +41,7 @@ export default function ReviewPage() {
   const handleGrade = useCallback(
     (grade: Grade) => {
       if (!currentCard) return;
+      (grade === Rating.Again || grade === Rating.Hard) ? hapticWrong() : hapticCorrect();
       reviewCard(currentCard.id, grade);
       setAnswered(false);
       setCurrentIndex((i) => i + 1);

@@ -42,7 +42,7 @@ export default function ClinicalCase({ card, onAnswer }: Props) {
             <button
               key={i}
               onClick={() => handleSelect(i)}
-              className={`btn-press text-left px-6 py-5 rounded-full border-2 transition-all text-sm font-medium ${style}`}
+              className={`btn-press text-left px-6 py-5 rounded-full border-2 transition-all text-sm font-medium ${style}${answered && opt.isCorrect ? ' animate-correct' : ''}${answered && i === selected && !opt.isCorrect ? ' animate-wrong' : ''}`}
             >
               {opt.text}
             </button>
@@ -51,7 +51,7 @@ export default function ClinicalCase({ card, onAnswer }: Props) {
       </div>
       {answered && (
         <div
-          className={`mt-1 p-4 rounded-2xl text-sm leading-relaxed ${
+          className={`animate-result mt-1 p-4 rounded-2xl text-sm leading-relaxed ${
             card.options[selected].isCorrect
               ? "bg-success-light border border-success/30 text-emerald-800"
               : "bg-danger-light border border-danger/30 text-rose-800"

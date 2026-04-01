@@ -59,7 +59,7 @@ export default function VisualQuiz({ card, onAnswer }: Props) {
 
       {answered && (
         <div
-          className={`p-4 rounded-2xl text-sm leading-relaxed ${
+          className={`animate-result p-4 rounded-2xl text-sm leading-relaxed ${
             card.options[selected].isCorrect
               ? "bg-success-light border border-success/30 text-emerald-800"
               : "bg-danger-light border border-danger/30 text-rose-800"
