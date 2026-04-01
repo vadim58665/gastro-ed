@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { UserProgress } from "@/types/user";
 import { useAuth } from "@/contexts/AuthContext";
 import { pushProgress, logAnswer } from "@/lib/supabase/sync";
@@ -54,6 +54,8 @@ function loadProgress(): UserProgress {
 export function useProgress() {
   const [progress, setProgress] = useState<UserProgress>(defaultProgress);
   const { user } = useAuth();
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
 
   useEffect(() => {
     setProgress(loadProgress());
@@ -63,7 +65,11 @@ export function useProgress() {
     (updated: UserProgress) => {
       const withTimestamp = { ...updated, updatedAt: new Date().toISOString() };
       setProgress(withTimestamp);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(withTimestamp));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(withTimestamp));
+      } catch (e) {
+        console.error("Failed to save progress to localStorage", e);
+      }
 
       if (user && navigator.onLine) {
         pushProgress(user.id, withTimestamp).catch(console.error);
@@ -74,18 +80,19 @@ export function useProgress() {
 
   const recordAnswer = useCallback(
     (isCorrect: boolean, cardId?: string) => {
+      const current = progressRef.current;
       const today = getLocalDateStr();
-      const isFirstAnswerToday = progress.lastActiveDate !== today;
+      const isFirstAnswerToday = current.lastActiveDate !== today;
       const updated: UserProgress = {
-        ...progress,
-        cardsSeen: progress.cardsSeen + 1,
-        cardsCorrect: progress.cardsCorrect + (isCorrect ? 1 : 0),
-        totalPoints: progress.totalPoints + (isCorrect ? 10 : 2),
-        todayCardsSeen: progress.todayCardsSeen + 1,
+        ...current,
+        cardsSeen: current.cardsSeen + 1,
+        cardsCorrect: current.cardsCorrect + (isCorrect ? 1 : 0),
+        totalPoints: current.totalPoints + (isCorrect ? 10 : 2),
+        todayCardsSeen: current.todayCardsSeen + 1,
         lastActiveDate: today,
         streakCurrent: isFirstAnswerToday
-          ? progress.streakCurrent + 1
-          : progress.streakCurrent || 1,
+          ? current.streakCurrent + 1
+          : current.streakCurrent || 1,
       };
       updated.streakBest = Math.max(updated.streakBest, updated.streakCurrent);
       saveProgress(updated);
@@ -94,7 +101,7 @@ export function useProgress() {
         logAnswer(user.id, cardId, isCorrect).catch(console.error);
       }
     },
-    [progress, saveProgress, user]
+    [saveProgress, user]
   );
 
   return { progress, recordAnswer };

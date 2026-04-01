@@ -17,6 +17,7 @@ export default function BlitzTest({ card, onAnswer }: Props) {
   const [timeLeft, setTimeLeft] = useState(card.timeLimit);
   const [finished, setFinished] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const finishedRef = useRef(false);
   const answersRef = useRef(answers);
   const onAnswerRef = useRef(onAnswer);
   answersRef.current = answers;
@@ -28,6 +29,8 @@ export default function BlitzTest({ card, onAnswer }: Props) {
   ).length;
 
   const finishQuiz = useCallback((finalAnswers: (boolean | null)[]) => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
     if (timerRef.current) clearInterval(timerRef.current);
     setFinished(true);
     const finalCorrect = finalAnswers.filter(
@@ -146,7 +149,7 @@ export default function BlitzTest({ card, onAnswer }: Props) {
         <div className="flex flex-col gap-3">
           <div className="text-center text-3xl font-bold text-foreground">
             {correctCount}/{total}{" "}
-            {correctCount === total ? "🎉" : correctCount >= 3 ? "👍" : "💪"}
+            {correctCount === total ? "Отлично!" : correctCount >= 3 ? "Хорошо" : "Попробуйте ещё"}
           </div>
           <div className="flex flex-col gap-2">
             {card.questions.map((question, i) => (

@@ -42,7 +42,11 @@ function loadReviewCards(): ReviewCard[] {
 }
 
 function saveReviewCards(cards: ReviewCard[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+  } catch (e) {
+    console.error("Failed to save review cards to localStorage", e);
+  }
 }
 
 export function useReview() {

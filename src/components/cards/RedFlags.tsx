@@ -23,6 +23,7 @@ export default function RedFlags({ card, onAnswer }: Props) {
   };
 
   const handleSubmit = () => {
+    if (selected.size === 0) return;
     setSubmitted(true);
     const dangerIndices = new Set(
       card.options.map((o, i) => (o.isDanger ? i : -1)).filter((i) => i >= 0)
