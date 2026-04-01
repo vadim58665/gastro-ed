@@ -1,0 +1,101 @@
+"use client";
+
+import { useState } from "react";
+import type { RedFlagsCard } from "@/types/card";
+
+interface Props {
+  card: RedFlagsCard;
+  onAnswer: (isCorrect: boolean) => void;
+}
+
+export default function RedFlags({ card, onAnswer }: Props) {
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [submitted, setSubmitted] = useState(false);
+
+  const toggleOption = (index: number) => {
+    if (submitted) return;
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+    const dangerIndices = new Set(
+      card.options.map((o, i) => (o.isDanger ? i : -1)).filter((i) => i >= 0)
+    );
+    const isCorrect =
+      selected.size === dangerIndices.size &&
+      [...selected].every((i) => dangerIndices.has(i));
+    onAnswer(isCorrect);
+  };
+
+  const dangerCount = card.options.filter((o) => o.isDanger).length;
+  const foundCount = [...selected].filter(
+    (i) => card.options[i].isDanger
+  ).length;
+
+  return (
+    <div className="flex flex-col gap-4 p-6">
+      <div className="text-xs font-bold text-rose-500 uppercase tracking-widest">
+        Красные флаги
+      </div>
+
+      <div className="text-sm text-foreground/70 font-medium">{card.scenario}</div>
+
+      <div className="flex flex-col gap-2.5">
+        {card.options.map((opt, i) => {
+          let style = selected.has(i)
+            ? "border-rose-400 bg-rose-50 text-rose-700"
+            : "border-border bg-white text-foreground/70";
+
+          if (submitted) {
+            if (opt.isDanger && selected.has(i))
+              style = "border-success bg-success-light text-emerald-800";
+            else if (opt.isDanger && !selected.has(i))
+              style = "border-warning bg-warning-light text-amber-800";
+            else if (!opt.isDanger && selected.has(i))
+              style = "border-danger bg-danger-light text-rose-800";
+            else style = "border-border bg-white opacity-40";
+          }
+
+          return (
+            <button
+              key={i}
+              onClick={() => toggleOption(i)}
+              className={`btn-press flex items-center gap-3 text-left px-6 py-4 rounded-full border-2 transition-all text-sm font-medium ${style}`}
+            >
+              <span
+                className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center text-xs flex-shrink-0 ${
+                  selected.has(i) || (submitted && opt.isDanger)
+                    ? "border-current bg-current/10"
+                    : "border-border"
+                }`}
+              >
+                {(selected.has(i) || (submitted && opt.isDanger)) && "✓"}
+              </span>
+              {opt.text}
+            </button>
+          );
+        })}
+      </div>
+
+      {!submitted ? (
+        <button
+          onClick={handleSubmit}
+          disabled={selected.size === 0}
+          className="btn-press mt-2 py-4 rounded-full bg-rose-500 text-white font-bold text-base disabled:opacity-30 transition-opacity shadow-lg shadow-rose-500/20"
+        >
+          Проверить ({foundCount}/{dangerCount} флагов)
+        </button>
+      ) : (
+        <div className="mt-1 p-5 rounded-2xl bg-danger-light border border-danger/20 text-rose-800 text-sm leading-relaxed">
+          {card.explanation}
+        </div>
+      )}
+    </div>
+  );
+}
