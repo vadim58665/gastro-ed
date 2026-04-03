@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SpecialtyProvider } from "@/contexts/SpecialtyContext";
 import { ModeProvider } from "@/contexts/ModeContext";
+import AuthGuard from "@/components/AuthGuard";
 import "./globals.css";
 
 const inter = Inter({
@@ -38,11 +39,13 @@ export default function RootLayout({
     <html lang="ru" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground font-[family-name:var(--font-inter)]">
         <AuthProvider>
-          <SpecialtyProvider>
-            <ModeProvider>
-              {children}
-            </ModeProvider>
-          </SpecialtyProvider>
+          <AuthGuard>
+            <SpecialtyProvider>
+              <ModeProvider>
+                {children}
+              </ModeProvider>
+            </SpecialtyProvider>
+          </AuthGuard>
         </AuthProvider>
       </body>
     </html>
