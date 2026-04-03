@@ -35,9 +35,6 @@ export default function RedFlags({ card, onAnswer }: Props) {
   };
 
   const dangerCount = card.options.filter((o) => o.isDanger).length;
-  const foundCount = [...selected].filter(
-    (i) => card.options[i].isDanger
-  ).length;
 
   return (
     <div className="flex flex-col gap-4 p-6">
@@ -90,7 +87,7 @@ export default function RedFlags({ card, onAnswer }: Props) {
           disabled={selected.size === 0}
           className="btn-press mt-2 py-4 rounded-full bg-rose-500 text-white font-bold text-base disabled:opacity-30 transition-opacity shadow-lg shadow-rose-500/20"
         >
-          Проверить ({foundCount}/{dangerCount} флагов)
+          Проверить ({selected.size}/{dangerCount} флагов)
         </button>
       ) : (
         <div className="animate-result mt-1 p-5 rounded-2xl bg-danger-light border border-danger/20 text-rose-800 text-sm leading-relaxed">
