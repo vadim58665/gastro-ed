@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { RedFlagsCard } from "@/types/card";
 
 interface Props {
@@ -9,6 +9,15 @@ interface Props {
 }
 
 export default function RedFlags({ card, onAnswer }: Props) {
+  const shuffledIndices = useMemo(() => {
+    const indices = card.options.map((_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    return indices;
+  }, [card.id]);
+
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [submitted, setSubmitted] = useState(false);
 
@@ -45,7 +54,8 @@ export default function RedFlags({ card, onAnswer }: Props) {
       <div className="text-sm text-foreground/70 font-medium">{card.scenario}</div>
 
       <div className="flex flex-col gap-2.5">
-        {card.options.map((opt, i) => {
+        {shuffledIndices.map((i) => {
+          const opt = card.options[i];
           let style = selected.has(i)
             ? "border-rose-400 bg-rose-50 text-rose-700"
             : "border-border bg-white text-foreground/70";

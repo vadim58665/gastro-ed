@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { VisualQuizCard } from "@/types/card";
 
 interface Props {
@@ -9,6 +9,15 @@ interface Props {
 }
 
 export default function VisualQuiz({ card, onAnswer }: Props) {
+  const shuffledIndices = useMemo(() => {
+    const indices = card.options.map((_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    return indices;
+  }, [card.id]);
+
   const [selected, setSelected] = useState<number | null>(null);
   const [imgError, setImgError] = useState(false);
   const answered = selected !== null;
@@ -51,7 +60,8 @@ export default function VisualQuiz({ card, onAnswer }: Props) {
       <div className="text-sm font-semibold text-foreground">{card.question}</div>
 
       <div className="grid grid-cols-2 gap-3">
-        {card.options.map((opt, i) => {
+        {shuffledIndices.map((i) => {
+          const opt = card.options[i];
           let style = "border-border bg-white text-foreground/70";
           if (answered) {
             if (opt.isCorrect)

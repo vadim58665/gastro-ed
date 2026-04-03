@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { BuildSchemeCard } from "@/types/card";
 
 interface Props {
@@ -10,6 +10,15 @@ interface Props {
 
 export default function BuildScheme({ card, onAnswer }: Props) {
   const isOrdering = !!card.correctOrder;
+
+  const shuffledIndices = useMemo(() => {
+    const indices = card.components.map((_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    return indices;
+  }, [card.id]);
 
   // Multi-select mode state
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -82,7 +91,8 @@ export default function BuildScheme({ card, onAnswer }: Props) {
       </div>
 
       <div className={isOrdering ? "flex flex-col gap-2.5" : "flex flex-wrap gap-2.5"}>
-        {card.components.map((comp, i) => {
+        {shuffledIndices.map((i) => {
+          const comp = card.components[i];
           const isSelected = isOrdering
             ? orderedSelection.includes(i)
             : selected.has(i);
