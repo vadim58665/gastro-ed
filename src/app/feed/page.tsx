@@ -1,47 +1,48 @@
 "use client";
 
-import { Suspense, useMemo, useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import CardFeed from "@/components/feed/CardFeed";
+import { useSpecialty } from "@/contexts/SpecialtyContext";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
-import Onboarding from "@/components/ui/Onboarding";
 import { demoCards } from "@/data/cards";
 
 function FeedContent() {
   const searchParams = useSearchParams();
   const topicFilter = searchParams.get("topic");
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const modeParam = searchParams.get("mode");
+  const { activeSpecialty } = useSpecialty();
+  const router = useRouter();
 
   useEffect(() => {
-    if (!localStorage.getItem("gastro-ed-onboarding")) {
-      setShowOnboarding(true);
+    if (modeParam !== "all" && !activeSpecialty) {
+      router.push("/topics");
     }
-  }, []);
+  }, [activeSpecialty, modeParam, router]);
 
-  const handleOnboardingComplete = () => {
-    localStorage.setItem("gastro-ed-onboarding", "done");
-    setShowOnboarding(false);
-  };
-
-  const cards = useMemo(
-    () =>
-      topicFilter
+  const cards = useMemo(() => {
+    if (modeParam === "all") {
+      return topicFilter
         ? demoCards.filter((c) => c.topic === topicFilter)
-        : demoCards,
-    [topicFilter]
-  );
+        : demoCards;
+    }
+    if (!activeSpecialty) return [];
+    let filtered = demoCards.filter((c) => c.specialty === activeSpecialty.name);
+    if (topicFilter) filtered = filtered.filter((c) => c.topic === topicFilter);
+    return filtered;
+  }, [topicFilter, modeParam, activeSpecialty]);
 
-  if (showOnboarding) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
-  }
+  const label = modeParam === "all"
+    ? topicFilter || "Все темы"
+    : topicFilter || activeSpecialty?.name || "";
 
   return (
     <>
-      {topicFilter && (
+      {label && (
         <div className="px-6 pt-3 pb-1">
           <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium">
-            {topicFilter} · {cards.length} карточек
+            {label} · {cards.length} карточек
           </p>
         </div>
       )}

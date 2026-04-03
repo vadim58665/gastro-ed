@@ -1,10 +1,11 @@
 "use client";
 
-import { useProgress } from "@/hooks/useProgress";
+import { useGamification } from "@/hooks/useGamification";
+import LevelBadge from "./LevelBadge";
 import ProgressRing from "./ProgressRing";
 
 export default function StreakBadge() {
-  const { progress } = useProgress();
+  const { progress } = useGamification();
 
   return (
     <div className="flex items-center gap-4">
@@ -17,11 +18,9 @@ export default function StreakBadge() {
         </span>
       </div>
       <div className="flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-full">
-        <svg className="w-4 h-4 text-amber-500" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-          <path d="M8 .5l2.066 4.562L15 5.78l-3.5 3.72L12.34 15 8 12.46 3.66 15l.84-5.5L1 5.78l4.934-.718z" />
-        </svg>
+        <LevelBadge xp={progress.xp || 0} compact />
         <span className="text-sm font-bold text-amber-500">
-          {progress.totalPoints}
+          {progress.xp || 0}
         </span>
       </div>
       <div className="flex-1" />

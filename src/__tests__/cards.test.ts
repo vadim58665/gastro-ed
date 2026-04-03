@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { demoCards } from "@/data/cards";
 import type { Card } from "@/types/card";
+import { cardSchema } from "@/data/cards/schema";
 
 describe("Card data validation", () => {
-  it("has 190+ cards", () => {
-    expect(demoCards.length).toBeGreaterThanOrEqual(190);
+  it("has 2200+ cards", () => {
+    expect(demoCards.length).toBeGreaterThanOrEqual(2200);
   });
 
   it("all cards have unique IDs", () => {
@@ -88,5 +89,18 @@ describe("Card data validation", () => {
   it("covers multiple topics", () => {
     const topics = new Set(demoCards.map((c) => c.topic));
     expect(topics.size).toBeGreaterThanOrEqual(8);
+  });
+
+  it("all cards pass Zod schema validation", () => {
+    for (const card of demoCards) {
+      const result = cardSchema.safeParse(card);
+      expect(result.success, `Card ${card.id} failed Zod validation: ${!result.success ? JSON.stringify(result.error.issues) : ""}`).toBe(true);
+    }
+  });
+
+  it("all cards have specialty field", () => {
+    for (const card of demoCards) {
+      expect(card.specialty, `Card ${card.id} missing specialty`).toBeTruthy();
+    }
   });
 });

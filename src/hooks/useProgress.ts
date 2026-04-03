@@ -16,6 +16,16 @@ const defaultProgress: UserProgress = {
   lastActiveDate: "",
   dailyGoal: 10,
   todayCardsSeen: 0,
+  xp: 0,
+  level: 1,
+  unlockedAchievements: {},
+  completedChallengeIds: [],
+  cardHistory: {},
+  dailyGoalStreak: 0,
+  dailyGoalStreakBest: 0,
+  perfectBlitzCount: 0,
+  typeCounts: {},
+  topicsAnswered: [],
 };
 
 function getLocalDateStr(date = new Date()): string {
@@ -36,12 +46,20 @@ function loadProgress(): UserProgress {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return defaultProgress;
-    const parsed = JSON.parse(saved) as UserProgress;
+    const raw = JSON.parse(saved);
+    const parsed: UserProgress = { ...defaultProgress, ...raw };
+    // Migration: set xp from totalPoints if missing
+    if (!raw.xp && parsed.totalPoints > 0) {
+      parsed.xp = parsed.totalPoints;
+    }
     const today = getLocalDateStr();
     if (parsed.lastActiveDate !== today) {
       const isConsecutive = parsed.lastActiveDate === getPreviousDate(today);
       if (!isConsecutive) {
         parsed.streakCurrent = 0;
+      }
+      if (parsed.todayCardsSeen < parsed.dailyGoal) {
+        parsed.dailyGoalStreak = 0;
       }
       parsed.todayCardsSeen = 0;
     }
@@ -87,7 +105,7 @@ export function useProgress() {
         ...current,
         cardsSeen: current.cardsSeen + 1,
         cardsCorrect: current.cardsCorrect + (isCorrect ? 1 : 0),
-        totalPoints: current.totalPoints + (isCorrect ? 10 : 2),
+        totalPoints: current.totalPoints,
         todayCardsSeen: current.todayCardsSeen + 1,
         lastActiveDate: today,
         streakCurrent: isFirstAnswerToday
@@ -104,5 +122,5 @@ export function useProgress() {
     [saveProgress, user]
   );
 
-  return { progress, recordAnswer };
+  return { progress, recordAnswer, saveProgress };
 }

@@ -2,12 +2,14 @@
 
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
-import { useProgress } from "@/hooks/useProgress";
+import LevelBadge from "@/components/ui/LevelBadge";
+import { useGamification } from "@/hooks/useGamification";
 import { useAuth } from "@/contexts/AuthContext";
+import { getXpToNextLevel } from "@/data/levels";
 import Link from "next/link";
 
 export default function ProfilePage() {
-  const { progress } = useProgress();
+  const { progress, currentLevel, achievements } = useGamification();
   const { user, signOut, loading } = useAuth();
   const accuracy =
     progress.cardsSeen > 0
@@ -18,32 +20,30 @@ export default function ProfilePage() {
     <div className="h-screen flex flex-col">
       <TopBar />
       <main className="flex-1 pt-16 pb-20 overflow-y-auto">
-        {/* Hero section */}
-        <div className="px-6 pt-8 pb-10 text-center">
-          <p className="text-xs uppercase tracking-[0.25em] text-muted font-medium mb-3">
-            Ваш прогресс
+        {/* Hero section — Level */}
+        <div className="px-6 pt-8 pb-6 text-center">
+          <LevelBadge xp={progress.xp || 0} />
+          <p className="text-sm text-muted mt-2">
+            {progress.xp || 0} XP
           </p>
-          <h1 className="text-3xl font-light text-foreground tracking-tight">
-            Профиль
-          </h1>
         </div>
 
-        {/* Main stat — streak */}
-        <div className="text-center mb-10">
-          <div className="text-6xl font-extralight text-foreground tracking-tight leading-none">
+        {/* Streak */}
+        <div className="text-center mb-8">
+          <div className="text-5xl font-extralight text-foreground tracking-tight leading-none">
             {progress.streakCurrent}
           </div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted mt-3 font-medium">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted mt-2 font-medium">
             {progress.streakCurrent === 1 ? "день подряд" : "дней подряд"}
           </p>
-          <div className="w-12 h-px bg-border mx-auto mt-6" />
+          <div className="w-12 h-px bg-border mx-auto mt-4" />
         </div>
 
         {/* Stats grid */}
         <div className="px-6">
           <div className="grid grid-cols-3 gap-y-8 mb-8">
             <StatItem value={String(progress.streakBest)} label="лучший streak" />
-            <StatItem value={String(progress.totalPoints)} label="очков" />
+            <StatItem value={String(progress.xp || 0)} label="XP" />
             <StatItem value={`${accuracy}%`} label="точность" />
           </div>
 
@@ -53,6 +53,31 @@ export default function ProfilePage() {
             <StatItem value={String(progress.cardsSeen)} label="карточек пройдено" />
             <StatItem value={String(progress.cardsCorrect)} label="правильных ответов" />
           </div>
+
+          {/* Achievements link */}
+          <div className="w-full h-px bg-border my-8" />
+          <Link
+            href="/achievements"
+            className="flex items-center justify-between px-4 py-3 rounded-xl border border-border hover:border-primary/30 transition-colors"
+          >
+            <div>
+              <p className="text-sm font-medium text-foreground">Достижения</p>
+              <p className="text-xs text-muted">
+                {achievements.filter((a) => a.unlocked).length}/{achievements.length} разблокировано
+              </p>
+            </div>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              className="text-muted"
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </Link>
 
           {/* Auth section */}
           {!loading && (

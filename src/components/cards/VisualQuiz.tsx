@@ -10,6 +10,7 @@ interface Props {
 
 export default function VisualQuiz({ card, onAnswer }: Props) {
   const [selected, setSelected] = useState<number | null>(null);
+  const [imgError, setImgError] = useState(false);
   const answered = selected !== null;
 
   const handleSelect = (index: number) => {
@@ -25,12 +26,26 @@ export default function VisualQuiz({ card, onAnswer }: Props) {
       </div>
 
       <div className="rounded-2xl overflow-hidden bg-surface">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={card.imageUrl}
-          alt="Эндоскопический снимок"
-          className="w-full h-48 object-cover"
-        />
+        {imgError || card.imageUrl.includes("placeholder") ? (
+          <div className="w-full h-48 flex items-center justify-center bg-surface border border-border/50 rounded-2xl">
+            <div className="text-center">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mx-auto text-muted mb-2">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+              <p className="text-xs text-muted">Описание ниже</p>
+            </div>
+          </div>
+        ) : (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={card.imageUrl}
+            alt="Медицинский снимок"
+            className="w-full h-48 object-cover"
+            onError={() => setImgError(true)}
+          />
+        )}
       </div>
 
       <div className="text-sm font-semibold text-foreground">{card.question}</div>

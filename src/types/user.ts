@@ -1,3 +1,10 @@
+export interface CardHistoryEntry {
+  attempts: number;
+  correct: number;
+  lastSeen: string;
+  consecutiveFails: number;
+}
+
 export interface UserProgress {
   streakCurrent: number;
   streakBest: number;
@@ -8,6 +15,16 @@ export interface UserProgress {
   dailyGoal: number;
   todayCardsSeen: number;
   updatedAt?: string;
+  xp: number;
+  level: number;
+  unlockedAchievements: Record<string, string>;
+  completedChallengeIds: string[];
+  cardHistory: Record<string, CardHistoryEntry>;
+  dailyGoalStreak: number;
+  dailyGoalStreakBest: number;
+  perfectBlitzCount: number;
+  typeCounts: Record<string, number>;
+  topicsAnswered: string[];
 }
 
 export interface CardAnswer {

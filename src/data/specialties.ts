@@ -1,0 +1,119 @@
+import { demoCards } from "./cards";
+
+export interface Specialty {
+  id: string;
+  name: string;
+}
+
+export interface AccreditationCategory {
+  id: string;
+  name: string;
+  description: string;
+  specialties: Specialty[];
+}
+
+export const accreditationCategories: AccreditationCategory[] = [
+  {
+    id: "ordinatura",
+    name: "Первичная специализированная аккредитация (ординатура)",
+    description: "Для врачей, окончивших ординатуру по узкой специальности",
+    specialties: [
+      { id: "akusherstvo-ginekologiya", name: "Акушерство и гинекология" },
+      { id: "allergologiya", name: "Аллергология" },
+      { id: "anesteziologiya-reanimatologiya", name: "Анестезиология-реаниматология" },
+      { id: "gastroenterologiya", name: "Гастроэнтерология" },
+      { id: "gematologiya", name: "Гематология" },
+      { id: "genetika", name: "Генетика" },
+      { id: "geriatriya", name: "Гериатрия" },
+      { id: "ginekologiya", name: "Гинекология" },
+      { id: "dermatologiya", name: "Дерматология" },
+      { id: "dermatovenerologiya", name: "Дерматовенерология" },
+      { id: "detskaya-hirurgiya", name: "Детская хирургия" },
+      { id: "detskaya-nevrologiya", name: "Детская неврология" },
+      { id: "detskaya-kardiologiya", name: "Детская кардиология" },
+      { id: "detskaya-endokrinologiya", name: "Детская эндокринология" },
+      { id: "dietologiya", name: "Диетология" },
+      { id: "infektsionnye-bolezni", name: "Инфекционные болезни" },
+      { id: "kardiologiya", name: "Кардиология" },
+      { id: "klinicheskaya-laboratornaya-diagnostika", name: "Клиническая лабораторная диагностика" },
+      { id: "klinicheskaya-farmakologiya", name: "Клиническая фармакология" },
+      { id: "koloproktologiya", name: "Колопроктология" },
+      { id: "luchevaya-diagnostika", name: "Лучевая диагностика" },
+      { id: "luchevaya-terapiya", name: "Лучевая терапия" },
+      { id: "manualnaya-terapiya", name: "Мануальная терапия" },
+      { id: "neyrohirurgiya", name: "Нейрохирургия" },
+      { id: "neonatologiya", name: "Неонатология" },
+      { id: "nevrologiya", name: "Неврология" },
+      { id: "nefrologiya", name: "Нефрология" },
+      { id: "obshchaya-vrachebnaya-praktika", name: "Общая врачебная практика" },
+      { id: "onkologiya", name: "Онкология" },
+      { id: "ortodontiya", name: "Ортодонтия" },
+      { id: "oftalmologiya", name: "Офтальмология" },
+      { id: "otorinolaringologiya", name: "Оториноларингология (ЛОР)" },
+      { id: "patologicheskaya-anatomiya", name: "Патологическая анатомия" },
+      { id: "plasticheskaya-hirurgiya", name: "Пластическая хирургия" },
+      { id: "profpatologiya", name: "Профпатология" },
+      { id: "psihiatriya", name: "Психиатрия" },
+      { id: "psihiatriya-narkologiya", name: "Психиатрия-наркология" },
+      { id: "pulmonologiya", name: "Пульмонология" },
+      { id: "radiologiya", name: "Радиология" },
+      { id: "revmatologiya", name: "Ревматология" },
+      { id: "rentgenologiya", name: "Рентгенология" },
+      { id: "serdechno-sosudistaya-hirurgiya", name: "Сердечно-сосудистая хирургия" },
+      { id: "skoraya-pomoshch", name: "Скорая медицинская помощь" },
+      { id: "sportivnaya-medicina", name: "Спортивная медицина" },
+      { id: "stomatologiya", name: "Стоматология" },
+      { id: "sudebno-meditsinskaya-ekspertiza", name: "Судебно-медицинская экспертиза" },
+      { id: "terapiya", name: "Терапия" },
+      { id: "toksikologiya", name: "Токсикология" },
+      { id: "torakalnaya-hirurgiya", name: "Торакальная хирургия" },
+      { id: "transfuziologiya", name: "Трансфузиология" },
+      { id: "travmatologiya", name: "Травматология" },
+      { id: "ultrazvukovaya-diagnostika", name: "Ультразвуковая диагностика" },
+      { id: "urologiya", name: "Урология" },
+      { id: "fizioterapiya", name: "Физиотерапия" },
+      { id: "ftiziatriya", name: "Фтизиатрия" },
+      { id: "funktsionalnaya-diagnostika", name: "Функциональная диагностика" },
+      { id: "hirurgiya", name: "Хирургия" },
+      { id: "chelyustno-litsevaya-hirurgiya", name: "Челюстно-лицевая хирургия" },
+      { id: "endokrinologiya", name: "Эндокринология" },
+      { id: "endoskopiya", name: "Эндоскопия" },
+    ],
+  },
+  {
+    id: "specialitet",
+    name: "Первичная аккредитация (специалитет)",
+    description: "Для выпускников медицинских вузов",
+    specialties: [
+      { id: "lechebnoe-delo", name: "Лечебное дело" },
+      { id: "pediatriya", name: "Педиатрия" },
+      { id: "stomatologiya-spec", name: "Стоматология" },
+      { id: "farmaciya", name: "Фармация" },
+      { id: "medprofilaktika", name: "Медико-профилактическое дело" },
+      { id: "meditsinskaya-biohimiya", name: "Медицинская биохимия" },
+      { id: "meditsinskaya-biofizika", name: "Медицинская биофизика" },
+      { id: "meditsinskaya-kibernetika", name: "Медицинская кибернетика" },
+      { id: "sestrinskoe-delo", name: "Сестринское дело" },
+    ],
+  },
+];
+
+// Все специальности плоским списком
+export const allSpecialties: Specialty[] = accreditationCategories.flatMap(
+  (cat) => cat.specialties
+);
+
+// Количество карточек ленты для специальности
+export function getCardCount(specialtyName: string): number {
+  return demoCards.filter((c) => c.specialty === specialtyName).length;
+}
+
+// Проверка доступности (есть контент)
+export function isSpecialtyAvailable(specialtyName: string): boolean {
+  return getCardCount(specialtyName) > 0;
+}
+
+// Найти специальность по id
+export function findSpecialtyById(id: string): Specialty | undefined {
+  return allSpecialties.find((s) => s.id === id);
+}

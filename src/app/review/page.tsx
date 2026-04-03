@@ -5,7 +5,8 @@ import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import CardRenderer from "@/components/feed/CardRenderer";
 import { useReview } from "@/hooks/useReview";
-import { useProgress } from "@/hooks/useProgress";
+import { useGamification } from "@/hooks/useGamification";
+import { useSpecialty } from "@/contexts/SpecialtyContext";
 import { demoCards } from "@/data/cards";
 import { Rating } from "ts-fsrs";
 import type { Grade } from "ts-fsrs";
@@ -13,7 +14,8 @@ import { hapticCorrect, hapticWrong } from "@/lib/feedback";
 
 export default function ReviewPage() {
   const { getDueCards, reviewCard, dueCount } = useReview();
-  const { recordAnswer } = useProgress();
+  const { recordAnswerWithGamification } = useGamification();
+  const { activeSpecialty } = useSpecialty();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [lastCorrect, setLastCorrect] = useState(false);
@@ -23,8 +25,9 @@ export default function ReviewPage() {
     () =>
       dueCardIds
         .map((id) => demoCards.find((c) => c.id === id))
-        .filter(Boolean),
-    [dueCardIds]
+        .filter((c): c is NonNullable<typeof c> => c != null)
+        .filter((c) => !activeSpecialty || c.specialty === activeSpecialty.name),
+    [dueCardIds, activeSpecialty]
   );
 
   const currentCard = dueCards[currentIndex];
@@ -33,9 +36,11 @@ export default function ReviewPage() {
     (isCorrect: boolean) => {
       setAnswered(true);
       setLastCorrect(isCorrect);
-      recordAnswer(isCorrect, currentCard?.id);
+      if (currentCard) {
+        recordAnswerWithGamification(isCorrect, currentCard.id, currentCard.type, currentCard.topic);
+      }
     },
-    [recordAnswer, currentCard]
+    [recordAnswerWithGamification, currentCard]
   );
 
   const handleGrade = useCallback(

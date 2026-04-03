@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SpecialtyProvider } from "@/contexts/SpecialtyContext";
+import { ModeProvider } from "@/contexts/ModeContext";
 import "./globals.css";
 
 const inter = Inter({
@@ -36,7 +38,11 @@ export default function RootLayout({
     <html lang="ru" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground font-[family-name:var(--font-inter)]">
         <AuthProvider>
-          {children}
+          <SpecialtyProvider>
+            <ModeProvider>
+              {children}
+            </ModeProvider>
+          </SpecialtyProvider>
         </AuthProvider>
       </body>
     </html>

@@ -74,6 +74,7 @@ async function pullProgress(
     .single();
   if (error || !data) return null;
   return {
+    ...getDefaultProgress(),
     streakCurrent: data.streak_current,
     streakBest: data.streak_best,
     totalPoints: data.total_points,
@@ -83,6 +84,7 @@ async function pullProgress(
     dailyGoal: data.daily_goal,
     todayCardsSeen: data.today_cards_seen,
     updatedAt: data.updated_at,
+    xp: data.xp ?? data.total_points ?? 0,
   };
 }
 
@@ -113,19 +115,19 @@ function mergeProgress(
   const remoteDate = remote.lastActiveDate || "";
   const useLocalStreak = localDate >= remoteDate;
 
+  const winner = useLocalStreak ? local : remote;
   return {
-    streakCurrent: useLocalStreak
-      ? local.streakCurrent
-      : remote.streakCurrent,
+    ...getDefaultProgress(),
+    ...winner,
     streakBest: Math.max(local.streakBest, remote.streakBest),
     totalPoints: Math.max(local.totalPoints, remote.totalPoints),
     cardsSeen: Math.max(local.cardsSeen, remote.cardsSeen),
     cardsCorrect: Math.max(local.cardsCorrect, remote.cardsCorrect),
-    lastActiveDate: localDate >= remoteDate ? localDate : remoteDate,
+    xp: Math.max(local.xp || 0, remote.xp || 0),
     dailyGoal: local.dailyGoal,
-    todayCardsSeen: useLocalStreak
-      ? local.todayCardsSeen
-      : remote.todayCardsSeen,
+    dailyGoalStreak: Math.max(local.dailyGoalStreak || 0, remote.dailyGoalStreak || 0),
+    dailyGoalStreakBest: Math.max(local.dailyGoalStreakBest || 0, remote.dailyGoalStreakBest || 0),
+    perfectBlitzCount: Math.max(local.perfectBlitzCount || 0, remote.perfectBlitzCount || 0),
     updatedAt: new Date().toISOString(),
   };
 }
@@ -202,6 +204,16 @@ function getDefaultProgress(): UserProgress {
     lastActiveDate: "",
     dailyGoal: 10,
     todayCardsSeen: 0,
+    xp: 0,
+    level: 1,
+    unlockedAchievements: {},
+    completedChallengeIds: [],
+    cardHistory: {},
+    dailyGoalStreak: 0,
+    dailyGoalStreakBest: 0,
+    perfectBlitzCount: 0,
+    typeCounts: {},
+    topicsAnswered: [],
   };
 }
 

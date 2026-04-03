@@ -10,8 +10,11 @@ export type CardType =
 export interface BaseCard {
   id: string;
   type: CardType;
+  specialty: string;
   topic: string;
   sourceRef?: string;
+  keyFact?: string;
+  relatedCardIds?: string[];
 }
 
 export interface ClinicalCaseCard extends BaseCard {

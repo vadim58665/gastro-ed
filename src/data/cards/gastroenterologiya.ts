@@ -1,11 +1,11 @@
 import type { Card } from "@/types/card";
-import { newCards } from "./cards-new";
 
-const baseCards: Card[] = [
+export const gastroCards: Card[] = [
   // === КЛИНИЧЕСКИЕ ЗАДАЧКИ ===
   {
     id: "cc-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     scenario:
       "Пациент, 45 лет. Жжение за грудиной после еды, усиливается в положении лёжа. Курит. ИМТ 32. Тревожных симптомов нет.",
@@ -37,6 +37,7 @@ const baseCards: Card[] = [
   {
     id: "cc-2",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     scenario:
       "Пациент, 38 лет. Боли в эпигастрии натощак, купируются приёмом пищи. ФГДС: язва луковицы ДПК 8 мм. Быстрый уреазный тест -- положительный.",
@@ -68,6 +69,7 @@ const baseCards: Card[] = [
   {
     id: "cc-3",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     scenario:
       "Пациент, 52 года, злоупотребляет алкоголем. Жалобы на опоясывающие боли в животе, зловонный жирный стул, потеря веса 8 кг за 3 месяца. В анамнезе -- 2 эпизода острого панкреатита.",
@@ -101,6 +103,7 @@ const baseCards: Card[] = [
   {
     id: "cc-4",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "СРК",
     scenario:
       "Женщина, 28 лет. Вздутие живота, чередование запоров и диареи 8 месяцев. Потери веса нет. Кальпротектин кала -- в норме. Общий анализ крови -- норма.",
@@ -134,6 +137,7 @@ const baseCards: Card[] = [
   {
     id: "mf-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     statement: "Гепатопротекторы защищают печень от алкоголя и жирового гепатоза",
     isMyth: true,
@@ -143,6 +147,7 @@ const baseCards: Card[] = [
   {
     id: "mf-2",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Диетология",
     statement: "Столы по Певзнеру актуальны для лечения заболеваний ЖКТ",
     isMyth: true,
@@ -152,6 +157,7 @@ const baseCards: Card[] = [
   {
     id: "mf-3",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     statement: "Перегиб желчного пузыря -- вариант нормы, не требующий лечения",
     isMyth: false,
@@ -161,6 +167,7 @@ const baseCards: Card[] = [
   {
     id: "mf-4",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Диагностика",
     statement: "Анализ кала на дисбактериоз имеет научное обоснование",
     isMyth: true,
@@ -170,6 +177,7 @@ const baseCards: Card[] = [
   {
     id: "mf-5",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Фармакология",
     statement: "Энтеросорбенты имеют доказанную эффективность при кишечных инфекциях",
     isMyth: true,
@@ -179,6 +187,7 @@ const baseCards: Card[] = [
   {
     id: "mf-6",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Фармакология",
     statement: "Желчегонные препараты не имеют клинического применения",
     isMyth: false,
@@ -190,6 +199,7 @@ const baseCards: Card[] = [
   {
     id: "bs-1",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     title: "Тройная схема эрадикации",
     instruction: "Выбери правильные компоненты тройной терапии первой линии:",
@@ -206,6 +216,7 @@ const baseCards: Card[] = [
   {
     id: "bs-2",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     title: "Квадротерапия с висмутом",
     instruction: "Выбери компоненты квадротерапии (вторая линия):",
@@ -224,6 +235,7 @@ const baseCards: Card[] = [
   {
     id: "bt-1",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     title: "Блиц: мифы ЖКТ",
     timeLimit: 30,
@@ -258,6 +270,7 @@ const baseCards: Card[] = [
   {
     id: "bt-2",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "Фармакология",
     title: "Блиц: препараты ЖКТ",
     timeLimit: 30,
@@ -294,6 +307,7 @@ const baseCards: Card[] = [
   {
     id: "fb-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     textBefore: "При хроническом панкреатите разрушается более",
     textAfter: "% паренхимы поджелудочной железы",
@@ -305,6 +319,7 @@ const baseCards: Card[] = [
   {
     id: "fb-2",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     textBefore: "Стандартная длительность тройной схемы эрадикации H. pylori составляет",
     textAfter: "дней",
@@ -315,6 +330,7 @@ const baseCards: Card[] = [
   {
     id: "fb-3",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     textBefore: "Хронический панкреатит развивается менее чем у",
     textAfter: "% злоупотребляющих алкоголем",
@@ -328,6 +344,7 @@ const baseCards: Card[] = [
   {
     id: "rf-1",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     scenario: "Пациент с изжогой. Что из этого -- КРАСНЫЙ ФЛАГ?",
     options: [
@@ -344,6 +361,7 @@ const baseCards: Card[] = [
   {
     id: "rf-2",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "Диарея",
     scenario: "Пациент с диареей 3 недели. Выберите тревожные симптомы:",
     options: [
@@ -362,6 +380,7 @@ const baseCards: Card[] = [
   {
     id: "cc-vzk-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "ВЗК",
     scenario:
       "Мужчина, 24 года. Кровянистая диарея до 8 раз в сутки, боли в левой подвздошной области, субфебрильная температура. Кальпротектин 1200 мкг/г. Колоноскопия: непрерывное воспаление от прямой кишки до селезёночного изгиба.",
@@ -393,6 +412,7 @@ const baseCards: Card[] = [
   {
     id: "cc-vzk-2",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "ВЗК",
     scenario:
       "Девушка, 22 года. Боли в правой подвздошной области, перианальный свищ, потеря веса 6 кг за 2 месяца. Колоноскопия: афтозные язвы в терминальном отделе подвздошной кишки и слепой кишке, здоровые участки между зонами поражения.",
@@ -424,6 +444,7 @@ const baseCards: Card[] = [
   {
     id: "cc-vzk-3",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "ВЗК",
     scenario:
       "Пациент с ЯК, левосторонний, среднетяжёлая атака. Получает месалазин 3 г/сут перорально. Через 2 недели -- незначительное улучшение, стул 5-6 раз в сутки с кровью.",
@@ -457,6 +478,7 @@ const baseCards: Card[] = [
   {
     id: "cc-celiac-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Целиакия",
     scenario:
       "Женщина, 32 года. Хроническая диарея, вздутие, железодефицитная анемия, рефрактерная к пероральному железу. ИМТ 19.",
@@ -490,6 +512,7 @@ const baseCards: Card[] = [
   {
     id: "cc-hep-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario:
       "Пациент, 40 лет. Случайная находка: HBsAg положительный. АЛТ в норме. HBV ДНК 1500 МЕ/мл. HBeAg отрицательный. Фиброз F0-F1 по эластометрии.",
@@ -521,6 +544,7 @@ const baseCards: Card[] = [
   {
     id: "cc-hep-2",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario:
       "Женщина, 45 лет. Хронический гепатит С, генотип 1b. Фиброз F2. Ранее не лечилась.",
@@ -554,6 +578,7 @@ const baseCards: Card[] = [
   {
     id: "cc-cirr-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario:
       "Мужчина, 58 лет, цирроз печени (Child-Pugh B). Увеличение живота, перкуторно -- свободная жидкость. Креатинин в норме.",
@@ -587,6 +612,7 @@ const baseCards: Card[] = [
   {
     id: "cc-gsd-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "ЖКБ",
     scenario:
       "Женщина, 48 лет. Случайная находка на УЗИ: конкремент 12 мм в желчном пузыре. Жалоб нет. Никогда не было приступов.",
@@ -620,6 +646,7 @@ const baseCards: Card[] = [
   {
     id: "cc-panc-2",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     scenario:
       "Женщина, 45 лет. Острая опоясывающая боль в животе после застолья. Амилаза крови 1200 Ед/л (норма до 100). Липаза 900 Ед/л.",
@@ -653,6 +680,7 @@ const baseCards: Card[] = [
   {
     id: "mf-vzk-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "ВЗК",
     statement: "Болезнь Крона может поражать любой отдел ЖКТ -- от рта до ануса",
     isMyth: false,
@@ -662,6 +690,7 @@ const baseCards: Card[] = [
   {
     id: "mf-vzk-2",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "ВЗК",
     statement: "Курение защищает от язвенного колита",
     isMyth: false,
@@ -671,6 +700,7 @@ const baseCards: Card[] = [
   {
     id: "mf-gastrit-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     statement: "Гастрит вызывает боль в эпигастрии",
     isMyth: true,
@@ -680,6 +710,7 @@ const baseCards: Card[] = [
   {
     id: "mf-gastrit-2",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     statement: "Острая пища вызывает гастрит и язву желудка",
     isMyth: true,
@@ -689,6 +720,7 @@ const baseCards: Card[] = [
   {
     id: "mf-dys-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     statement: "Дисбактериоз -- это заболевание, которое нужно лечить пробиотиками",
     isMyth: true,
@@ -698,6 +730,7 @@ const baseCards: Card[] = [
   {
     id: "mf-skin-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     statement: "Кожные заболевания вызываются проблемами с ЖКТ",
     isMyth: true,
@@ -707,6 +740,7 @@ const baseCards: Card[] = [
   {
     id: "mf-bilirubin-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     statement: "Перегиб желчного пузыря вызывает застой желчи и повышение билирубина",
     isMyth: true,
@@ -716,6 +750,7 @@ const baseCards: Card[] = [
   {
     id: "mf-bad-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Фармакология",
     statement: "БАДы безопасны, потому что содержат натуральные компоненты",
     isMyth: true,
@@ -725,6 +760,7 @@ const baseCards: Card[] = [
   {
     id: "mf-ipp-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Фармакология",
     statement: "Длительный приём ИПП повышает риск СИБР и пневмонии у пожилых",
     isMyth: false,
@@ -734,6 +770,7 @@ const baseCards: Card[] = [
   {
     id: "mf-celiac-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Целиакия",
     statement: "Целиакия -- это аллергия на глютен",
     isMyth: true,
@@ -743,6 +780,7 @@ const baseCards: Card[] = [
   {
     id: "mf-nafld-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     statement: "НАЖБП бывает только у людей с ожирением",
     isMyth: true,
@@ -754,6 +792,7 @@ const baseCards: Card[] = [
   {
     id: "bt-vzk-1",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "ВЗК",
     title: "Блиц: ВЗК",
     timeLimit: 30,
@@ -788,6 +827,7 @@ const baseCards: Card[] = [
   {
     id: "bt-hep-1",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     title: "Блиц: гепатология",
     timeLimit: 30,
@@ -822,6 +862,7 @@ const baseCards: Card[] = [
   {
     id: "bt-gerb-1",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     title: "Блиц: ГЭРБ и верхний ЖКТ",
     timeLimit: 30,
@@ -858,6 +899,7 @@ const baseCards: Card[] = [
   {
     id: "bs-vzk-1",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "ВЗК",
     title: "Терапия среднетяжёлого ЯК",
     instruction: "Выбери компоненты стандартной терапии среднетяжёлой атаки ЯК:",
@@ -874,6 +916,7 @@ const baseCards: Card[] = [
   {
     id: "bs-celiac-1",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "Целиакия",
     title: "Диагностика целиакии",
     instruction: "Выбери правильные этапы диагностики целиакии:",
@@ -890,6 +933,7 @@ const baseCards: Card[] = [
   {
     id: "bs-diag-1",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "Диагностика",
     title: "Обследование при хронической диарее",
     instruction: "Выбери обязательные анализы при хронической диарее:",
@@ -906,6 +950,7 @@ const baseCards: Card[] = [
   {
     id: "bs-cirr-1",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     title: "Скрининг при циррозе печени",
     instruction: "Выбери обязательные компоненты наблюдения при циррозе:",
@@ -924,6 +969,7 @@ const baseCards: Card[] = [
   {
     id: "fb-vzk-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "ВЗК",
     textBefore: "Кальпротектин кала > ",
     textAfter: " мкг/г указывает на органическое воспаление кишечника",
@@ -935,6 +981,7 @@ const baseCards: Card[] = [
   {
     id: "fb-hep-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     textBefore: "При НАЖБП для регрессии стеатогепатита необходимо снижение веса на",
     textAfter: "%",
@@ -946,6 +993,7 @@ const baseCards: Card[] = [
   {
     id: "fb-srk-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "СРК",
     textBefore: "При СРК основная доказанная диета называется Low",
     textAfter: "",
@@ -957,6 +1005,7 @@ const baseCards: Card[] = [
   {
     id: "fb-clostridium-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Инфекции",
     textBefore: "Препарат выбора при C. difficile --",
     textAfter: "перорально",
@@ -968,6 +1017,7 @@ const baseCards: Card[] = [
   {
     id: "fb-gerb-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     textBefore: "Осложнение длительной ГЭРБ -- кишечная метаплазия пищевода, называется пищевод",
     textAfter: "",
@@ -979,6 +1029,7 @@ const baseCards: Card[] = [
   {
     id: "fb-panc-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     textBefore: "Панкреатическая эластаза кала <",
     textAfter: "мкг/г подтверждает экзокринную недостаточность",
@@ -992,6 +1043,7 @@ const baseCards: Card[] = [
   {
     id: "rf-vzk-1",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "ВЗК",
     scenario: "Пациент 25 лет с хронической диареей. Что из этого -- КРАСНЫЙ ФЛАГ для ВЗК?",
     options: [
@@ -1008,6 +1060,7 @@ const baseCards: Card[] = [
   {
     id: "rf-gastrit-1",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     scenario: "Пациент с болью в эпигастрии. Выберите показания к ФГДС:",
     options: [
@@ -1024,6 +1077,7 @@ const baseCards: Card[] = [
   {
     id: "rf-cholestasis-1",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario: "Пациент с желтухой. Что требует СРОЧНОГО обследования?",
     options: [
@@ -1042,6 +1096,7 @@ const baseCards: Card[] = [
   {
     id: "cc-5",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario:
       "Пациентка, 55 лет, ИМТ 34. На УЗИ -- жировой гепатоз. АЛТ 68 Ед/л (норма до 40). Алкоголь не употребляет.",
@@ -1073,6 +1128,7 @@ const baseCards: Card[] = [
   {
     id: "cc-6",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Инфекции",
     scenario:
       "Пожилой пациент, 72 года. Высокая температура 39°C, водянистая диарея 10 раз в день, боли в животе. 2 недели назад завершил курс ципрофлоксацина по поводу пневмонии.",
@@ -1108,6 +1164,7 @@ const baseCards: Card[] = [
   {
     id: "cc-gsd-2",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "ЖКБ",
     scenario:
       "Мужчина, 55 лет. Острая боль в правом подреберье 6 часов, температура 38.2°C, положительный симптом Мёрфи. УЗИ: камень в шейке ЖП, утолщение стенки до 5 мм, перивезикальная жидкость.",
@@ -1141,6 +1198,7 @@ const baseCards: Card[] = [
   {
     id: "cc-sibr-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     scenario:
       "Пациент, 60 лет, сахарный диабет 2 типа. Вздутие живота, диарея, стеаторея. Ранее диагностирован СРК, но терапия неэффективна.",
@@ -1174,6 +1232,7 @@ const baseCards: Card[] = [
   {
     id: "cc-cholest-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario:
       "Женщина, 50 лет. Кожный зуд 3 месяца, иктеричность склер. ЩФ повышена в 4 раза, ГГТ в 6 раз, АЛТ -- в 1.5 раза. Билирубин 45 мкмоль/л. Антимитохондриальные антитела (AMA) положительные.",
@@ -1207,6 +1266,7 @@ const baseCards: Card[] = [
   {
     id: "mf-panc-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     statement: "Копрограмма позволяет оценить качество переваривания пищи",
     isMyth: true,
@@ -1216,6 +1276,7 @@ const baseCards: Card[] = [
   {
     id: "mf-hp-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     statement: "H. pylori передаётся через поцелуи и общую посуду",
     isMyth: false,
@@ -1225,6 +1286,7 @@ const baseCards: Card[] = [
   {
     id: "mf-hp-2",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     statement: "H. pylori нужно лечить только при язве, бессимптомное носительство не требует эрадикации",
     isMyth: true,
@@ -1234,6 +1296,7 @@ const baseCards: Card[] = [
   {
     id: "mf-lactose-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Диетология",
     statement: "При непереносимости лактозы нужно полностью исключить все молочные продукты",
     isMyth: true,
@@ -1243,6 +1306,7 @@ const baseCards: Card[] = [
   {
     id: "mf-ipp-2",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Фармакология",
     statement: "ИПП вызывают зависимость -- после отмены изжога усиливается",
     isMyth: false,
@@ -1252,6 +1316,7 @@ const baseCards: Card[] = [
   {
     id: "mf-entero-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Фармакология",
     statement: "Энтерол (S. boulardii) доказанно эффективен для профилактики антибиотик-ассоциированной диареи",
     isMyth: false,
@@ -1261,6 +1326,7 @@ const baseCards: Card[] = [
   {
     id: "mf-zhkt-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     statement: "ДЖВП (дискинезия желчевыводящих путей) -- реальный диагноз с доказательной базой",
     isMyth: true,
@@ -1272,6 +1338,7 @@ const baseCards: Card[] = [
   {
     id: "bt-panc-1",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     title: "Блиц: панкреатит",
     timeLimit: 30,
@@ -1306,6 +1373,7 @@ const baseCards: Card[] = [
   {
     id: "bt-gsd-1",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "ЖКБ",
     title: "Блиц: ЖКБ и холецистит",
     timeLimit: 30,
@@ -1340,6 +1408,7 @@ const baseCards: Card[] = [
   {
     id: "bt-diag-1",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "Диагностика",
     title: "Блиц: анализы и диагностика",
     timeLimit: 30,
@@ -1376,6 +1445,7 @@ const baseCards: Card[] = [
   {
     id: "bs-panc-1",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     title: "Лечение экзокринной недостаточности ПЖ",
     instruction: "Выбери правильные компоненты заместительной ферментной терапии:",
@@ -1392,6 +1462,7 @@ const baseCards: Card[] = [
   {
     id: "bs-cdiff-1",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "Инфекции",
     title: "Лечение C. difficile",
     instruction: "Выбери правильные компоненты терапии C. difficile:",
@@ -1408,6 +1479,7 @@ const baseCards: Card[] = [
   {
     id: "bs-gerb-1",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     title: "Немедикаментозная терапия ГЭРБ",
     instruction: "Выбери доказанные рекомендации при ГЭРБ:",
@@ -1424,6 +1496,7 @@ const baseCards: Card[] = [
   {
     id: "bs-nafld-1",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     title: "Лечение НАЖБП/МАСБП",
     instruction: "Выбери доказанные стратегии лечения НАЖБП:",
@@ -1442,6 +1515,7 @@ const baseCards: Card[] = [
   {
     id: "rf-panc-1",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     scenario: "Пациент с хронической болью в животе. Что указывает на хронический панкреатит?",
     options: [
@@ -1458,6 +1532,7 @@ const baseCards: Card[] = [
   {
     id: "rf-liver-1",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario: "Пациент с повышенными трансаминазами. Что требует срочной оценки?",
     options: [
@@ -1476,6 +1551,7 @@ const baseCards: Card[] = [
   {
     id: "fb-hp-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     textBefore: "H. pylori является канцерогеном",
     textAfter: "группы по классификации ВОЗ",
@@ -1487,6 +1563,7 @@ const baseCards: Card[] = [
   {
     id: "fb-cirr-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     textBefore: "Стартовая доза спиронолактона при асците цирротического генеза --",
     textAfter: "мг/сут",
@@ -1498,6 +1575,7 @@ const baseCards: Card[] = [
   {
     id: "fb-gastrit-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     textBefore: "Три причины истинного гастрита: H. pylori, НПВС и",
     textAfter: "гастрит",
@@ -1509,6 +1587,7 @@ const baseCards: Card[] = [
   {
     id: "fb-diag-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Диагностика",
     textBefore: "Диарея считается хронической при длительности более",
     textAfter: "недель",
@@ -1520,6 +1599,7 @@ const baseCards: Card[] = [
   {
     id: "fb-gsd-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "ЖКБ",
     textBefore: "Оптимальные сроки холецистэктомии при остром холецистите -- в первые",
     textAfter: "часа",
@@ -1533,6 +1613,7 @@ const baseCards: Card[] = [
   {
     id: "cc-hp-3",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     scenario:
       "Мужчина, 50 лет. Через 4 недели после эрадикации H. pylori (тройная схема 14 дней) нужно проверить эффективность лечения.",
@@ -1564,6 +1645,7 @@ const baseCards: Card[] = [
   {
     id: "cc-gerb-2",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     scenario:
       "Женщина, 35 лет. Хронический сухой кашель 6 месяцев, осиплость по утрам. Пульмонолог патологии не нашёл. Рентген лёгких в норме.",
@@ -1597,6 +1679,7 @@ const baseCards: Card[] = [
   {
     id: "mf-cirr-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     statement: "Цирроз печени -- необратимое состояние",
     isMyth: true,
@@ -1606,6 +1689,7 @@ const baseCards: Card[] = [
   {
     id: "mf-zhkt-2",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     statement: "Эрозии в желудке на ЭГДС = гастрит",
     isMyth: true,
@@ -1615,6 +1699,7 @@ const baseCards: Card[] = [
   {
     id: "mf-gerb-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     statement: "Щелочная минеральная вода нейтрализует кислоту и лечит ГЭРБ",
     isMyth: true,
@@ -1624,6 +1709,7 @@ const baseCards: Card[] = [
   {
     id: "mf-srk-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "СРК",
     statement: "СРК -- это «диагноз исключения»",
     isMyth: false,
@@ -1633,6 +1719,7 @@ const baseCards: Card[] = [
   {
     id: "mf-vitamin-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Диетология",
     statement: "Дефицит витаминов у здорового человека с нормальным питанием -- частое явление",
     isMyth: true,
@@ -1645,6 +1732,7 @@ const baseCards: Card[] = [
   {
     id: "cc-gastrit-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гастрит",
     scenario:
       "Пациент, 42 года. Дискомфорт в эпигастрии, вздутие. На ЭГДС -- эрозии антрального отдела. Биопсия не выполнена.",
@@ -1677,6 +1765,7 @@ const baseCards: Card[] = [
   {
     id: "cc-gastrit-2",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гастрит",
     scenario:
       "Пациент, 55 лет, курильщик. Диспепсия 3 месяца, потеря веса 4 кг. На ФГДС -- хронический гастрит. Быстрый уреазный тест -- H. pylori (+).",
@@ -1710,6 +1799,7 @@ const baseCards: Card[] = [
   {
     id: "cc-hp-4",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     scenario:
       "Пациент завершил 14-дневный курс тройной эрадикационной терапии (ИПП + амоксициллин + кларитромицин). Через 2 недели сдал кровь на антитела к H. pylori (IgG) -- положительный.",
@@ -1743,6 +1833,7 @@ const baseCards: Card[] = [
   {
     id: "cc-gerb-3",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     scenario:
       "Пациентка, 38 лет, ИМТ 34. Жалобы на длительный сухой кашель, осиплость голоса. Изжоги и отрыжки нет. Пульмонолог исключил астму.",
@@ -1777,6 +1868,7 @@ const baseCards: Card[] = [
   {
     id: "cc-gerb-4",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     scenario:
       "Пациент, 52 года. ГЭРБ в анамнезе 10 лет. ИПП принимает нерегулярно. На ЭГДС -- пищевод Баррета.",
@@ -1808,6 +1900,7 @@ const baseCards: Card[] = [
   {
     id: "cc-panc-3",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     scenario:
       "Пациент, 58 лет, длительный алкогольный анамнез. Похудел на 10 кг за полгода. Зловонный жирный стул. На УЗИ -- «диффузные изменения поджелудочной железы».",
@@ -1841,6 +1934,7 @@ const baseCards: Card[] = [
   {
     id: "cc-panc-4",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     scenario:
       "Пациент с подтверждённым хроническим панкреатитом. Внешнесекреторная недостаточность: стеаторея, потеря веса. Врач назначил Панкреатин 10 000 ЕД на приём.",
@@ -1877,6 +1971,7 @@ const baseCards: Card[] = [
   {
     id: "mf-gastrit-3",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гастрит",
     statement: "Столы по Певзнеру (диета №1, №5 и др.) -- современный метод лечения гастрита",
     isMyth: true,
@@ -1886,6 +1981,7 @@ const baseCards: Card[] = [
   {
     id: "mf-disbio-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     statement: "Анализ кала на дисбактериоз -- информативный метод оценки кишечной микрофлоры",
     isMyth: true,
@@ -1895,6 +1991,7 @@ const baseCards: Card[] = [
   {
     id: "mf-hepatoprotect-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Фармакология",
     statement: "Гепатопротекторы защищают печень от алкоголя и жирового гепатоза",
     isMyth: true,
@@ -1904,6 +2001,7 @@ const baseCards: Card[] = [
   {
     id: "mf-choleretic-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Фармакология",
     statement: "Желчегонные препараты -- важная часть лечения заболеваний ЖКТ",
     isMyth: true,
@@ -1913,6 +2011,7 @@ const baseCards: Card[] = [
   {
     id: "mf-enterosorbent-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Фармакология",
     statement: "Энтеросорбенты (Полисорб, Энтеросгель) эффективны при отравлениях и кишечных инфекциях",
     isMyth: true,
@@ -1922,6 +2021,7 @@ const baseCards: Card[] = [
   {
     id: "mf-kopro-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Диагностика",
     statement: "Копрограмма -- надёжный метод оценки качества переваривания пищи",
     isMyth: true,
@@ -1931,6 +2031,7 @@ const baseCards: Card[] = [
   {
     id: "mf-gallbend-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "ЖКБ",
     statement: "Перегиб желчного пузыря требует лечения или наблюдения",
     isMyth: true,
@@ -1940,6 +2041,7 @@ const baseCards: Card[] = [
   {
     id: "mf-dyskinesia-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "ЖКБ",
     statement: "Дискинезия желчевыводящих протоков -- обоснованный диагноз",
     isMyth: true,
@@ -1949,6 +2051,7 @@ const baseCards: Card[] = [
   {
     id: "mf-liver-pain-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     statement: "Боли «в области печени» после жирной пищи связаны с заболеванием печени",
     isMyth: true,
@@ -1958,6 +2061,7 @@ const baseCards: Card[] = [
   {
     id: "mf-hp-3",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     statement: "Анализ крови на антитела (IgG) к H. pylori подходит для контроля эрадикации",
     isMyth: true,
@@ -1967,6 +2071,7 @@ const baseCards: Card[] = [
   {
     id: "mf-gerb-2",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     statement: "Ментол и шоколад безопасны при ГЭРБ",
     isMyth: true,
@@ -1976,6 +2081,7 @@ const baseCards: Card[] = [
   {
     id: "mf-panc-2",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     statement: "Хронический панкреатит -- частое заболевание у пьющих людей",
     isMyth: true,
@@ -1985,6 +2091,7 @@ const baseCards: Card[] = [
   {
     id: "mf-gsd-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "ЖКБ",
     statement: "Камни в желчном пузыре всегда нужно удалять",
     isMyth: true,
@@ -1994,6 +2101,7 @@ const baseCards: Card[] = [
   {
     id: "mf-celiac-2",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Целиакия",
     statement: "Непереносимость глютена -- массовое явление (10-30% населения)",
     isMyth: true,
@@ -2006,6 +2114,7 @@ const baseCards: Card[] = [
   {
     id: "bt-gastrit-1",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "Гастрит",
     title: "Гастрит: правда или заблуждение",
     timeLimit: 30,
@@ -2040,6 +2149,7 @@ const baseCards: Card[] = [
   {
     id: "bt-pharm-1",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "Фармакология",
     title: "Мифы фармакологии в ГЭ",
     timeLimit: 30,
@@ -2074,6 +2184,7 @@ const baseCards: Card[] = [
   {
     id: "bt-gerb-2",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     title: "ГЭРБ: диагностика и лечение",
     timeLimit: 30,
@@ -2108,6 +2219,7 @@ const baseCards: Card[] = [
   {
     id: "bt-gsd-2",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "ЖКБ",
     title: "ЖКБ: мифы и факты",
     timeLimit: 30,
@@ -2145,6 +2257,7 @@ const baseCards: Card[] = [
   {
     id: "bs-hp-2",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     title: "Схема эрадикации H. pylori 1-й линии",
     instruction: "Выберите компоненты стандартной тройной терапии",
@@ -2161,6 +2274,7 @@ const baseCards: Card[] = [
   {
     id: "bs-hp-3",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     title: "Контроль эрадикации H. pylori",
     instruction: "Выберите методы контроля эффективности эрадикации",
@@ -2177,6 +2291,7 @@ const baseCards: Card[] = [
   {
     id: "bs-gerb-2",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     title: "Модификация образа жизни при ГЭРБ",
     instruction: "Выберите рекомендации, входящие в стандарт",
@@ -2193,6 +2308,7 @@ const baseCards: Card[] = [
   {
     id: "bs-diag-2",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "Диагностика",
     title: "Красные флаги при гастрите",
     instruction: "Выберите симптомы-красные флаги",
@@ -2209,6 +2325,7 @@ const baseCards: Card[] = [
   {
     id: "bs-diag-3",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "Диагностика",
     title: "Диагностика хронического панкреатита",
     instruction: "Выберите методы, подтверждающие хронический панкреатит",
@@ -2228,6 +2345,7 @@ const baseCards: Card[] = [
   {
     id: "fb-hp-2",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "H. pylori",
     textBefore: "Контроль эрадикации H. pylori проводится через",
     textAfter: "недели после окончания терапии",
@@ -2240,6 +2358,7 @@ const baseCards: Card[] = [
   {
     id: "fb-panc-2",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     textBefore: "Для подтверждения экзокринной недостаточности поджелудочной железы используется анализ кала на",
     textAfter: "",
@@ -2252,6 +2371,7 @@ const baseCards: Card[] = [
   {
     id: "fb-clostridium-2",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Инфекции",
     textBefore: "При подозрении на псевдомембранозный колит анализ кала исследуется на клостридиальные",
     textAfter: "А и В",
@@ -2264,6 +2384,7 @@ const baseCards: Card[] = [
   {
     id: "fb-gastrit-2",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Гастрит",
     textBefore: "Для исключения воспалительного процесса в кишечнике используется анализ кала на",
     textAfter: "",
@@ -2276,6 +2397,7 @@ const baseCards: Card[] = [
   {
     id: "fb-gerb-2",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     textBefore: "Осложнения длительной ГЭРБ: эзофагит, стриктура, рак пищевода и",
     textAfter: "",
@@ -2288,6 +2410,7 @@ const baseCards: Card[] = [
   {
     id: "fb-diag-2",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Диагностика",
     textBefore: "Анализ кала на скрытую кровь (FIT, FOBT Gold) умеет отличать",
     textAfter: "от настоящей крови",
@@ -2303,6 +2426,7 @@ const baseCards: Card[] = [
   {
     id: "rf-gerb-1",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "ГЭРБ",
     scenario:
       "Пациент 60 лет с длительной изжогой. Какие симптомы требуют обязательной ЭГДС?",
@@ -2320,6 +2444,7 @@ const baseCards: Card[] = [
   {
     id: "rf-cdiff-1",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "Инфекции",
     scenario:
       "Пожилой пациент после курса антибиотиков. Какие симптомы заставят заподозрить C. difficile?",
@@ -2337,6 +2462,7 @@ const baseCards: Card[] = [
   {
     id: "rf-gsd-1",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "ЖКБ",
     scenario:
       "У пациента выявлены полипы желчного пузыря. Какие признаки указывают на необходимость холецистэктомии?",
@@ -2356,6 +2482,7 @@ const baseCards: Card[] = [
   {
     id: "cc-gsd-3",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "ЖКБ",
     scenario:
       "Пациентка, 45 лет, ИМТ 38, 3 беременности. На УЗИ -- камень в желчном пузыре 12 мм. Жалоб нет.",
@@ -2387,6 +2514,7 @@ const baseCards: Card[] = [
   {
     id: "cc-nafld-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario:
       "Пациент, 52 года, ИМТ 33. АЛТ 65 Ед/л, АСТ 48 Ед/л. УЗИ: «жировой гепатоз». Хочет «полечить печень».",
@@ -2419,6 +2547,7 @@ const baseCards: Card[] = [
   {
     id: "cc-cirr-2",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario:
       "Пациент, 48 лет. Хронический гепатит С, генотип 1b. На эластографии F3 (выраженный фиброз). Врач говорит: «Фиброз необратим».",
@@ -2453,6 +2582,7 @@ const baseCards: Card[] = [
   {
     id: "cc-srk-2",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "СРК",
     scenario:
       "Пациентка, 32 года. Боли в животе, вздутие, чередование запоров и диареи 8 месяцев. Кальпротектин кала -- норма. Антитела к тТГ -- отрицательные.",
@@ -2484,6 +2614,7 @@ const baseCards: Card[] = [
   {
     id: "cc-srk-3",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "СРК",
     scenario:
       "У пациента с СРК с преобладанием диареи стандартная терапия (лоперамид, спазмолитики) недостаточно эффективна.",
@@ -2518,6 +2649,7 @@ const baseCards: Card[] = [
   {
     id: "fb-diet-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Диетология",
     textBefore: "Единственная диета с доказанной эффективностью при СРК --",
     textAfter: "",
@@ -2530,6 +2662,7 @@ const baseCards: Card[] = [
   {
     id: "fb-nafld-1",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     textBefore: "При НАЖБП рекомендуется",
     textAfter: "диета",
@@ -2542,6 +2675,7 @@ const baseCards: Card[] = [
   {
     id: "fb-cirr-2",
     type: "fill_blank",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     textBefore: "«Настоящий дисбактериоз» -- это",
     textAfter: "колит",
@@ -2557,6 +2691,7 @@ const baseCards: Card[] = [
   {
     id: "mf-fit-1",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Диагностика",
     statement: "Перед анализом кала на скрытую кровь (FIT) нужно исключить мясо из рациона",
     isMyth: true,
@@ -2566,6 +2701,7 @@ const baseCards: Card[] = [
   {
     id: "mf-panc-3",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Панкреатит",
     statement: "«Диффузные изменения поджелудочной железы» на УЗИ -- это хронический панкреатит",
     isMyth: true,
@@ -2575,6 +2711,7 @@ const baseCards: Card[] = [
   {
     id: "mf-diet-2",
     type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
     topic: "Диетология",
     statement: "Безглютеновая диета полезна всем, а не только при целиакии",
     isMyth: true,
@@ -2587,6 +2724,7 @@ const baseCards: Card[] = [
   {
     id: "cc-diarrhea-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Диарея",
     scenario:
       "Пациент, 28 лет. Острая водянистая диарея 2 дня, температура 37.5°С. Вернулся из отпуска на юге.",
@@ -2618,6 +2756,7 @@ const baseCards: Card[] = [
   {
     id: "cc-hep-3",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario:
       "Пациент, 35 лет. Случайно выявлен HBsAg (+), anti-HBc (+), HBeAg (-), HBV DNA < 2000 МЕ/мл, АЛТ в норме.",
@@ -2649,6 +2788,7 @@ const baseCards: Card[] = [
   {
     id: "cc-hep-4",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario:
       "Пациентка, 42 года. Обнаружены anti-HCV (+). ПЦР на HCV RNA -- положительная. Генотип 1b. Фиброз F2 по эластографии.",
@@ -2683,6 +2823,7 @@ const baseCards: Card[] = [
   {
     id: "bt-hep-2",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     title: "Гепатиты: ключевые факты",
     timeLimit: 30,
@@ -2720,6 +2861,7 @@ const baseCards: Card[] = [
   {
     id: "bs-diet-1",
     type: "build_scheme",
+    specialty: "Гастроэнтерология",
     topic: "Диетология",
     title: "Диеты с доказанной эффективностью в ГЭ",
     instruction: "Выберите диеты, имеющие научное обоснование",
@@ -2739,6 +2881,7 @@ const baseCards: Card[] = [
   {
     id: "rf-diarrhea-1",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "Диарея",
     scenario:
       "Пациент с острой диареей. Какие симптомы требуют госпитализации?",
@@ -2756,6 +2899,7 @@ const baseCards: Card[] = [
   {
     id: "rf-nafld-1",
     type: "red_flags",
+    specialty: "Гастроэнтерология",
     topic: "Гепатология",
     scenario:
       "Пациент с НАЖБП на УЗИ. Какие признаки указывают на прогрессирование в фиброз/цирроз?",
@@ -2776,6 +2920,7 @@ const baseCards: Card[] = [
   {
     id: "cc-diag-1",
     type: "clinical_case",
+    specialty: "Гастроэнтерология",
     topic: "Диагностика",
     scenario:
       "Пациент, 45 лет. Жалобы на боли в правом подреберье после жирной пищи. Врач предполагает «боль в печени».",
@@ -2811,6 +2956,7 @@ const baseCards: Card[] = [
   {
     id: "bt-myths-1",
     type: "blitz_test",
+    specialty: "Гастроэнтерология",
     topic: "Гастроэнтерология",
     title: "Развенчиваем мифы в ГЭ",
     timeLimit: 30,
@@ -2842,6 +2988,1031 @@ const baseCards: Card[] = [
       },
     ],
   },
-];
+  // === КЛИНИЧЕСКИЕ ЗАДАЧКИ ===
+  {
+    id: "cc-cdiff-1",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "C. difficile",
+    scenario:
+      "Женщина, 72 года. Водянистая диарея до 8 раз в день, боли в нижних отделах живота, температура 38.5°C. Неделю назад закончила курс клиндамицина по поводу пневмонии.",
+    question: "Приоритетное обследование?",
+    options: [
+      {
+        text: "Анализ кала на токсины C. difficile A и B",
+        isCorrect: true,
+        explanation:
+          "Клиника + недавняя АБ-терапия (клиндамицин — причина №1) — классическая картина псевдомембранозного колита. Диагностика — токсины A и B (ИФА).",
+      },
+      {
+        text: "Посев кала на дисбактериоз",
+        isCorrect: false,
+        explanation:
+          "Анализ на дисбактериоз не имеет клинического значения. Основная флора пристеночная и анаэробная, не культивируется.",
+      },
+      {
+        text: "Копрограмма",
+        isCorrect: false,
+        explanation:
+          "Копрограмма не поможет в диагностике C. difficile. Нужен специфический тест на токсины.",
+      },
+      {
+        text: "Назначить лоперамид и наблюдать",
+        isCorrect: false,
+        explanation:
+          "Лоперамид при C. difficile ПРОТИВОПОКАЗАН — замедление перистальтики усугубляет интоксикацию.",
+      },
+    ],
+  },
+  {
+    id: "cc-cdiff-2",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "C. difficile",
+    scenario:
+      "У пациента 68 лет подтверждён C. difficile (токсины A и B положительны). Течение средней тяжести. Какое лечение?",
+    question: "Препарат выбора?",
+    options: [
+      {
+        text: "Ванкомицин перорально 125 мг 4 раза в день 10 дней",
+        isCorrect: true,
+        explanation:
+          "Фидаксомицин — предпочтительный препарат первой линии по IDSA/SHEA 2021 (меньше рецидивов). Ванкомицин per os остаётся допустимой альтернативой при недоступности фидаксомицина. Именно перорально, не внутривенно!",
+      },
+      {
+        text: "Ванкомицин внутривенно",
+        isCorrect: false,
+        explanation:
+          "При C. difficile ванкомицин назначается ПЕРОРАЛЬНО — он должен действовать в просвете кишечника.",
+      },
+      {
+        text: "Пробиотики и диета",
+        isCorrect: false,
+        explanation:
+          "C. difficile — это не «дисбактериоз», а серьёзная инфекция, требующая антибиотикотерапии.",
+      },
+      {
+        text: "Лоперамид + смекта",
+        isCorrect: false,
+        explanation:
+          "Лоперамид при C. difficile ПРОТИВОПОКАЗАН — тормозит выведение токсинов.",
+      },
+    ],
+  },
+  {
+    id: "cc-cirr-ascit-1",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    scenario:
+      "Пациент 58 лет с циррозом печени (алкогольный генез). Асцит, отёки нижних конечностей. Натрий крови 134 ммоль/л.",
+    question: "Стартовая диуретическая терапия?",
+    options: [
+      {
+        text: "Спиронолактон + фуросемид в соотношении 5:2",
+        isCorrect: true,
+        explanation:
+          "Стандарт лечения асцита при циррозе — спиронолактон (верошпирон) 100 мг + фуросемид 40 мг. Соотношение 5:2 для баланса калия.",
+      },
+      {
+        text: "Только фуросемид в высоких дозах",
+        isCorrect: false,
+        explanation:
+          "Монотерапия фуросемидом приведёт к гипокалиемии. Необходим спиронолактон для сохранения калия.",
+      },
+      {
+        text: "Ограничение жидкости без диуретиков",
+        isCorrect: false,
+        explanation:
+          "Ограничение жидкости — вспомогательная мера, но без диуретиков асцит не контролируется.",
+      },
+      {
+        text: "Гидрохлортиазид",
+        isCorrect: false,
+        explanation:
+          "Тиазиды не являются стандартом лечения асцита при циррозе. Стандарт — спиронолактон + фуросемид.",
+      },
+    ],
+  },
+  {
+    id: "cc-cirr-3",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    scenario:
+      "Пациент с циррозом, спутанность сознания, дезориентация, «хлопающий» тремор. Аммиак крови повышен.",
+    question: "Препарат для лечения и профилактики энцефалопатии?",
+    options: [
+      {
+        text: "Лактулоза (Дюфалак)",
+        isCorrect: true,
+        explanation:
+          "Лактулоза подкисляет содержимое кишечника, переводя NH3 в невсасывающийся NH4+, предотвращая всасывание токсичного аммиака в кровь.",
+      },
+      {
+        text: "Гепатопротекторы (эссенциале)",
+        isCorrect: false,
+        explanation:
+          "«Гепатопротекторы» — несуществующая фармакологическая группа, не имеют доказанного эффекта.",
+      },
+      {
+        text: "Церебролизин внутривенно",
+        isCorrect: false,
+        explanation:
+          "Энцефалопатия при циррозе — следствие гипераммониемии, лечится снижением уровня аммиака, а не ноотропами.",
+      },
+      {
+        text: "Витамины группы B внутримышечно",
+        isCorrect: false,
+        explanation:
+          "Витамины B при печёночной энцефалопатии не показаны. Исключение — синдром Вернике-Корсакова (дефицит тиамина).",
+      },
+    ],
+  },
+  {
+    id: "cc-cirr-4",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    scenario:
+      "Пациент 55 лет с компенсированным циррозом (Child-Pugh A). Какой скрининг необходимо проводить регулярно?",
+    question: "Каждые 6 месяцев нужно делать:",
+    options: [
+      {
+        text: "УЗИ печени + альфа-фетопротеин + ЭГДС",
+        isCorrect: true,
+        explanation:
+          "Скрининг ГЦК (УЗИ + АФП) + оценка варикозных вен пищевода (ЭГДС с лигацией) — каждые 6-12 месяцев.",
+      },
+      {
+        text: "Только биохимия крови",
+        isCorrect: false,
+        explanation:
+          "Биохимия нужна, но без скрининга ГЦК и варикозных вен можно пропустить смертельные осложнения.",
+      },
+      {
+        text: "КТ с контрастом каждые 6 месяцев",
+        isCorrect: false,
+        explanation:
+          "КТ — не скрининговый метод. Стандарт — УЗИ + АФП. КТ/МРТ — при подозрении на ГЦК.",
+      },
+      {
+        text: "Скрининг не нужен при компенсированном циррозе",
+        isCorrect: false,
+        explanation:
+          "ГЦК может развиться на любой стадии цирроза. Скрининг обязателен для всех пациентов с циррозом.",
+      },
+    ],
+  },
+  {
+    id: "cc-diag-2",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "Диарея",
+    scenario:
+      "Женщина 35 лет, хроническая диарея 2 месяца. Вздутие, урчание после молочных продуктов. Без потери веса, без крови в стуле.",
+    question: "Какой первый диагностический шаг?",
+    options: [
+      {
+        text: "Исключить молочные продукты на 2 недели и оценить эффект",
+        isCorrect: true,
+        explanation:
+          "Клиника типична для непереносимости лактозы. Элиминационная диета — простой и информативный тест.",
+      },
+      {
+        text: "Колоноскопия",
+        isCorrect: false,
+        explanation:
+          "Нет красных флагов. Колоноскопия показана при крови в стуле, потере веса, возрасте > 50.",
+      },
+      {
+        text: "Анализ кала на дисбактериоз",
+        isCorrect: false,
+        explanation:
+          "Анализ не имеет клинического значения — основная микрофлора пристеночная и анаэробная.",
+      },
+      {
+        text: "Назначить пробиотики и ферменты",
+        isCorrect: false,
+        explanation:
+          "Без установления причины лечение неэффективно. Сначала — диагностика (элиминация лактозы).",
+      },
+    ],
+  },
+  {
+    id: "cc-diag-3",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "Диарея",
+    scenario:
+      "Пациент 45 лет, хроническая диарея 3 месяца, потеря веса 4 кг, тахикардия, потливость, непереносимость жары.",
+    question: "Какая причина диареи наиболее вероятна?",
+    options: [
+      {
+        text: "Тиреотоксикоз",
+        isCorrect: true,
+        explanation:
+          "Тахикардия + потеря веса + потливость + непереносимость жары — классическая картина тиреотоксикоза. Диарея — частый симптом.",
+      },
+      {
+        text: "СРК",
+        isCorrect: false,
+        explanation:
+          "СРК не вызывает потерю веса и тахикардию. Потеря веса — красный флаг, требующий исключения органической патологии.",
+      },
+      {
+        text: "Хронический панкреатит",
+        isCorrect: false,
+        explanation:
+          "При ХП характерна стеаторея, а не водянистая диарея. Тахикардия и потливость не типичны.",
+      },
+      {
+        text: "Дисбактериоз",
+        isCorrect: false,
+        explanation:
+          "«Дисбактериоз» — несуществующий диагноз в международной практике.",
+      },
+    ],
+  },
+  {
+    id: "cc-gastrit-3",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "Гастрит",
+    scenario:
+      "Пациент 40 лет, боли в эпигастрии. На ЭГДС — эрозии слизистой. Биопсия: без воспалительной инфильтрации.",
+    question: "Правильный диагноз?",
+    options: [
+      {
+        text: "Функциональная диспепсия / гастропатия",
+        isCorrect: true,
+        explanation:
+          "Эрозии БЕЗ воспаления на гистологии = гастропатия, НЕ гастрит. Боли — функциональная диспепсия (слизистая лишена нервных окончаний).",
+      },
+      {
+        text: "Хронический гастрит",
+        isCorrect: false,
+        explanation:
+          "Гастрит — это воспаление, подтверждённое ГИСТОЛОГИЧЕСКИ (инфильтрация нейтрофилами/лимфоцитами). Эрозии без воспаления — не гастрит.",
+      },
+      {
+        text: "Язвенная болезнь",
+        isCorrect: false,
+        explanation:
+          "Эрозии — это не язвы. Язва — дефект стенки глубже мышечной пластинки слизистой.",
+      },
+      {
+        text: "ГЭРБ",
+        isCorrect: false,
+        explanation:
+          "ГЭРБ поражает пищевод, а не желудок. Эрозии желудка — это гастропатия или гастрит (при наличии воспаления).",
+      },
+    ],
+  },
+  {
+    id: "cc-bad-1",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "Фармакология",
+    scenario:
+      "Пациентка 50 лет принимает варфарин после протезирования клапана. Самостоятельно начала принимать БАД с витамином K «для костей» и зверобой «от стресса».",
+    question: "Чем опасна эта комбинация?",
+    options: [
+      {
+        text: "Витамин K снижает эффект варфарина, зверобой ускоряет его разрушение — двойной риск тромбоза",
+        isCorrect: true,
+        explanation:
+          "Витамин K — антагонист варфарина. Зверобой индуцирует CYP450, ускоряя метаболизм варфарина. Оба снижают антикоагуляцию.",
+      },
+      {
+        text: "Усиление действия варфарина — риск кровотечений",
+        isCorrect: false,
+        explanation:
+          "Наоборот — оба фактора СНИЖАЮТ эффект варфарина, повышая риск тромбоза.",
+      },
+      {
+        text: "Никакой опасности, БАДы не влияют на лекарства",
+        isCorrect: false,
+        explanation:
+          "БАДы могут значительно влиять на метаболизм лекарств. Зверобой — один из мощнейших индукторов CYP450.",
+      },
+      {
+        text: "Опасен только зверобой, витамин K безвреден",
+        isCorrect: false,
+        explanation:
+          "Витамин K — прямой антагонист варфарина. Оба компонента опасны.",
+      },
+    ],
+  },
 
-export const demoCards: Card[] = [...baseCards, ...newCards];
+  // === МИФ ИЛИ ФАКТ ===
+  {
+    id: "mf-cdiff-1",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "C. difficile",
+    statement: "Лоперамид можно назначить для облегчения диареи при C. difficile",
+    isMyth: true,
+    explanation:
+      "Лоперамид при C. difficile ПРОТИВОПОКАЗАН — замедление перистальтики усугубляет интоксикацию и может привести к токсической дилатации кишки.",
+  },
+  {
+    id: "mf-cdiff-2",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "C. difficile",
+    statement: "Ванкомицин при C. difficile назначается перорально, а не внутривенно",
+    isMyth: false,
+    explanation:
+      "Именно перорально — ванкомицин должен действовать в просвете кишечника. В/в ванкомицин не создаёт терапевтических концентраций в ЖКТ.",
+  },
+  {
+    id: "mf-gastrit-4",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Гастрит",
+    statement: "Острый перец вреден при гастрите",
+    isMyth: true,
+    explanation:
+      "Капсаицин (острый перец) обладает цитопротективным действием на слизистую. Никакие диеты при гастрите не имеют большого смысла.",
+  },
+  {
+    id: "mf-gastrit-5",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Гастрит",
+    statement: "Биопсия слизистой желудка — болезненная процедура",
+    isMyth: true,
+    explanation:
+      "Слизистая оболочка лишена нервных окончаний. Болевые рецепторы — только в мышечном слое. Биопсия при ЭГДС безболезненна.",
+  },
+  {
+    id: "mf-gastrit-6",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Гастрит",
+    statement: "Эрозии на ЭГДС без гистологического подтверждения воспаления — это гастрит",
+    isMyth: true,
+    explanation:
+      "Эрозии без воспаления на биопсии = гастропатия, НЕ гастрит. Гастрит — гистологический диагноз (инфильтрация нейтрофилами/лимфоцитами).",
+  },
+  {
+    id: "mf-cirr-2",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    statement: "Гепатоцеллюлярная карцинома — 6-й по частоте рак в мире",
+    isMyth: false,
+    explanation:
+      "ГЦК — 6-й наиболее частый рак и 3-я причина смерти от рака в мире. Развивается на фоне цирроза. Скрининг каждые 6 месяцев.",
+  },
+  {
+    id: "mf-cirr-3",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    statement: "Кровотечение из варикозных вен пищевода — ведущая причина смерти при циррозе",
+    isMyth: false,
+    explanation:
+      "6-недельная смертность 10–20% (по данным EASL 2022). Это ведущая причина смерти при циррозе. Профилактика — пропранолол + лигация.",
+  },
+  {
+    id: "mf-bad-2",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Фармакология",
+    statement: "БАДы проходят такой же контроль качества, как лекарственные препараты",
+    isMyth: true,
+    explanation:
+      "Для регистрации БАД достаточно заявления производителя. Клинические исследования, контроль состава и побочных эффектов не требуются.",
+  },
+  {
+    id: "mf-bad-3",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Фармакология",
+    statement: "БАДы для потенции часто содержат незадекларированный силденафил",
+    isMyth: false,
+    explanation:
+      "FDA выявило 776 БАДов с незарегистрированными ингредиентами. 45% «добавок для потенции» содержали силденафил или аналоги.",
+  },
+  {
+    id: "mf-vitamin-2",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Фармакология",
+    statement: "Приём мультивитаминов полезен для здорового человека",
+    isMyth: true,
+    explanation:
+      "Крупнейшие исследования (JAMA 2024, 400 000 человек) показали, что мультивитамины не снижают смертность. Доказательств пользы для здоровых взрослых нет.",
+  },
+  {
+    id: "mf-vitamin-3",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Фармакология",
+    statement: "Витамин С ускоряет выздоровление от ОРВИ",
+    isMyth: true,
+    explanation:
+      "Витамин С при приёме после начала болезни не влияет на длительность ОРВИ. Регулярный профилактический приём незначительно (на ~1 день) сокращает симптомы, но клинически значимого эффекта нет (Cochrane 2013).",
+  },
+  {
+    id: "mf-vitamin-4",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Фармакология",
+    statement: "Витамины B6 и B12 в высоких дозах увеличивают риск рака лёгких у мужчин",
+    isMyth: false,
+    explanation:
+      "У курящих мужчин риск возрастает в 3-4 раза при приёме высоких доз (>20 мг B6, >55 мкг B12) в течение 10 лет. У некурящих и женщин связь не выявлена.",
+  },
+  {
+    id: "mf-diag-2",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Диагностика",
+    statement: "Главная причина хронической диареи — СРК (50% всех случаев)",
+    isMyth: false,
+    explanation:
+      "Синдром раздражённого кишечника — причина №1 хронической диареи, составляет до 50% всех случаев.",
+  },
+  {
+    id: "mf-diag-3",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Диагностика",
+    statement: "Дисбактериоз — официальный международный диагноз",
+    isMyth: true,
+    explanation:
+      "Дисбактериоз не признан международным диагнозом. Настоящие нарушения микрофлоры — СИБР и C. difficile-колит, которые лечатся антибиотиками.",
+  },
+
+  // === СОБЕРИ СХЕМУ ===
+  {
+    id: "bs-cdiff-2",
+    type: "build_scheme",
+    specialty: "Гастроэнтерология",
+    topic: "C. difficile",
+    title: "Тяжёлая форма C. difficile",
+    instruction: "Выберите компоненты лечения тяжёлой формы C. difficile",
+    components: [
+      { text: "Отмена причинного антибиотика", isCorrect: true },
+      { text: "Ванкомицин перорально", isCorrect: true },
+      { text: "Метронидазол внутривенно", isCorrect: true },
+      { text: "КТ органов брюшной полости", isCorrect: true },
+      { text: "Консультация хирурга", isCorrect: true },
+      { text: "Лоперамид для снижения частоты стула", isCorrect: false },
+      { text: "Пробиотики в высоких дозах", isCorrect: false },
+      { text: "Ванкомицин внутривенно", isCorrect: false },
+    ],
+    successMessage:
+      "Верно! При тяжёлой форме: отмена АБ + ванкомицин per os + метронидазол в/в + КТ + хирург.",
+  },
+  {
+    id: "bs-cirr-2",
+    type: "build_scheme",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    title: "Базовая терапия цирроза",
+    instruction: "Выберите компоненты базовой терапии компенсированного цирроза",
+    components: [
+      { text: "Спиронолактон + фуросемид (асцит)", isCorrect: true },
+      { text: "Пропранолол (профилактика кровотечений)", isCorrect: true },
+      { text: "Лактулоза (профилактика энцефалопатии)", isCorrect: true },
+      { text: "Скрининг ГЦК каждые 6 мес (УЗИ + АФП)", isCorrect: true },
+      { text: "ЭГДС каждые 6-12 мес (лигация вен)", isCorrect: true },
+      { text: "Гепатопротекторы (эссенциале)", isCorrect: false },
+      { text: "Желчегонные препараты", isCorrect: false },
+      { text: "Энтеросорбенты курсами", isCorrect: false },
+    ],
+    successMessage:
+      "Верно! Спиронолактон/фуросемид + пропранолол + лактулоза + скрининг ГЦК + ЭГДС.",
+  },
+  {
+    id: "bs-diarr-workup-1",
+    type: "build_scheme",
+    specialty: "Гастроэнтерология",
+    topic: "Диарея",
+    title: "Обследование при хронической диарее",
+    instruction: "Выберите обоснованные анализы при хронической диарее",
+    components: [
+      { text: "ОАК, СРБ, ферритин", isCorrect: true },
+      { text: "ТТГ (исключить тиреотоксикоз)", isCorrect: true },
+      { text: "Антитела к тканевой трансглютаминазе (целиакия)", isCorrect: true },
+      { text: "Панкреатическая эластаза", isCorrect: true },
+      { text: "Кальпротектин кала", isCorrect: true },
+      { text: "Кал на скрытую кровь (FIT)", isCorrect: true },
+      { text: "Анализ кала на дисбактериоз", isCorrect: false },
+      { text: "Копрограмма на «качество переваривания»", isCorrect: false },
+    ],
+    successMessage:
+      "Верно! ОАК + ТТГ + анти-тТГ + эластаза + кальпротектин + FIT. Дисбактериоз и копрограмма не информативны.",
+  },
+
+  // === БЛИЦ-ТЕСТЫ ===
+  {
+    id: "bt-cdiff-1",
+    type: "blitz_test",
+    specialty: "Гастроэнтерология",
+    topic: "C. difficile",
+    title: "Блиц: C. difficile",
+    timeLimit: 30,
+    questions: [
+      {
+        question: "Клиндамицин — антибиотик №1 по риску развития C. difficile",
+        correctAnswer: true,
+        explanation: "Клиндамицин — наиболее частая причина, но возможны и другие АБ.",
+      },
+      {
+        question: "При C. difficile лоперамид безопасен для облегчения симптомов",
+        correctAnswer: false,
+        explanation: "Лоперамид ПРОТИВОПОКАЗАН — риск токсической дилатации.",
+      },
+      {
+        question: "Ванкомицин при C. difficile назначается внутривенно",
+        correctAnswer: false,
+        explanation: "Перорально! В/в ванкомицин не попадает в просвет кишечника.",
+      },
+      {
+        question: "Длительный приём ИПП — фактор риска C. difficile",
+        correctAnswer: true,
+        explanation: "Подавление кислоты снижает барьер для C. difficile.",
+      },
+      {
+        question: "Беременные с диареей должны быть обследованы на C. difficile в ускоренном порядке",
+        correctAnswer: true,
+        explanation: "Беременные и родильницы — группа риска, обследование в приоритете.",
+      },
+    ],
+  },
+  {
+    id: "bt-cirr-1",
+    type: "blitz_test",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    title: "Блиц: цирроз печени",
+    timeLimit: 30,
+    questions: [
+      {
+        question: "Спонтанный бактериальный перитонит возникает у 20% пациентов с асцитом",
+        correctAnswer: true,
+        explanation: "СБП — 20% пациентов с асцитом, смертность 20%.",
+      },
+      {
+        question: "Пропранолол при циррозе назначается для снижения давления в портальной вене",
+        correctAnswer: true,
+        explanation: "Профилактика кровотечения из варикозных вен пищевода.",
+      },
+      {
+        question: "Лактулоза при энцефалопатии работает как слабительное",
+        correctAnswer: false,
+        explanation: "Основной механизм — подкисление кишечного содержимого с переводом NH3 в невсасывающийся NH4+. Слабительный эффект вторичен.",
+      },
+      {
+        question: "Золотой стандарт диагностики цирроза — УЗИ печени",
+        correctAnswer: false,
+        explanation: "Золотой стандарт — биопсия печени. Альтернатива — эластография (Фиброскан).",
+      },
+      {
+        question: "Рифаксимин при циррозе уничтожает флору, продуцирующую аммиак",
+        correctAnswer: true,
+        explanation: "Рифаксимин — альтернатива лактулозе для профилактики энцефалопатии.",
+      },
+    ],
+  },
+  {
+    id: "bt-bad-1",
+    type: "blitz_test",
+    specialty: "Гастроэнтерология",
+    topic: "Фармакология",
+    title: "Блиц: БАДы и мифы о витаминах",
+    timeLimit: 30,
+    questions: [
+      {
+        question: "БАДы обязаны проходить клинические исследования перед выходом на рынок",
+        correctAnswer: false,
+        explanation: "Достаточно заявления производителя о безопасности.",
+      },
+      {
+        question: "Зверобой может снизить эффективность антидепрессантов и контрацептивов",
+        correctAnswer: true,
+        explanation: "Зверобой — мощный индуктор CYP450, ускоряет разрушение многих лекарств.",
+      },
+      {
+        question: "Регулярный приём витаминов E и A снижает риск онкологии",
+        correctAnswer: false,
+        explanation: "Наоборот — достоверно ПОВЫШАЕТ риск онкологии.",
+      },
+      {
+        question: "20-40% лекарственных поражений печени в мире связаны с БАДами",
+        correctAnswer: true,
+        explanation: "БАДы — значимая причина гепатотоксичности во всём мире.",
+      },
+      {
+        question: "Витамин D — единственный витамин с обоснованной суплементацией для здоровых",
+        correctAnswer: true,
+        explanation: "Рекомендуется для профилактики остеопороза (дети, взрослые 65+).",
+      },
+    ],
+  },
+  {
+    id: "bt-diag-2",
+    type: "blitz_test",
+    specialty: "Гастроэнтерология",
+    topic: "Диарея",
+    title: "Блиц: хроническая диарея",
+    timeLimit: 30,
+    questions: [
+      {
+        question: "СРК — самая частая причина хронической диареи (50% случаев)",
+        correctAnswer: true,
+        explanation: "Синдром раздражённого кишечника — причина №1.",
+      },
+      {
+        question: "Метформин может вызывать хроническую диарею",
+        correctAnswer: true,
+        explanation: "Метформин, статины, НПВС — частые лекарственные причины диареи.",
+      },
+      {
+        question: "Хроническая диарея — это диарея дольше 2 недель",
+        correctAnswer: false,
+        explanation: "Хроническая — более 4 недель. 2-4 недели — подострая.",
+      },
+      {
+        question: "СИБР лечится пробиотиками",
+        correctAnswer: false,
+        explanation: "СИБР лечится рифаксимином (Альфа-Нормикс) 7-8 дней.",
+      },
+      {
+        question: "При хронической диарее нужно проверять ТТГ",
+        correctAnswer: true,
+        explanation: "Тиреотоксикоз — частая причина хронической диареи. ТТГ входит в стандарт обследования.",
+      },
+    ],
+  },
+
+  // === FILL BLANK ===
+  {
+    id: "fb-cdiff-1",
+    type: "fill_blank",
+    specialty: "Гастроэнтерология",
+    topic: "C. difficile",
+    textBefore: "Препарат выбора при C. difficile — ванкомицин",
+    textAfter: "мг 4 раза в день 10 дней",
+    correctAnswer: "125",
+    acceptableAnswers: ["125"],
+    explanation:
+      "Ванкомицин per os 125 мг 4 раза в день 10 дней — стандартная схема лечения C. difficile.",
+  },
+  {
+    id: "fb-cirr-spiro-1",
+    type: "fill_blank",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    textBefore: "Соотношение спиронолактона к фуросемиду при асците:",
+    textAfter: ": 2",
+    correctAnswer: "5",
+    acceptableAnswers: ["5"],
+    explanation:
+      "Стандарт — спиронолактон:фуросемид = 5:2 (например, 100 мг : 40 мг) для баланса калия.",
+  },
+  {
+    id: "fb-cirr-3",
+    type: "fill_blank",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    textBefore: "Смертность при кровотечении из варикозных вен пищевода составляет",
+    textAfter: "%",
+    correctAnswer: "15",
+    acceptableAnswers: ["10-20", "15-20", "10", "20"],
+    explanation:
+      "6-недельная смертность при кровотечении из варикозных вен пищевода — 10–20% (по данным EASL 2022), ведущая причина смерти при циррозе.",
+  },
+  {
+    id: "fb-bad-1",
+    type: "fill_blank",
+    specialty: "Гастроэнтерология",
+    topic: "Фармакология",
+    textBefore: "FDA выявило",
+    textAfter: "БАДов с незадекларированными лекарственными веществами (2007-2016)",
+    correctAnswer: "776",
+    acceptableAnswers: ["776"],
+    explanation:
+      "С 2007 по 2016 год FDA обнаружило 776 БАДов, содержащих незарегистрированные ингредиенты.",
+  },
+  {
+    id: "fb-diag-vitd-1",
+    type: "fill_blank",
+    specialty: "Гастроэнтерология",
+    topic: "Диагностика",
+    textBefore: "Дефицит витаминов у здоровых людей",
+    textAfter: "встречается в современном мире",
+    correctAnswer: "практически не",
+    acceptableAnswers: ["практически не", "не", "редко", "крайне редко"],
+    hint: "Два слова",
+    explanation:
+      "Доступность питания делает дефицит витаминов у здоровых людей экзотическим явлением. Исключение — витамин D.",
+  },
+
+  // === RED FLAGS ===
+  {
+    id: "rf-cdiff-severe-1",
+    type: "red_flags",
+    specialty: "Гастроэнтерология",
+    topic: "C. difficile",
+    scenario:
+      "Пациент 70 лет, диарея после курса антибиотиков. Какие признаки указывают на тяжёлое течение C. difficile?",
+    options: [
+      { text: "Лейкоцитоз > 15 000", isDanger: true },
+      { text: "Температура > 38.5°C", isDanger: true },
+      { text: "Признаки обезвоживания / шок", isDanger: true },
+      { text: "Вздутие живота (токсическая дилатация)", isDanger: true },
+      { text: "Жидкий стул 3-4 раза в день без лихорадки", isDanger: false },
+      { text: "Лёгкие спазмы в животе", isDanger: false },
+    ],
+    explanation:
+      "Тяжёлое течение: лейкоцитоз, высокая лихорадка, обезвоживание, токсическая дилатация → КТ + ванкомицин + метронидазол в/в + хирург.",
+  },
+  {
+    id: "rf-cirr-2",
+    type: "red_flags",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    scenario:
+      "Пациент с циррозом и асцитом. Какие признаки требуют экстренных действий?",
+    options: [
+      { text: "Рвота кровью (кровотечение из варикозных вен)", isDanger: true },
+      { text: "Спутанность сознания, «хлопающий» тремор (энцефалопатия)", isDanger: true },
+      { text: "Лихорадка + боль в животе (спонтанный перитонит)", isDanger: true },
+      { text: "Быстрое нарастание асцита", isDanger: true },
+      { text: "Умеренная слабость", isDanger: false },
+      { text: "Снижение аппетита", isDanger: false },
+    ],
+    explanation:
+      "Экстренные состояния при циррозе: варикозное кровотечение (30% смертность), энцефалопатия, СБП (20% смертность), напряжённый асцит.",
+  },
+  {
+    id: "rf-diag-2",
+    type: "red_flags",
+    specialty: "Гастроэнтерология",
+    topic: "Диарея",
+    scenario:
+      "Хроническая диарея. Какие признаки требуют углублённого обследования (колоноскопия)?",
+    options: [
+      { text: "Кровь в стуле или чёрный стул", isDanger: true },
+      { text: "Потеря веса > 5% за месяц", isDanger: true },
+      { text: "Начало после 50 лет", isDanger: true },
+      { text: "Диарея в ночное время (будит пациента)", isDanger: true },
+      { text: "Семейный анамнез рака кишечника", isDanger: true },
+      { text: "Вздутие после молочных продуктов", isDanger: false },
+    ],
+    explanation:
+      "Кровь, потеря веса, возраст > 50, ночная диарея, семейный онкоанамнез — показания к колоноскопии.",
+  },
+
+  // === Дополнительные клинические задачки ===
+  {
+    id: "cc-wilson-1",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    scenario:
+      "Пациент 30 лет, повышение трансаминаз, тремор рук, кольцо Кайзера-Флейшера на щелевой лампе. Семейный анамнез цирроза.",
+    question: "Наиболее вероятный диагноз?",
+    options: [
+      {
+        text: "Болезнь Вильсона-Коновалова (нарушение метаболизма меди)",
+        isCorrect: true,
+        explanation:
+          "Молодой возраст + кольца Кайзера-Флейшера + гепатит + неврологическая симптоматика — классика болезни Вильсона. Лечение — пеницилламин.",
+      },
+      {
+        text: "Алкогольный гепатит",
+        isCorrect: false,
+        explanation:
+          "Возраст 30 лет + кольца Кайзера-Флейшера не характерны для алкогольного поражения.",
+      },
+      {
+        text: "Аутоиммунный гепатит",
+        isCorrect: false,
+        explanation:
+          "Кольца Кайзера-Флейшера — патогномоничный признак болезни Вильсона, не аутоиммунного гепатита.",
+      },
+      {
+        text: "Гемохроматоз",
+        isCorrect: false,
+        explanation:
+          "Гемохроматоз — нарушение метаболизма ЖЕЛЕЗА. Кольца Кайзера-Флейшера — признак нарушения метаболизма МЕДИ.",
+      },
+    ],
+  },
+  {
+    id: "cc-pbc-1",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    scenario:
+      "Женщина 52 лет, кожный зуд, утомляемость. Щелочная фосфатаза повышена в 3 раза. Антимитохондриальные антитела положительны.",
+    question: "Диагноз и лечение?",
+    options: [
+      {
+        text: "Первичный билиарный холангит — урсодезоксихолевая кислота",
+        isCorrect: true,
+        explanation:
+          "Антимитохондриальные антитела + холестаз — диагностические критерии ПБХ. Лечение — УДХК (Урсосан).",
+      },
+      {
+        text: "ЖКБ — холецистэктомия",
+        isCorrect: false,
+        explanation:
+          "Антимитохондриальные антитела не характерны для ЖКБ. Это маркер аутоиммунного поражения.",
+      },
+      {
+        text: "НАЖБП — снижение веса",
+        isCorrect: false,
+        explanation:
+          "НАЖБП не сопровождается положительными антимитохондриальными антителами.",
+      },
+      {
+        text: "Лекарственный гепатит — отмена препарата",
+        isCorrect: false,
+        explanation:
+          "Антимитохондриальные антитела — специфический маркер ПБХ, не лекарственного поражения.",
+      },
+    ],
+  },
+  {
+    id: "cc-hemochrom-1",
+    type: "clinical_case",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    scenario:
+      "Мужчина 45 лет, бронзовый оттенок кожи, гепатомегалия, сахарный диабет. Ферритин 1500 нг/мл (норма до 300). Насыщение трансферрина 85%.",
+    question: "Диагноз и основной метод лечения?",
+    options: [
+      {
+        text: "Гемохроматоз — кровопускание (флеботомия)",
+        isCorrect: true,
+        explanation:
+          "Бронзовая кожа + диабет + гепатомегалия + высокий ферритин — «бронзовый диабет» (гемохроматоз). Лечение — регулярные флеботомии (кровопускания). Хелаторы железа (дефероксамин, деферазирокс) — только при противопоказаниях к флеботомии.",
+      },
+      {
+        text: "Болезнь Вильсона — пеницилламин",
+        isCorrect: false,
+        explanation:
+          "Вильсон — нарушение метаболизма МЕДИ, а не железа. Высокий ферритин указывает на железо.",
+      },
+      {
+        text: "НАЖБП — диета и физическая нагрузка",
+        isCorrect: false,
+        explanation:
+          "Бронзовая кожа и ферритин > 1000 — не характерны для НАЖБП.",
+      },
+      {
+        text: "Цирроз — спиронолактон",
+        isCorrect: false,
+        explanation:
+          "Цирроз может быть осложнением гемохроматоза, но лечение причины — флеботомия, а не диуретики.",
+      },
+    ],
+  },
+
+  // === Дополнительные мифы ===
+  {
+    id: "mf-immuno-1",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Фармакология",
+    statement: "Частые ОРВИ — признак иммунодефицита, требующий иммуностимуляторов",
+    isMyth: true,
+    explanation:
+      "Частые ОРВИ обычно НЕ являются иммунодефицитом. Признаки: > 2 бактериальных пневмоний/год, рецидивирующие абсцессы, рецидивирующие кандидозы. «Иммуностимуляторы» не имеют отношения к лечению.",
+  },
+  {
+    id: "mf-orvi-1",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Фармакология",
+    statement: "Симптомы ОРВИ вызываются не вирусом, а выбросом цитокинов самого организма",
+    isMyth: false,
+    explanation:
+      "Головная боль, температура, боль в горле — результат выброса интерлейкинов, простагландинов и интерферонов. НПВС блокируют их синтез.",
+  },
+  {
+    id: "mf-tonsil-1",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Диагностика",
+    statement: "Пищевые пробки в миндалинах = хронический тонзиллит",
+    isMyth: true,
+    explanation:
+      "Наличие пищевых пробок не говорит о хроническом тонзиллите. Этот диагноз часто ставится безосновательно.",
+  },
+  {
+    id: "mf-liver-pain-2",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "Гепатология",
+    statement: "Боли в правом подреберье после жирной пищи — это «болит печень»",
+    isMyth: true,
+    explanation:
+      "Печень болит только при значительном увеличении (фульминантный гепатит). Боли после жирной пищи связаны с желчным пузырём/сфинктером Одди.",
+  },
+  {
+    id: "mf-polyp-1",
+    type: "myth_or_fact",
+    specialty: "Гастроэнтерология",
+    topic: "ЖКБ",
+    statement: "Все полипы желчного пузыря нужно удалять хирургически",
+    isMyth: true,
+    explanation:
+      "Холестероловые — наблюдение. Маленькие аденоматозные — наблюдение (УЗИ). Холецистэктомия — только при крупных аденоматозных (риск малигнизации).",
+  },
+
+  // === Дополнительный блиц ===
+  {
+    id: "bt-gastrit-2",
+    type: "blitz_test",
+    specialty: "Гастроэнтерология",
+    topic: "Гастрит",
+    title: "Блиц: гастрит — правда и мифы",
+    timeLimit: 30,
+    questions: [
+      {
+        question: "Гастрит — это гистологический диагноз, требующий биопсии",
+        correctAnswer: true,
+        explanation: "Подтвердить воспаление можно только на биопсии.",
+      },
+      {
+        question: "Боль в эпигастрии — типичный симптом гастрита",
+        correctAnswer: false,
+        explanation: "Слизистая лишена нервных окончаний. Боль — функциональная диспепсия или язва.",
+      },
+      {
+        question: "Три основные причины гастрита: H. pylori, НПВС, аутоиммунный",
+        correctAnswer: true,
+        explanation: "Это три этиологических фактора гастрита.",
+      },
+      {
+        question: "Острый перец противопоказан при гастрите",
+        correctAnswer: false,
+        explanation: "Капсаицин обладает цитопротективным действием. Никакие диеты при гастрите не обоснованы.",
+      },
+      {
+        question: "Длительный приём ИПП повышает риск СИБР и пневмонии",
+        correctAnswer: true,
+        explanation: "Подавление кислоты повышает риск бактериального роста в кишечнике и пневмонии у пожилых.",
+      },
+    ],
+  },
+
+  // === Дополнительные fill blank ===
+  {
+    id: "fb-cirr-4",
+    type: "fill_blank",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    textBefore: "Скрининг гепатоцеллюлярной карциномы при циррозе: УЗИ печени +",
+    textAfter: "(анализ крови) каждые 6 месяцев",
+    correctAnswer: "АФП",
+    acceptableAnswers: ["АФП", "альфа-фетопротеин", "альфа фетопротеин", "альфафетопротеин"],
+    explanation:
+      "Альфа-фетопротеин (АФП) — онкомаркер ГЦК. Скрининг: УЗИ + АФП каждые 6 месяцев.",
+  },
+  {
+    id: "fb-wilson-1",
+    type: "fill_blank",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    textBefore: "Болезнь Вильсона-Коновалова — нарушение метаболизма",
+    textAfter: ". Лечение — пеницилламин (Купренил).",
+    correctAnswer: "меди",
+    acceptableAnswers: ["меди", "Cu", "copper"],
+    explanation:
+      "Болезнь Вильсона — наследственное нарушение метаболизма меди с накоплением в печени, мозге, роговице (кольца Кайзера-Флейшера).",
+  },
+  {
+    id: "fb-hemochrom-1",
+    type: "fill_blank",
+    specialty: "Гастроэнтерология",
+    topic: "Цирроз",
+    textBefore: "Гемохроматоз — наследственное нарушение метаболизма",
+    textAfter: ". Основное лечение — кровопускание (флеботомия).",
+    correctAnswer: "железа",
+    acceptableAnswers: ["железа", "Fe", "iron"],
+    explanation:
+      "Гемохроматоз — избыточное накопление железа. «Бронзовый диабет» — кожа + диабет + цирроз. Лечение — флеботомия + дефероксамин.",
+  },
+  {
+    id: "fb-gastrit-cascade-1",
+    type: "fill_blank",
+    specialty: "Гастроэнтерология",
+    topic: "Гастрит",
+    textBefore: "Хронический гастрит: воспаление → атрофия →",
+    textAfter: "→ риск рака желудка",
+    correctAnswer: "метаплазия",
+    acceptableAnswers: ["метаплазия", "кишечная метаплазия"],
+    explanation:
+      "Каскад Корреа: воспаление → атрофия → кишечная метаплазия → дисплазия → рак.",
+  },
+];
