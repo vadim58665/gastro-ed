@@ -86,6 +86,65 @@ const redFlagsSchema = baseCardSchema.extend({
   explanation: z.string().min(1),
 });
 
+const matchPairsSchema = baseCardSchema.extend({
+  type: z.literal("match_pairs"),
+  title: z.string().min(1),
+  instruction: z.string().min(1),
+  pairs: z
+    .array(
+      z.object({
+        left: z.string().min(1),
+        right: z.string().min(1),
+        explanation: z.string().min(1),
+      })
+    )
+    .min(3),
+});
+
+const priorityRankSchema = baseCardSchema.extend({
+  type: z.literal("priority_rank"),
+  context: z.string().min(1),
+  question: z.string().min(1),
+  items: z
+    .array(
+      z.object({
+        text: z.string().min(1),
+        explanation: z.string().min(1),
+      })
+    )
+    .min(3),
+  correctOrder: z.array(z.number()).min(3),
+});
+
+const causeChainSchema = baseCardSchema.extend({
+  type: z.literal("cause_chain"),
+  title: z.string().min(1),
+  steps: z
+    .array(
+      z.object({
+        text: z.string().min(1),
+        isBlank: z.boolean(),
+      })
+    )
+    .min(3),
+  options: z.array(z.string().min(1)).min(3),
+  explanation: z.string().min(1),
+});
+
+const doseCalcSchema = baseCardSchema.extend({
+  type: z.literal("dose_calc"),
+  scenario: z.string().min(1),
+  params: z
+    .array(z.object({ label: z.string().min(1), value: z.string().min(1) }))
+    .min(1),
+  question: z.string().min(1),
+  correctAnswer: z.number(),
+  tolerance: z.number().min(0).max(1),
+  unit: z.string().min(1),
+  formula: z.string().min(1),
+  explanation: z.string().min(1),
+});
+
 export const cardSchema = z.discriminatedUnion("type", [
   clinicalCaseSchema,
   mythOrFactSchema,
@@ -94,4 +153,8 @@ export const cardSchema = z.discriminatedUnion("type", [
   blitzTestSchema,
   fillBlankSchema,
   redFlagsSchema,
+  matchPairsSchema,
+  priorityRankSchema,
+  causeChainSchema,
+  doseCalcSchema,
 ]);

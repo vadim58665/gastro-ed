@@ -5,13 +5,21 @@ export type CardType =
   | "visual_quiz"
   | "blitz_test"
   | "fill_blank"
-  | "red_flags";
+  | "red_flags"
+  | "match_pairs"
+  | "priority_rank"
+  | "cause_chain"
+  | "dose_calc";
+
+/** 1=Студент, 2=Ординатор, 3=Врач, 4=Профессор, 5=Академик */
+export type DifficultyLevel = 1 | 2 | 3 | 4 | 5;
 
 export interface BaseCard {
   id: string;
   type: CardType;
   specialty: string;
   topic: string;
+  difficulty?: DifficultyLevel;
   sourceRef?: string;
   keyFact?: string;
   relatedCardIds?: string[];
@@ -78,6 +86,41 @@ export interface RedFlagsCard extends BaseCard {
   explanation: string;
 }
 
+export interface MatchPairsCard extends BaseCard {
+  type: "match_pairs";
+  title: string;
+  instruction: string;
+  pairs: { left: string; right: string; explanation: string }[];
+}
+
+export interface PriorityRankCard extends BaseCard {
+  type: "priority_rank";
+  context: string;
+  question: string;
+  items: { text: string; explanation: string }[];
+  correctOrder: number[];
+}
+
+export interface CauseChainCard extends BaseCard {
+  type: "cause_chain";
+  title: string;
+  steps: { text: string; isBlank: boolean }[];
+  options: string[];
+  explanation: string;
+}
+
+export interface DoseCalcCard extends BaseCard {
+  type: "dose_calc";
+  scenario: string;
+  params: { label: string; value: string }[];
+  question: string;
+  correctAnswer: number;
+  tolerance: number;
+  unit: string;
+  formula: string;
+  explanation: string;
+}
+
 export type Card =
   | ClinicalCaseCard
   | MythOrFactCard
@@ -85,4 +128,8 @@ export type Card =
   | VisualQuizCard
   | BlitzTestCard
   | FillBlankCard
-  | RedFlagsCard;
+  | RedFlagsCard
+  | MatchPairsCard
+  | PriorityRankCard
+  | CauseChainCard
+  | DoseCalcCard;

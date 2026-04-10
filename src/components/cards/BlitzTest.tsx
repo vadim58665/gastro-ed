@@ -74,13 +74,13 @@ export default function BlitzTest({ card, onAnswer }: Props) {
   return (
     <div className="flex flex-col gap-4 p-6">
       <div className="flex items-center justify-between">
-        <div className="text-xs font-bold text-cyan-500 uppercase tracking-widest">
+        <div className="text-xs font-bold text-muted uppercase tracking-widest">
           Блиц-тест
         </div>
         <div
           className={`text-sm font-mono font-bold px-3 py-1 rounded-full ${
             timeLeft <= 10 && started
-              ? "text-rose-600 bg-rose-50"
+              ? "text-danger bg-danger-light"
               : "text-foreground/50 bg-surface"
           }`}
         >
@@ -102,7 +102,7 @@ export default function BlitzTest({ card, onAnswer }: Props) {
                   ? "bg-danger"
                   : "bg-border"
                 : i === currentQ
-                ? "bg-cyan-500"
+                ? "bg-foreground"
                 : answers[i] !== null
                 ? "bg-foreground/30"
                 : "bg-border"
@@ -118,7 +118,7 @@ export default function BlitzTest({ card, onAnswer }: Props) {
           </div>
           <button
             onClick={() => setStarted(true)}
-            className="btn-press px-10 py-4 rounded-full bg-cyan-500 text-white font-bold text-lg hover:bg-cyan-600 transition-all"
+            className="btn-press px-10 py-4 rounded-full bg-foreground text-background font-bold text-lg hover:opacity-90 transition-all"
           >
             Начать
           </button>
@@ -127,7 +127,7 @@ export default function BlitzTest({ card, onAnswer }: Props) {
         <>
           <div className="w-full h-1 bg-border rounded-full overflow-hidden">
             <div
-              className="h-full bg-cyan-500 transition-all duration-1000 ease-linear"
+              className="h-full bg-foreground transition-all duration-1000 ease-linear"
               style={{ width: `${(timeLeft / card.timeLimit) * 100}%` }}
             />
           </div>
@@ -139,13 +139,13 @@ export default function BlitzTest({ card, onAnswer }: Props) {
           <div className="flex gap-4">
             <button
               onClick={() => handleAnswer(true)}
-              className="btn-press flex-1 py-5 rounded-full bg-emerald-50 border-2 border-emerald-200 text-emerald-600 font-bold text-lg hover:bg-emerald-100 transition-all"
+              className="btn-press flex-1 py-5 rounded-full bg-success-light border-2 border-success/30 text-success font-bold text-lg hover:opacity-90 transition-all"
             >
               ДА
             </button>
             <button
               onClick={() => handleAnswer(false)}
-              className="btn-press flex-1 py-5 rounded-full bg-rose-50 border-2 border-rose-200 text-rose-600 font-bold text-lg hover:bg-rose-100 transition-all"
+              className="btn-press flex-1 py-5 rounded-full bg-danger-light border-2 border-danger/30 text-danger font-bold text-lg hover:opacity-90 transition-all"
             >
               НЕТ
             </button>

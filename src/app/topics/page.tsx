@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
+import SoftListRow from "@/components/ui/SoftListRow";
 import { demoCards } from "@/data/cards";
 import { accreditationCategories, getCardCount, isSpecialtyAvailable } from "@/data/specialties";
 import { useReview } from "@/hooks/useReview";
@@ -89,26 +90,42 @@ export default function TopicsPage() {
           </h1>
         </div>
 
-        {/* "Общее" — all cards */}
+        {/* Morning Blitz */}
+        <div className="px-6 mb-3">
+          <SoftListRow
+            onClick={() => router.push("/morning-blitz")}
+            icon={
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M13 2 L4 14 h7 l-1 8 9-12 h-7 z" />
+              </svg>
+            }
+            title="Утренний блиц"
+            subtitle="5 случайных вопросов — бесплатно"
+            trailing={
+              <span className="text-2xl font-extralight text-foreground tracking-tight">5</span>
+            }
+          />
+        </div>
+
+        {/* "Общее"  - all cards */}
         <div className="px-6 mb-6">
-          <button
+          <SoftListRow
             onClick={handleAllClick}
-            className="w-full text-left px-5 py-4 rounded-2xl border border-primary/20 bg-primary-light/30 hover:border-primary/40 transition-all btn-press"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-base font-light text-foreground">
-                  Общее
-                </span>
-                <p className="text-[10px] text-muted mt-0.5 uppercase tracking-wider">
-                  Все карточки вперемешку
-                </p>
-              </div>
+            icon={
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="14" height="16" rx="2" />
+                <path d="M7 4v16" />
+                <path d="M20 7v13a1 1 0 0 1-1 1h-2" />
+              </svg>
+            }
+            title="Общее"
+            subtitle="Все карточки вперемешку"
+            trailing={
               <span className="text-2xl font-extralight text-foreground tracking-tight">
                 {totalCards}
               </span>
-            </div>
-          </button>
+            }
+          />
         </div>
 
         <div className="w-12 h-px bg-border mx-auto mb-6" />
@@ -130,72 +147,78 @@ export default function TopicsPage() {
                   const available = isSpecialtyAvailable(spec.name);
                   const isExpanded = expandedId === spec.id;
                   const topics = topicsBySpecialty.get(spec.id);
+                  const hasTopics = available && topics && topics.length > 0;
+                  const initial = spec.name.trim()[0]?.toUpperCase() ?? "";
 
                   return (
                     <div key={spec.id}>
-                      {/* Specialty row */}
-                      <div
-                        className={`w-full text-left px-5 py-4 rounded-2xl border transition-all ${
-                          available
-                            ? "bg-card border-border hover:border-primary/30 hover:shadow-sm"
-                            : "bg-surface border-border/50 opacity-60"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            {/* Accordion toggle */}
-                            {available && topics && topics.length > 0 ? (
-                              <button
-                                onClick={() => toggleAccordion(spec.id)}
-                                className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-muted hover:text-foreground transition-colors"
-                              >
-                                <svg
-                                  width="14"
-                                  height="14"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  className={`transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
-                                >
-                                  <polyline points="9 18 15 12 9 6" />
-                                </svg>
-                              </button>
-                            ) : (
-                              <div className="flex-shrink-0 w-6" />
-                            )}
-
-                            {/* Specialty name — clickable to go to feed */}
-                            {available ? (
-                              <button
-                                onClick={() => handleSpecialtyClick(spec.id)}
-                                className="text-base font-light text-foreground hover:text-primary transition-colors text-left truncate"
-                              >
-                                {spec.name}
-                              </button>
-                            ) : (
-                              <span className="text-base font-light text-muted truncate">
-                                {spec.name}
-                                <span className="ml-2 text-[10px] uppercase tracking-wider font-medium">
-                                  Скоро
-                                </span>
+                      <SoftListRow
+                        onClick={() => {
+                          if (!available) return;
+                          if (hasTopics) toggleAccordion(spec.id);
+                          else handleSpecialtyClick(spec.id);
+                        }}
+                        disabled={!available}
+                        icon={
+                          <span className="text-base font-semibold tracking-tight">
+                            {initial}
+                          </span>
+                        }
+                        title={
+                          <>
+                            {spec.name}
+                            {!available && (
+                              <span className="ml-2 text-[9px] uppercase tracking-wider text-muted font-medium">
+                                Скоро
                               </span>
                             )}
-                          </div>
-
-                          {count > 0 && (
-                            <span className="text-2xl font-extralight text-foreground tracking-tight ml-3">
-                              {count}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                          </>
+                        }
+                        subtitle={
+                          available && count > 0
+                            ? `${count} ${count === 1 ? "карточка" : "карточек"}`
+                            : undefined
+                        }
+                        trailing={
+                          hasTopics ? (
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.75"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className={`text-muted transition-transform duration-200 ${
+                                isExpanded ? "rotate-90" : ""
+                              }`}
+                            >
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          ) : available ? (
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.75"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="text-muted"
+                            >
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          ) : (
+                            <span />
+                          )
+                        }
+                      />
 
                       {/* Expanded topics */}
                       {isExpanded && topics && (
-                        <div className="ml-8 mt-1 mb-2 space-y-0.5">
+                        <div className="ml-16 mt-1 mb-2 space-y-0.5">
                           {topics.map((topic) => (
                             <button
                               key={topic.name}

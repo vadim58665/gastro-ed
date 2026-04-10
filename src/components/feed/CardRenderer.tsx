@@ -9,7 +9,12 @@ import BlitzTest from "@/components/cards/BlitzTest";
 import FillBlank from "@/components/cards/FillBlank";
 import RedFlags from "@/components/cards/RedFlags";
 import VisualQuiz from "@/components/cards/VisualQuiz";
+import MatchPairs from "@/components/cards/MatchPairs";
+import PriorityRank from "@/components/cards/PriorityRank";
+import CauseChain from "@/components/cards/CauseChain";
+import DoseCalc from "@/components/cards/DoseCalc";
 import MnemonicHint from "@/components/ui/MnemonicHint";
+import ContextualTip from "@/components/medmind/ContextualTip";
 
 interface Props {
   card: Card;
@@ -41,6 +46,18 @@ export default function CardRenderer({ card, onAnswer, cardHistory }: Props) {
     case "visual_quiz":
       content = <VisualQuiz card={card} onAnswer={onAnswer} />;
       break;
+    case "match_pairs":
+      content = <MatchPairs card={card} onAnswer={onAnswer} />;
+      break;
+    case "priority_rank":
+      content = <PriorityRank card={card} onAnswer={onAnswer} />;
+      break;
+    case "cause_chain":
+      content = <CauseChain card={card} onAnswer={onAnswer} />;
+      break;
+    case "dose_calc":
+      content = <DoseCalc card={card} onAnswer={onAnswer} />;
+      break;
   }
 
   return (
@@ -50,6 +67,11 @@ export default function CardRenderer({ card, onAnswer, cardHistory }: Props) {
         <MnemonicHint
           cardId={card.id}
           keyFact={card.keyFact}
+          cardHistory={cardHistory}
+        />
+        <ContextualTip
+          cardId={card.id}
+          topic={card.topic}
           cardHistory={cardHistory}
         />
       </div>

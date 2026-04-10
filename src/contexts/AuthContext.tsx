@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { User } from "@supabase/supabase-js";
+import posthog from "posthog-js";
 import { getSupabase } from "@/lib/supabase/client";
 import { fullSync } from "@/lib/supabase/sync";
 
@@ -49,7 +50,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(newUser);
 
       if (event === "SIGNED_IN" && newUser) {
+        if (posthog.__loaded) {
+          posthog.identify(newUser.id, { email: newUser.email });
+        }
         fullSync(newUser.id).catch(console.error);
+      }
+      if (event === "SIGNED_OUT") {
+        if (posthog.__loaded) {
+          posthog.reset();
+        }
       }
     });
 

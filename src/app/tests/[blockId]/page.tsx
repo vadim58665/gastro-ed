@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import QuestionView from "@/components/accreditation/QuestionView";
+import TestModeSelector from "@/components/tests/TestModeSelector";
+import ExamTimer from "@/components/tests/ExamTimer";
+import BlockResults from "@/components/tests/BlockResults";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
 import { useAccreditation } from "@/hooks/useAccreditation";
+import { useTestMode, type TestMode } from "@/hooks/useTestMode";
 import { getBlockQuestions } from "@/data/accreditation/index";
-
-type Mode = "learn" | "test" | "exam";
 
 export default function BlockPage() {
   const params = useParams();
@@ -20,57 +22,47 @@ export default function BlockPage() {
   const { progress, markQuestionLearned, recordMistake } =
     useAccreditation(specialtyId);
 
-  const [mode, setMode] = useState<Mode>("learn");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [finished, setFinished] = useState(false);
-
-  const questions = useMemo(
+  const allQuestions = useMemo(
     () => getBlockQuestions(specialtyId, blockNumber),
     [specialtyId, blockNumber]
   );
 
-  const blockProgress = progress.blocks.find(
-    (b) => b.blockNumber === blockNumber
+  const testMode = useTestMode();
+
+  const handleSelectMode = useCallback(
+    (mode: TestMode) => {
+      testMode.startTest(allQuestions, progress.mistakes, mode);
+    },
+    [allQuestions, progress.mistakes, testMode]
   );
 
   const handleAnswer = useCallback(
-    (isCorrect: boolean) => {
-      const q = questions[currentIndex];
+    (isCorrect: boolean, selectedIndex: number) => {
+      const q = testMode.questions[testMode.currentIndex];
       if (!q) return;
+      testMode.submitAnswer(q.id, selectedIndex, isCorrect);
       if (isCorrect) {
-        setCorrectCount((c) => c + 1);
         markQuestionLearned(blockNumber, q.id);
       } else {
         recordMistake(q.id);
       }
     },
-    [currentIndex, questions, blockNumber, markQuestionLearned, recordMistake]
+    [testMode, blockNumber, markQuestionLearned, recordMistake]
   );
 
-  const handleNext = useCallback(() => {
-    if (currentIndex + 1 >= questions.length) {
-      setFinished(true);
-    } else {
-      setCurrentIndex((i) => i + 1);
-    }
-  }, [currentIndex, questions.length]);
-
-  const restart = () => {
-    setCurrentIndex(0);
-    setCorrectCount(0);
-    setFinished(false);
-  };
+  const handleReviewMistakes = useCallback(() => {
+    testMode.startTest(allQuestions, progress.mistakes, "mistakes");
+  }, [allQuestions, progress.mistakes, testMode]);
 
   if (!activeSpecialty || isNaN(blockNumber)) {
     router.push("/tests");
     return null;
   }
 
-  if (questions.length === 0) {
+  if (allQuestions.length === 0) {
     return (
       <div className="h-screen flex flex-col">
-        <TopBar />
+        <TopBar showBack />
         <main className="flex-1 pt-20 pb-20 flex flex-col items-center justify-center">
           <p className="text-sm text-muted">Вопросы не найдены</p>
           <button
@@ -85,113 +77,115 @@ export default function BlockPage() {
     );
   }
 
-  if (finished) {
-    const pct = Math.round((correctCount / questions.length) * 100);
+  // Mode selection screen
+  if (!testMode.mode) {
     return (
       <div className="h-screen flex flex-col">
-        <TopBar />
-        <main className="flex-1 pt-20 pb-20 flex flex-col items-center justify-center px-6">
-          <div className="text-center">
-            <div
-              className={`text-7xl font-extralight tracking-tight leading-none mb-2 ${pct >= 70 ? "text-emerald-600" : "text-rose-500"}`}
-            >
-              {pct}%
-            </div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-1">
-              {correctCount} из {questions.length} правильно
+        <TopBar showBack />
+        <main className="flex-1 pt-20 pb-20 overflow-y-auto">
+          <div className="text-center mb-2 px-6 pt-4">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-muted font-semibold">
+              Блок
             </p>
-            <div className="w-12 h-px bg-border mx-auto my-8" />
-            <div
-              className={`inline-block px-4 py-2 rounded-xl text-sm font-medium mb-8 ${pct >= 70 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600"}`}
-            >
-              {pct >= 70 ? "Отлично" : "Нужно повторить"}
-            </div>
-            <div className="space-y-3">
-              <button
-                onClick={restart}
-                className="block w-full py-3 text-xs uppercase tracking-[0.15em] font-semibold text-primary hover:text-primary/80 transition-colors"
-              >
-                Пройти ещё раз
-              </button>
-              <button
-                onClick={() => router.push("/tests")}
-                className="block w-full py-3 text-xs uppercase tracking-[0.15em] font-semibold text-muted hover:text-foreground transition-colors"
-              >
-                Назад к блокам
-              </button>
-            </div>
+            <p className="text-5xl font-extralight text-foreground tracking-tight leading-none mt-2 tabular-nums">
+              {blockNumber}
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-muted mt-3 font-medium">
+              {allQuestions.length} вопросов
+            </p>
           </div>
+          <TestModeSelector
+            onSelect={handleSelectMode}
+            mistakeCount={progress.mistakes.length}
+          />
         </main>
         <BottomNav />
       </div>
     );
   }
 
-  const current = questions[currentIndex];
-  const remaining = questions.length - currentIndex;
+  // Results screen
+  if (testMode.finished) {
+    return (
+      <div className="h-screen flex flex-col">
+        <TopBar showBack />
+        <main className="flex-1 pt-20 pb-20 overflow-y-auto">
+          <BlockResults
+            questions={testMode.questions}
+            answers={testMode.answers}
+            onRestart={() => handleSelectMode(testMode.mode!)}
+            onBack={() => testMode.reset()}
+            onReviewMistakes={
+              testMode.answers.some((a) => !a.isCorrect)
+                ? handleReviewMistakes
+                : undefined
+            }
+          />
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // Question screen
+  const current = testMode.questions[testMode.currentIndex];
+  const questionMode = testMode.config?.showAnswersImmediately
+    ? "test"
+    : "exam";
+  const existingAnswer = testMode.answers.find((a) => a.questionId === current.id);
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar />
+      <TopBar showBack />
       <main className="flex-1 pt-20 pb-20 overflow-y-auto">
-        {/* Заголовок */}
-        <div className="px-6 pt-4 pb-2 text-center">
-          <p className="text-xs uppercase tracking-[0.25em] text-muted font-medium mb-1">
-            Блок {blockNumber}
-          </p>
-          <div className="text-2xl font-extralight text-foreground tracking-tight leading-none">
-            {currentIndex + 1}{" "}
-            <span className="text-muted">/ {questions.length}</span>
+        {/* Header */}
+        <div className="px-6 pt-2 pb-2">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs uppercase tracking-[0.25em] text-muted font-medium">
+              Блок {blockNumber}
+            </p>
+            {testMode.timeRemaining !== null && (
+              <ExamTimer seconds={testMode.timeRemaining} />
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="text-2xl font-extralight text-foreground tracking-tight leading-none">
+              {testMode.currentIndex + 1}{" "}
+              <span className="text-muted">/ {testMode.questions.length}</span>
+            </div>
+            <button
+              onClick={testMode.finishTest}
+              className="text-[10px] uppercase tracking-widest text-muted hover:text-foreground transition-colors"
+            >
+              Завершить
+            </button>
           </div>
         </div>
 
-        {/* Режимы */}
-        <div className="flex justify-center mb-4">
-          <div className="flex bg-surface rounded-xl p-0.5">
-            {(["learn", "test", "exam"] as Mode[]).map((m) => (
-              <button
-                key={m}
-                onClick={() => {
-                  setMode(m);
-                  restart();
-                }}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold uppercase tracking-wider transition-all ${
-                  mode === m
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted hover:text-foreground"
-                }`}
-              >
-                {m === "learn"
-                  ? "Изучать"
-                  : m === "test"
-                    ? "Тренировка"
-                    : "Зачёт"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Прогресс-бар */}
+        {/* Progress bar */}
         <div className="px-6 mb-4">
           <div className="w-full h-1 bg-border rounded-full overflow-hidden">
             <div
               className="h-full bg-primary rounded-full transition-all"
               style={{
-                width: `${Math.round(((currentIndex + 1) / questions.length) * 100)}%`,
+                width: `${Math.round(((testMode.currentIndex + 1) / testMode.questions.length) * 100)}%`,
               }}
             />
           </div>
         </div>
 
-        {/* Вопрос */}
+        {/* Question */}
         <div className="px-3">
           <div className="w-full max-w-lg mx-auto bg-card rounded-3xl border border-border card-shadow">
             <QuestionView
-              key={`${current.id}-${mode}`}
+              key={`${current.id}-${testMode.mode}-${testMode.currentIndex}`}
               question={current}
-              mode={mode}
+              mode={questionMode}
               onAnswer={handleAnswer}
-              onNext={handleNext}
+              onNext={testMode.nextQuestion}
+              onPrevious={testMode.previousQuestion}
+              canGoPrevious={testMode.currentIndex > 0}
+              existingSelectedIndex={existingAnswer?.selectedIndex ?? null}
             />
           </div>
         </div>

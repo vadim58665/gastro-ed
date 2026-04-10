@@ -54,7 +54,7 @@ export default function WelcomePage() {
           <h1 className="text-4xl font-extralight text-foreground tracking-tight mb-3">
             GastroEd
           </h1>
-          <div className="w-12 h-px bg-border mx-auto mb-4" />
+          <div className="w-16 divider-soft mx-auto mb-4" />
           <p className="text-sm text-muted font-light leading-relaxed">
             Подготовка к аккредитации и&nbsp;непрерывное
             медицинское образование
@@ -93,7 +93,7 @@ export default function WelcomePage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
                 required
-                className="w-full px-4 py-3.5 bg-card border border-border rounded-2xl text-base font-light text-foreground placeholder:text-muted/60 focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 transition-all"
+                className="input-refined w-full px-4 py-3.5 rounded-2xl text-base font-light text-foreground placeholder:text-muted/60"
               />
             </div>
 
@@ -104,7 +104,7 @@ export default function WelcomePage() {
             <button
               type="submit"
               disabled={submitting || !email}
-              className="w-full py-3.5 bg-foreground text-background rounded-2xl text-sm font-medium tracking-wide hover:opacity-90 transition-opacity disabled:opacity-40"
+              className="btn-raised-dark w-full py-3.5 text-background rounded-2xl text-sm font-medium tracking-wide disabled:opacity-40"
             >
               {submitting ? "Отправка..." : "Войти"}
             </button>

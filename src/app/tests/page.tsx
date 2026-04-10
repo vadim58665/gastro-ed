@@ -4,6 +4,10 @@ import { useMemo } from "react";
 import Link from "next/link";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
+import MagicCard from "@/components/ui/MagicCard";
+import NumberTicker from "@/components/ui/NumberTicker";
+import GradientRing from "@/components/ui/GradientRing";
+import SoftListRow from "@/components/ui/SoftListRow";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
 import { useAccreditation } from "@/hooks/useAccreditation";
 import {
@@ -48,36 +52,32 @@ function DirectoryView() {
                 {category.specialties.map((spec) => {
                   const qCount = getTotalQuestionCount(spec.id);
                   const hasQuestions = qCount > 0;
+                  const initial = spec.name.trim()[0]?.toUpperCase() ?? "";
 
                   return (
-                    <button
+                    <SoftListRow
                       key={spec.id}
                       onClick={() => handleSelect(spec.id, hasQuestions)}
                       disabled={!hasQuestions}
-                      className={`w-full text-left px-5 py-4 rounded-2xl border transition-all ${
-                        hasQuestions
-                          ? "bg-card border-border hover:border-primary/30 hover:shadow-sm btn-press"
-                          : "bg-surface border-border/50 opacity-60 cursor-default"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className={`text-base font-light ${hasQuestions ? "text-foreground" : "text-muted"}`}>
-                            {spec.name}
-                          </span>
+                      icon={
+                        <span className="text-base font-semibold tracking-tight">
+                          {initial}
+                        </span>
+                      }
+                      title={
+                        <>
+                          {spec.name}
                           {!hasQuestions && (
-                            <span className="ml-2 text-[10px] uppercase tracking-wider text-muted font-medium">
+                            <span className="ml-2 text-[9px] uppercase tracking-wider text-muted font-medium">
                               Скоро
                             </span>
                           )}
-                        </div>
-                        {qCount > 0 && (
-                          <span className="text-xs text-muted">
-                            {qCount} вопросов
-                          </span>
-                        )}
-                      </div>
-                    </button>
+                        </>
+                      }
+                      subtitle={
+                        hasQuestions ? `${qCount} вопросов` : undefined
+                      }
+                    />
                   );
                 })}
               </div>
@@ -150,27 +150,37 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
           </h1>
         </div>
 
-        <div className="text-center mb-8">
-          <div className="text-5xl font-extralight text-foreground tracking-tight leading-none">
-            {totalLearned}
-          </div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted mt-2 font-medium">
-            из {questions.length} изучено
-          </p>
-          <div className="w-full max-w-xs mx-auto mt-3">
-            <div className="w-full h-1 bg-border rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full transition-all"
-                style={{
-                  width: `${Math.round((totalLearned / questions.length) * 100)}%`,
-                }}
-              />
+        <div className="px-6 mb-8">
+          <MagicCard
+            className="rounded-3xl"
+            gradientFrom="#6366f1"
+            gradientTo="#a855f7"
+            spotlightColor="rgba(99, 102, 241, 0.14)"
+          >
+            <div className="px-7 py-8 text-center">
+              <div className="text-6xl font-extralight aurora-text tracking-tight leading-none">
+                <NumberTicker value={totalLearned} />
+              </div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-muted mt-3 font-medium">
+                из {questions.length} вопросов изучено
+              </p>
+              <div className="w-full max-w-xs mx-auto mt-5">
+                <div className="w-full h-1.5 bg-border/70 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${Math.round((totalLearned / questions.length) * 100)}%`,
+                      background: "linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)",
+                      boxShadow: "0 0 12px rgba(168, 85, 247, 0.5)",
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="w-12 h-px bg-border mx-auto mt-6" />
+          </MagicCard>
         </div>
 
-        <div className="px-6 space-y-2">
+        <div className="px-6 space-y-3">
           {blocks.map((block) => {
             const pct =
               block.total > 0
@@ -180,25 +190,26 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
               <Link
                 key={block.number}
                 href={`/tests/${block.number}`}
-                className="block bg-card rounded-2xl border border-border px-5 py-4 hover:bg-surface transition-colors btn-press"
+                className="block btn-press"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-base font-light text-foreground">
-                    Блок {block.number}
-                  </span>
-                  <span className="text-xs text-muted">
-                    {block.total} вопросов
-                  </span>
-                </div>
-                <div className="w-full h-1 bg-border rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <p className="text-[10px] text-muted mt-1">
-                  {block.learned} / {block.total} изучено
-                </p>
+                <MagicCard className="rounded-2xl" gradientFrom="#6366f1" gradientTo="#a855f7">
+                  <div className="flex items-center gap-5 px-5 py-4">
+                    <GradientRing value={pct} size={56} thickness={4} label={`${pct}%`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between mb-1.5">
+                        <span className="text-base font-light text-foreground">
+                          Блок {block.number}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-widest text-muted">
+                          {block.total} вопросов
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted">
+                        {block.learned} / {block.total} изучено
+                      </p>
+                    </div>
+                  </div>
+                </MagicCard>
               </Link>
             );
           })}

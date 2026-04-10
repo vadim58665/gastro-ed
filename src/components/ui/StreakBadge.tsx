@@ -1,28 +1,66 @@
 "use client";
 
 import { useGamification } from "@/hooks/useGamification";
-import LevelBadge from "./LevelBadge";
+import { getLevelForXp } from "@/data/levels";
 import ProgressRing from "./ProgressRing";
 
 export default function StreakBadge() {
   const { progress } = useGamification();
+  const level = getLevelForXp(progress.xp || 0);
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="flex items-center gap-1.5 bg-orange-50 px-3 py-1.5 rounded-full">
-        <svg className="w-4 h-4 text-orange-500" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-          <path d="M8 16c3.314 0 6-2.686 6-6 0-3.5-2.5-6.5-4-8-.667 1-2 2-2.5 2C7 4 8 2 8 0 5 2 2 5.5 2 10c0 3.314 2.686 6 6 6zm0-2c-1.657 0-3-1.343-3-3 0-1.4 1-2.8 1.8-3.6.3.5.8 1.1 1.2 1.1.5 0 .7-.5.7-.5.5 1 1.3 2 1.3 3 0 1.657-1.343 3-3 3z" />
+    <div className="flex items-center gap-2.5">
+      {/* Streak — thin flame outline */}
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/60 border border-border/70 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset]">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-muted"
+          aria-hidden="true"
+        >
+          <path d="M12 2s4 4 4 8a4 4 0 1 1-8 0c0-1.5.5-2.5 1-3 0 1.5 1 2 1.5 2 .5 0 1-.5 1-1.5 0-2-.5-3-.5-5.5 0 0 1 0 1 0z" />
         </svg>
-        <span className="text-sm font-bold text-orange-500">
-          {progress.streakCurrent} д.
+        <span className="text-[11px] font-semibold tracking-tight text-foreground tabular-nums">
+          {progress.streakCurrent}
+        </span>
+        <span className="text-[10px] uppercase tracking-[0.1em] text-muted font-medium">
+          д.
         </span>
       </div>
-      <div className="flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-full">
-        <LevelBadge xp={progress.xp || 0} compact />
-        <span className="text-sm font-bold text-amber-500">
+
+      {/* Level — thin chevron-up outline */}
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/60 border border-border/70 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset]">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-muted"
+          aria-hidden="true"
+        >
+          <path d="M6 15l6-6 6 6" />
+        </svg>
+        <span className="text-[10px] uppercase tracking-[0.1em] text-muted font-medium">
+          Ур.
+        </span>
+        <span className="text-[11px] font-semibold tracking-tight text-foreground tabular-nums">
+          {level.level}
+        </span>
+        <span className="text-[11px] font-semibold tracking-tight text-muted tabular-nums">
           {progress.xp || 0}
         </span>
       </div>
+
       <div className="flex-1" />
       <ProgressRing current={progress.todayCardsSeen} total={progress.dailyGoal} size={32} />
     </div>

@@ -30,7 +30,7 @@ export default function VisualQuiz({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <div className="text-xs font-bold text-indigo-500 uppercase tracking-widest">
+      <div className="text-xs font-bold text-muted uppercase tracking-widest">
         Что на снимке?
       </div>
 
@@ -62,13 +62,13 @@ export default function VisualQuiz({ card, onAnswer }: Props) {
       <div className="grid grid-cols-2 gap-3">
         {shuffledIndices.map((i) => {
           const opt = card.options[i];
-          let style = "border-border bg-white text-foreground/70";
+          let style = "border-border bg-card text-foreground/70";
           if (answered) {
             if (opt.isCorrect)
               style = "border-success bg-success-light text-emerald-800";
             else if (i === selected)
               style = "border-danger bg-danger-light text-rose-800";
-            else style = "border-border bg-white opacity-40";
+            else style = "border-border bg-card opacity-40";
           }
           return (
             <button

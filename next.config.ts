@@ -1,10 +1,9 @@
 import type { NextConfig } from "next";
-import withPWAInit from "@ducanh2912/next-pwa";
 
-const withPWA = withPWAInit({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-});
+// PWA: ручной service worker в public/sw.js, регистрируется через
+// src/components/ServiceWorkerRegister.tsx. @ducanh2912/next-pwa не работает
+// с Next 16 + Turbopack (тихо ничего не генерирует), поэтому wrap убран
+// чтобы будущие апдейты библиотеки не перезаписали наш SW неожиданно.
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -31,4 +30,4 @@ const nextConfig: NextConfig = {
   ],
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;

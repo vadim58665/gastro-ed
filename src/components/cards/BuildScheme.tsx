@@ -80,7 +80,7 @@ export default function BuildScheme({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <div className="text-xs font-bold text-amber-500 uppercase tracking-widest">
+      <div className="text-xs font-bold text-muted uppercase tracking-widest">
         {isOrdering ? "Расставь по порядку" : "Собери схему"}
       </div>
       <div className="text-base font-bold text-foreground">{card.title}</div>
@@ -103,7 +103,7 @@ export default function BuildScheme({ card, onAnswer }: Props) {
 
           let style = isSelected
             ? "border-primary bg-primary-light text-primary"
-            : "border-border bg-white text-foreground/70";
+            : "border-border bg-card text-foreground/70";
 
           if (submitted) {
             if (isOrdering) {
@@ -116,7 +116,7 @@ export default function BuildScheme({ card, onAnswer }: Props) {
               else if (correctPos < 0 && orderPos >= 0)
                 style = "border-danger bg-danger-light text-rose-700";
               else
-                style = "border-border bg-white opacity-30";
+                style = "border-border bg-card opacity-30";
             } else {
               if (comp.isCorrect && isSelected)
                 style = "border-success bg-success-light text-emerald-700";
@@ -124,7 +124,7 @@ export default function BuildScheme({ card, onAnswer }: Props) {
                 style = "border-success/50 bg-success-light/50 text-emerald-600";
               else if (!comp.isCorrect && isSelected)
                 style = "border-danger bg-danger-light text-rose-700";
-              else style = "border-border bg-white opacity-30";
+              else style = "border-border bg-card opacity-30";
             }
           }
 

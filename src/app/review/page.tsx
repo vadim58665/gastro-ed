@@ -69,7 +69,7 @@ export default function ReviewPage() {
             </p>
             <div className="w-12 h-px bg-border mx-auto mb-8" />
             <p className="text-sm text-muted leading-relaxed max-w-[260px] mx-auto">
-              Отвечайте на карточки в ленте — они автоматически попадут сюда для
+              Отвечайте на карточки в ленте  - они автоматически попадут сюда для
               интервального повторения
             </p>
           </div>
@@ -100,7 +100,7 @@ export default function ReviewPage() {
 
         {/* Card */}
         <div className="px-3">
-          <div className="w-full max-w-lg mx-auto bg-card rounded-3xl border border-border card-shadow">
+          <div className="w-full max-w-lg mx-auto rounded-3xl surface-raised">
             <div className="flex items-center justify-between px-6 pt-5 pb-1">
               <span className="text-xs text-muted font-semibold uppercase tracking-wider">
                 {currentCard.topic}
@@ -110,7 +110,7 @@ export default function ReviewPage() {
           </div>
         </div>
 
-        {/* Grade buttons — appear after answering */}
+        {/* Grade buttons  - appear after answering */}
         {answered && (
           <div className="px-6 mt-4 max-w-lg mx-auto">
             <p className="text-[11px] uppercase tracking-[0.15em] text-muted font-medium text-center mb-3">
@@ -164,7 +164,7 @@ function GradeButton({
   return (
     <button
       onClick={onClick}
-      className="flex flex-col items-center py-3 px-1 rounded-2xl border border-border bg-card hover:bg-surface transition-colors btn-press"
+      className="flex flex-col items-center py-3 px-1 rounded-2xl btn-raised-light btn-press"
     >
       <span className={`text-xs font-semibold ${color}`}>{label}</span>
       <span className="text-[10px] text-muted mt-0.5">{sub}</span>

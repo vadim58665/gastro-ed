@@ -21,7 +21,7 @@ export default function MythOrFact({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-5 p-6">
-      <div className="text-xs font-bold text-purple-500 uppercase tracking-widest">
+      <div className="text-xs font-bold text-muted uppercase tracking-widest">
         Миф или Факт?
       </div>
       <div className="bg-surface rounded-2xl p-6 text-center">
@@ -34,13 +34,13 @@ export default function MythOrFact({ card, onAnswer }: Props) {
         <div className="flex gap-4">
           <button
             onClick={() => handleAnswer("myth")}
-            className="btn-press flex-1 py-5 rounded-full bg-rose-50 border-2 border-rose-200 text-rose-600 font-bold text-lg hover:bg-rose-100 transition-all"
+            className="btn-press flex-1 py-5 rounded-full bg-danger-light border-2 border-danger/30 text-danger font-bold text-lg hover:opacity-90 transition-all"
           >
             Миф
           </button>
           <button
             onClick={() => handleAnswer("fact")}
-            className="btn-press flex-1 py-5 rounded-full bg-emerald-50 border-2 border-emerald-200 text-emerald-600 font-bold text-lg hover:bg-emerald-100 transition-all"
+            className="btn-press flex-1 py-5 rounded-full bg-success-light border-2 border-success/30 text-success font-bold text-lg hover:opacity-90 transition-all"
           >
             Факт
           </button>

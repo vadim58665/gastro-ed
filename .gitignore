@@ -43,9 +43,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# scraped data & scripts
+# scraped data & scripts (keep classify-cards.ts)
 /scraped_data/
-/scripts/
+/scripts/*.py
+/scripts/captured_data/
+/scripts/run_capture.sh
 /тесты/
+/задачи/
 /public/download_images.sh
 /public/images/

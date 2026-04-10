@@ -29,7 +29,7 @@ export default function ClinicalCase({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <div className="text-xs font-bold text-primary uppercase tracking-widest">
+      <div className="text-xs font-bold text-muted uppercase tracking-widest">
         Клиническая задачка
       </div>
       <div className="bg-surface rounded-2xl p-4 text-sm leading-relaxed text-foreground/80">
@@ -40,13 +40,13 @@ export default function ClinicalCase({ card, onAnswer }: Props) {
         {shuffledIndices.map((i) => {
           const opt = card.options[i];
           let style =
-            "border-border bg-white hover:bg-surface text-foreground";
+            "border-border bg-card hover:bg-surface text-foreground";
           if (answered) {
             if (opt.isCorrect)
               style = "border-success bg-success-light text-emerald-800";
             else if (i === selected)
               style = "border-danger bg-danger-light text-rose-800";
-            else style = "border-border bg-white opacity-40 text-foreground";
+            else style = "border-border bg-card opacity-40 text-foreground";
           }
           return (
             <button

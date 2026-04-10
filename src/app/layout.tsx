@@ -1,9 +1,17 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { SpecialtyProvider } from "@/contexts/SpecialtyContext";
 import { ModeProvider } from "@/contexts/ModeContext";
+import { MedMindProvider } from "@/contexts/MedMindContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import AuthGuard from "@/components/AuthGuard";
+import CompanionOverlay from "@/components/medmind/CompanionOverlay";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import { PostHogProvider } from "@/lib/analytics/posthog-provider";
+import { PageviewTracker } from "@/lib/analytics/pageview-tracker";
 import "./globals.css";
 
 const inter = Inter({
@@ -38,15 +46,28 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground font-[family-name:var(--font-inter)]">
-        <AuthProvider>
-          <AuthGuard>
-            <SpecialtyProvider>
-              <ModeProvider>
-                {children}
-              </ModeProvider>
-            </SpecialtyProvider>
-          </AuthGuard>
-        </AuthProvider>
+        <PostHogProvider>
+          <Suspense fallback={null}>
+            <PageviewTracker />
+          </Suspense>
+          <ThemeProvider>
+            <AuthProvider>
+              <AuthGuard>
+                <SubscriptionProvider>
+                  <SpecialtyProvider>
+                    <ModeProvider>
+                      <MedMindProvider>
+                        {children}
+                        <CompanionOverlay />
+                        <ServiceWorkerRegister />
+                      </MedMindProvider>
+                    </ModeProvider>
+                  </SpecialtyProvider>
+                </SubscriptionProvider>
+              </AuthGuard>
+            </AuthProvider>
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

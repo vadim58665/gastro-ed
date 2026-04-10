@@ -47,7 +47,7 @@ export default function RedFlags({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <div className="text-xs font-bold text-rose-500 uppercase tracking-widest">
+      <div className="text-xs font-bold text-muted uppercase tracking-widest">
         Красные флаги
       </div>
 
@@ -57,8 +57,8 @@ export default function RedFlags({ card, onAnswer }: Props) {
         {shuffledIndices.map((i) => {
           const opt = card.options[i];
           let style = selected.has(i)
-            ? "border-rose-400 bg-rose-50 text-rose-700"
-            : "border-border bg-white text-foreground/70";
+            ? "border-danger bg-danger-light text-danger"
+            : "border-border bg-card text-foreground/70";
 
           if (submitted) {
             if (opt.isDanger && selected.has(i))
@@ -67,7 +67,7 @@ export default function RedFlags({ card, onAnswer }: Props) {
               style = "border-warning bg-warning-light text-amber-800";
             else if (!opt.isDanger && selected.has(i))
               style = "border-danger bg-danger-light text-rose-800";
-            else style = "border-border bg-white opacity-40";
+            else style = "border-border bg-card opacity-40";
           }
 
           return (
@@ -95,7 +95,7 @@ export default function RedFlags({ card, onAnswer }: Props) {
         <button
           onClick={handleSubmit}
           disabled={selected.size === 0}
-          className="btn-press mt-2 py-4 rounded-full bg-rose-500 text-white font-bold text-base disabled:opacity-30 transition-opacity shadow-lg shadow-rose-500/20"
+          className="btn-press mt-2 py-4 rounded-full bg-foreground text-background font-bold text-base disabled:opacity-30 transition-opacity shadow-lg shadow-foreground/20"
         >
           Проверить ({selected.size}/{dangerCount} флагов)
         </button>

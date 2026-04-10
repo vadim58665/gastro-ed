@@ -1,35 +1,79 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { TestQuestion } from "@/types/accreditation";
 
 interface Props {
   question: TestQuestion;
   mode: "learn" | "test" | "exam";
-  onAnswer?: (isCorrect: boolean) => void;
+  onAnswer?: (isCorrect: boolean, selectedIndex: number) => void;
   onNext?: () => void;
+  onPrevious?: () => void;
+  canGoPrevious?: boolean;
+  existingSelectedIndex?: number | null;
 }
 
-export default function QuestionView({ question, mode, onAnswer, onNext }: Props) {
-  const [selected, setSelected] = useState<number | null>(null);
-  const [showResult, setShowResult] = useState(mode === "learn");
+export default function QuestionView({
+  question,
+  mode,
+  onAnswer,
+  onNext,
+  onPrevious,
+  canGoPrevious,
+  existingSelectedIndex = null,
+}: Props) {
+  const hasExisting = existingSelectedIndex !== null && existingSelectedIndex !== undefined;
+  const [selected, setSelected] = useState<number | null>(hasExisting ? existingSelectedIndex! : null);
+  const [showResult, setShowResult] = useState(mode === "learn" || hasExisting);
+  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleNext = () => {
+    if (autoAdvanceRef.current) {
+      clearTimeout(autoAdvanceRef.current);
+      autoAdvanceRef.current = null;
+    }
+    setSelected(null);
+    setShowResult(mode === "learn");
+    onNext?.();
+  };
+
+  const handlePrevious = () => {
+    if (autoAdvanceRef.current) {
+      clearTimeout(autoAdvanceRef.current);
+      autoAdvanceRef.current = null;
+    }
+    onPrevious?.();
+  };
 
   const handleSelect = (index: number) => {
+    if (hasExisting) return; // already answered, locked in review mode
     if (selected !== null && mode !== "learn") return;
     setSelected(index);
 
     if (mode !== "learn") {
       setShowResult(true);
       const isCorrect = index === question.correctIndex;
-      onAnswer?.(isCorrect);
+      onAnswer?.(isCorrect, index);
+
+      // Auto-advance in "test" mode (Тренировка/Зачёт с ответами)
+      if (mode === "test") {
+        const delay = isCorrect ? 900 : 1800;
+        autoAdvanceRef.current = setTimeout(() => {
+          handleNext();
+        }, delay);
+      }
     }
   };
 
-  const handleNext = () => {
-    setSelected(null);
-    setShowResult(mode === "learn");
-    onNext?.();
-  };
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
+    };
+  }, []);
+
+  const showNextButton =
+    (mode !== "exam" && selected !== null) || mode === "learn" || hasExisting;
 
   return (
     <div className="px-6 py-5">
@@ -56,7 +100,7 @@ export default function QuestionView({ question, mode, onAnswer, onNext }: Props
             <button
               key={index}
               onClick={() => handleSelect(index)}
-              disabled={selected !== null && mode !== "learn"}
+              disabled={(selected !== null && mode !== "learn") || hasExisting}
               className={`w-full text-left px-4 py-3 rounded-xl border ${borderClass} ${bgClass} transition-all text-sm`}
             >
               {option}
@@ -73,14 +117,27 @@ export default function QuestionView({ question, mode, onAnswer, onNext }: Props
         </div>
       )}
 
-      {((mode !== "exam" && selected !== null) || mode === "learn") && (
+      <div className="flex items-center gap-2 mt-5">
         <button
-          onClick={handleNext}
-          className="w-full mt-4 py-3 text-xs uppercase tracking-[0.15em] font-semibold text-primary hover:text-primary/80 transition-colors"
+          onClick={handlePrevious}
+          disabled={!canGoPrevious}
+          className="btn-press shrink-0 w-14 h-14 rounded-2xl bg-surface border border-border text-foreground flex items-center justify-center disabled:opacity-30 disabled:cursor-default hover:bg-card transition-colors"
+          aria-label="Предыдущий вопрос"
         >
-          Следующий вопрос
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
         </button>
-      )}
+
+        {showNextButton && (
+          <button
+            onClick={handleNext}
+            className="btn-press flex-1 h-14 rounded-2xl bg-foreground text-white text-xs uppercase tracking-[0.2em] font-semibold shadow-lg shadow-foreground/15 hover:shadow-xl hover:shadow-foreground/20 transition-all"
+          >
+            Следующий вопрос
+          </button>
+        )}
+      </div>
     </div>
   );
 }

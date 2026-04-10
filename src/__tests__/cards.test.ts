@@ -31,6 +31,10 @@ describe("Card data validation", () => {
       "fill_blank",
       "red_flags",
       "visual_quiz",
+      "match_pairs",
+      "cause_chain",
+      "dose_calc",
+      "priority_rank",
     ];
     for (const card of demoCards) {
       expect(validTypes).toContain(card.type);

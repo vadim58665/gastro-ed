@@ -100,32 +100,53 @@ def _ax_find_content(elem, depth=0, max_depth=8):
     return None
 
 
-def get_content_elems():
-    """Return list of direct content elements (questions or block list items).
-    Refreshes Runner info each call."""
+def _get_main_win():
+    """Return the main app window AXUIElement."""
     if not _window_pid:
-        refresh_runner()
-    if not _window_pid:
-        return []
+        return None
     app = AXUIElementCreateApplication(_window_pid)
-    win = None
     for attr in ("AXMainWindow", "AXFocusedWindow"):
         _, w = AXUIElementCopyAttributeValue(app, attr, None)
         if w:
-            win = w
-            break
+            return w
+    _, wins = AXUIElementCopyAttributeValue(app, "AXWindows", None)
+    if wins and len(wins) > 0:
+        return wins[0]
+    return None
+
+
+def get_inner_elems():
+    """Return ALL children of the innermost app group (works on any screen)."""
+    if not _window_pid:
+        refresh_runner()
+    win = _get_main_win()
     if not win:
-        # Fallback: use first entry from AXWindows list
-        _, wins = AXUIElementCopyAttributeValue(app, "AXWindows", None)
-        if wins and len(wins) > 0:
-            win = wins[0]
+        return []
+    # Navigate: AXWindow → AXGroup[0] → AXGroup[0] → children
+    _, kids = AXUIElementCopyAttributeValue(win, "AXChildren", None)
+    if not kids:
+        return []
+    _, g1kids = AXUIElementCopyAttributeValue(kids[0], "AXChildren", None)
+    if not g1kids:
+        return []
+    _, inner = AXUIElementCopyAttributeValue(g1kids[0], "AXChildren", None)
+    return inner or []
+
+
+def get_content_elems():
+    """Return direct content elements (questions or block list items).
+    Falls back to all inner elems when structured content not found."""
+    if not _window_pid:
+        refresh_runner()
+    win = _get_main_win()
     if not win:
         return []
     parent = _ax_find_content(win)
-    if not parent:
-        return []
-    _, kids = AXUIElementCopyAttributeValue(parent, "AXChildren", None)
-    return kids or []
+    if parent:
+        _, kids = AXUIElementCopyAttributeValue(parent, "AXChildren", None)
+        return kids or []
+    # Fallback: return all inner group elements (profile/navigation screens)
+    return get_inner_elems()
 
 
 # ── AX helpers ────────────────────────────────────────────────────────────────
@@ -178,8 +199,11 @@ def get_screen_state():
 # ── Activation ────────────────────────────────────────────────────────────────
 
 def activate():
-    subprocess.run(["osascript", "-e", 'tell application "МедикТест" to activate'],
-                   capture_output=True, timeout=8)
+    try:
+        subprocess.run(["osascript", "-e", 'tell application "МедикТест" to activate'],
+                       capture_output=True, timeout=20)
+    except subprocess.TimeoutExpired:
+        pass  # app is still there, just slow to respond
     time.sleep(0.25)
 
 
@@ -243,6 +267,28 @@ def detect_correct_via_color(q_elem, pil_img):
 
 # ── Scrolling: SINGLE STEP ────────────────────────────────────────────────────
 
+def _click_at_screen(x, y):
+    """Click at screen coordinates via AppleScript to restore focus."""
+    script = f'''tell application "System Events"
+    tell process id {_window_pid}
+        click at {{{int(x)}, {int(y)}}}
+    end tell
+end tell'''
+    subprocess.run(["osascript", "-e", script], capture_output=True, timeout=8)
+    time.sleep(0.3)
+
+
+def _refocus_question_list():
+    """Click in the center of the question list to restore Flutter scroll focus."""
+    if not _window_bounds:
+        return
+    wx, wy, ww, wh = _window_bounds
+    # Click roughly in the middle of the question list area
+    cx = wx + ww // 2
+    cy = wy + int(wh * 0.45)
+    _click_at_screen(cx, cy)
+
+
 def scroll_down_single():
     """Scroll down by 1 key press. Minimal step to avoid missing any question."""
     activate()
@@ -263,26 +309,412 @@ def get_block_elems(elems):
             if re.match(r'^\d+\n', ax_label(e))]
 
 
+def scroll_list(n_up=0, n_down=0):
+    """Scroll current list up (n_up) or down (n_down) by key presses."""
+    if not _window_pid:
+        return
+    activate()
+    parts = []
+    if n_up:
+        parts.append(f"repeat {n_up} times\n            key code 126\n            delay 0.02\n        end repeat")
+    if n_down:
+        parts.append(f"repeat {n_down} times\n            key code 125\n            delay 0.02\n        end repeat")
+    if not parts:
+        return
+    script = f'''tell application "System Events"
+    tell process id {_window_pid}
+        {chr(10).join(parts)}
+    end tell
+end tell'''
+    subprocess.run(["osascript", "-e", script], capture_output=True, timeout=20)
+    time.sleep(0.4)
+
+
+def collect_all_block_ranges():
+    """Scroll block list top→bottom, return sorted list of (start, end) tuples."""
+    scroll_list(n_up=40)
+    seen = {}
+    stale = 0
+    prev_count = -1
+    for _ in range(120):
+        state, elems = get_screen_state()
+        if state != "block_list":
+            break
+        for btn in get_block_elems(elems):
+            label = ax_label(btn)
+            nums = re.findall(r'\d+', label)
+            if len(nums) >= 2:
+                key = (int(nums[0]), int(nums[1]))
+                seen[key] = btn
+        n = len(seen)
+        if n == prev_count:
+            stale += 1
+            if stale >= 5:
+                break
+        else:
+            stale = 0
+            prev_count = n
+        scroll_list(n_down=2)
+    scroll_list(n_up=40)
+    return sorted(seen.keys())
+
+
+def open_block_by_range(b_start, b_end):
+    """Scroll block list to find (b_start, b_end) and open it. Returns True on success."""
+    scroll_list(n_up=40)
+    for attempt in range(80):
+        state, elems = get_screen_state()
+        if state != "block_list":
+            return False
+        for btn in get_block_elems(elems):
+            label = ax_label(btn)
+            nums = re.findall(r'\d+', label)
+            if len(nums) >= 2 and int(nums[0]) == b_start and int(nums[1]) == b_end:
+                print(f"  Opening block Q{b_start}-{b_end}")
+                activate()
+                ax_press(btn)
+                time.sleep(2.0)
+                return True
+        scroll_list(n_down=2)
+    return False
+
+
 def press_back():
     """Press back button from block view. Looks for small element at top-left."""
     elems = get_content_elems()
-    # Back button is usually the first or second element with AXPress action
-    # and small size at the top of the window
     for e in elems[:4]:
         frame = ax_frame(e)
         if frame:
             _, fy, fw, fh = frame
-            # Back button: small element near top
             if fw < 50 and fh < 50 and fy < 100:
                 activate()
                 ax_press(e)
                 time.sleep(1.5)
                 return
-    # Fallback: press first element
     if elems:
         activate()
         ax_press(elems[0])
         time.sleep(1.5)
+
+
+# ── Specialty / tab navigation ─────────────────────────────────────────────────
+
+def navigate_tab(tab_name):
+    """Press a bottom nav tab by its AXDescription (Тесты/Режимы/Задачи/Профиль).
+    Tries AXPress first; falls back to Tab-key cycling."""
+    elems = get_content_elems()
+    for e in elems:
+        if ax_role(e) == "AXImage" and ax_desc(e) == tab_name:
+            activate()
+            ax_press(e)
+            time.sleep(1.2)
+            # Verify
+            elems2 = get_content_elems()
+            for e2 in elems2[:3]:
+                d = ax_desc(e2)
+                if tab_name in d or (tab_name == "Тесты" and "блок" in d.lower()):
+                    return True
+    # Fallback: Tab-key cycling
+    activate()
+    for _ in range(8):
+        script = f'''tell application "System Events"
+    tell process id {_window_pid}
+        key code 48
+        delay 0.2
+    end tell
+end tell'''
+        subprocess.run(["osascript", "-e", script], capture_output=True, timeout=8)
+        time.sleep(0.3)
+        elems = get_content_elems()
+        for e in elems[:4]:
+            d = ax_desc(e)
+            if tab_name in d and "Tab" not in d:
+                return True
+    return False
+
+
+def _press_elem_containing(text, max_scrolls=30):
+    """Find the first content element whose description contains `text` and press it.
+    Scrolls down if not immediately visible."""
+    scroll_list(n_up=20)
+    for _ in range(max_scrolls):
+        elems = get_content_elems()
+        for e in elems:
+            d = ax_desc(e)
+            if text in d:
+                activate()
+                ax_press(e)
+                time.sleep(1.5)
+                return True
+        scroll_list(n_down=3)
+    return False
+
+
+def _wait_download():
+    """Wait until 'Загружаем' disappears from content (download finished)."""
+    for _ in range(60):
+        elems = get_content_elems()
+        if not any("Загружаем" in ax_desc(e) for e in elems):
+            return True
+        time.sleep(2.0)
+    return False
+
+
+def _detect_screen():
+    """Detect current screen by inspecting inner elements.
+    Returns one of: 'tests', 'profile', 'направления', 'spec_list', 'in_block', 'unknown'"""
+    elems = get_inner_elems()
+    descs = [ax_desc(e) for e in elems]
+    joined = "\n".join(descs)
+    if "Направления" in joined and any("аккредитация" in d for d in descs):
+        return "направления"
+    if "Переключить специальность" in joined:
+        return "profile"
+    if "Загружаем" in joined:
+        return "downloading"
+    # Specialty list: has many specialties but no Tests/Profile tabs
+    if any(d for d in descs if len(d) > 3 and "аккредитация" not in d and
+           not any(t in d for t in ["Тесты", "Режимы", "Задачи", "Профиль", "Блок", "Tab"])):
+        # Could be specialty list or tests
+        pass
+    if any("Профиль" == d for d in descs) and any("Тесты" == d for d in descs):
+        # Navigation tabs present → top-level screen
+        if "Переключить специальность" in joined:
+            return "profile"
+        return "tests"
+    state, _ = get_screen_state()
+    if state == "block_list":
+        return "tests"
+    if state == "in_block":
+        return "in_block"
+    # Sub-screen: has back-navigation, no tab bar
+    if elems and ax_role(elems[0]) in ("AXGenericElement", "AXButton"):
+        return "spec_list"
+    return "unknown"
+
+
+def _find_and_press_specialty_in_list(specialty_name):
+    """In the current specialty list, scroll up and find + press the specialty."""
+    scroll_list(n_up=40)
+    for _ in range(100):
+        elems = get_inner_elems()
+        for e in elems:
+            d = ax_desc(e)
+            if d.strip() == specialty_name or d.startswith(specialty_name + "\n"):
+                activate()
+                ax_press(e)
+                time.sleep(1.0)
+                _wait_download()
+                return True
+        # Stop if we see tab bar (navigated away)
+        if any("Профиль" == ax_desc(e) for e in elems):
+            return False
+        scroll_list(n_down=3)
+    return False
+
+
+def switch_specialty(specialty_name):
+    """Full specialty switch flow — handles any starting screen.
+    Returns True if successfully switched and back on Tests."""
+    print(f"  [switch] → {specialty_name}")
+
+    # Step 1: get to Profile, handling any starting screen
+    unknown_count = 0
+    for _ in range(20):
+        screen = _detect_screen()
+        print(f"  [switch] screen={screen}")
+        if screen == "profile":
+            break
+        if screen == "tests":
+            navigate_tab("Профиль")
+            time.sleep(1.5)
+        elif screen in ("spec_list", "направления", "in_block", "downloading"):
+            press_back()
+            time.sleep(1.2)
+            unknown_count = 0
+        elif screen == "unknown":
+            unknown_count += 1
+            if unknown_count % 2 == 1:
+                # Odd: try press_back to escape sub-screens
+                press_back()
+                time.sleep(1.2)
+            else:
+                # Even: try tab navigation
+                navigate_tab("Профиль")
+                time.sleep(1.5)
+    else:
+        print("  [switch] FAIL: could not reach Profile")
+        return False
+
+    # Step 2: open "Переключить специальность"
+    # Give profile screen extra time to fully render
+    time.sleep(1.0)
+    if not _press_elem_containing("Переключить специальность"):
+        # Try via get_inner_elems directly
+        found = False
+        for e in get_inner_elems():
+            if "Переключить специальность" in ax_desc(e):
+                activate()
+                ax_press(e)
+                time.sleep(1.5)
+                found = True
+                break
+        if not found:
+            print("  [switch] FAIL: Переключить специальность not found")
+            return False
+    else:
+        time.sleep(1.0)
+
+    # Step 3: In "Направления" — scroll looking for already-loaded or category
+    scroll_list(n_up=30)
+    in_spec_list = False
+    for _ in range(80):
+        elems = get_inner_elems()
+        for e in elems:
+            d = ax_desc(e)
+            # Already loaded specialty (shows name + category)
+            if specialty_name in d and "Первичная специализированная аккредитация (ординатура)" in d:
+                activate()
+                ax_press(e)
+                time.sleep(1.0)
+                _wait_download()
+                navigate_tab("Тесты")
+                time.sleep(1.0)
+                return True
+            # ПСА ординатура category entry — press it to open specialty list
+            # The category button starts with the PSA text (not specialty name first).
+            # Individual loaded-specialty entries start with the specialty name.
+            if not in_spec_list and d.strip().startswith("Первичная специализированная аккредитация (ординатура)"):
+                print(f"  [switch] opening ПСА category")
+                activate()
+                ax_press(e)
+                time.sleep(1.5)
+                in_spec_list = True
+                scroll_list(n_up=40)
+                break
+        else:
+            if in_spec_list:
+                # In the full specialty list — search for target
+                for e in elems:
+                    d = ax_desc(e)
+                    if d.strip() == specialty_name or d.startswith(specialty_name + "\n"):
+                        print(f"  [switch] found '{specialty_name}', pressing")
+                        activate()
+                        ax_press(e)
+                        time.sleep(1.5)
+                        _wait_download()
+                        navigate_tab("Тесты")
+                        time.sleep(1.0)
+                        return True
+                scroll_list(n_down=3)
+            else:
+                scroll_list(n_down=3)
+
+    print(f"  [switch] FAIL: '{specialty_name}' not found")
+    return False
+
+
+ORDINATOR_SPECIALTIES = [
+    "Акушерство и гинекология",
+    "Аллергология и иммунология",
+    "Анестезиология-реаниматология",
+    "Бактериология",
+    "Вирусология",
+    "Водолазная медицина",
+    "Гастроэнтерология",
+    "Гематология",
+    "Генетика",
+    "Гериатрия",
+    "Гигиена питания",
+    "Гигиена труда",
+    "Гигиеническое воспитание",
+    "Дезинфектология",
+    "Дерматовенерология",
+    "Детская кардиология",
+    "Детская онкология",
+    "Детская онкология-гематология",
+    "Детская урология-андрология",
+    "Детская хирургия",
+    "Детская эндокринология",
+    "Диетология",
+    "Инфекционные болезни",
+    "Кардиология",
+    "Клиническая лабораторная диагностика",
+    "Клиническая фармакология",
+    "Колопроктология",
+    "Косметология",
+    "Лабораторная генетика",
+    "Лечебная физкультура и спортивная медицина",
+    "Мануальная терапия",
+    "Медико-профилактическое дело",
+    "Медико-социальная экспертиза",
+    "Медицинская биофизика",
+    "Медицинская биохимия",
+    "Медицинская кибернетика",
+    "Медицинская микробиология",
+    "Неврология",
+    "Нейрохирургия",
+    "Неонатология",
+    "Нефрология",
+    "Общая гигиена",
+    "Онкология",
+    "Организация здравоохранения и общественное здоровье",
+    "Ортодонтия",
+    "Остеопатия",
+    "Оториноларингология",
+    "Офтальмология",
+    "Паразитология",
+    "Патологическая анатомия",
+    "Педиатрия",
+    "Пластическая хирургия",
+    "Профпатология",
+    "Психиатрия",
+    "Психиатрия-наркология",
+    "Психотерапия",
+    "Пульмонология",
+    "Радиационная гигиена",
+    "Радиология",
+    "Радиотерапия",
+    "Ревматология",
+    "Рентгенология",
+    "Рентгенэндоваскулярные диагностика и лечение",
+    "Рефлексотерапия",
+    "Санитарно-гигиенические лабораторные исследования",
+    "Сексология",
+    "Семейная медицина",
+    "Сердечно-сосудистая хирургия",
+    "Скорая медицинская помощь",
+    "Социальная гигиена и организация госсанэпидслужбы",
+    "Стоматология",
+    "Стоматология детская",
+    "Стоматология общей практики",
+    "Стоматология ортопедическая",
+    "Стоматология терапевтическая",
+    "Стоматология хирургическая",
+    "Судебно-медицинская экспертиза",
+    "Судебно-психиатрическая экспертиза",
+    "Сурдология-оториноларингология",
+    "Терапия",
+    "Токсикология",
+    "Торакальная хирургия",
+    "Травматология и ортопедия",
+    "Трансфузиология",
+    "Ультразвуковая диагностика",
+    "Управление сестринской деятельностью",
+    "Урология",
+    "Фармацевтическая технология",
+    "Фармацевтическая химия и фармакогнозия",
+    "Фармация",
+    "Физиотерапия",
+    "Физическая и реабилитационная медицина",
+    "Фтизиатрия",
+    "Функциональная диагностика",
+    "Хирургия",
+    "Челюстно-лицевая хирургия",
+    "Эндокринология",
+    "Эндоскопия",
+    "Эпидемиология",
+]
 
 
 def open_block(block_idx):
@@ -429,21 +861,23 @@ def scrape_block(b_start, b_end):
 
             if cur_max == last_seen_max:
                 stale_count += 1
-                # When stale but last question not yet seen — try harder (extra scroll)
+                # When stale but last question not yet seen — restore focus + bigger scroll
                 if stale_count % 3 == 0 and b_end not in all_questions:
-                    # Two extra key presses to try to push past end
+                    # Re-focus the Flutter scroll view by clicking in the question area
+                    _refocus_question_list()
+                    # Then try Page Down for a bigger jump to trigger Flutter lazy load
                     activate()
                     script = f'''tell application "System Events"
     tell process id {_window_pid}
-        key code 125
-        delay 0.05
+        key code 121
+        delay 0.15
         key code 125
         delay 0.05
         key code 125
     end tell
 end tell'''
                     subprocess.run(["osascript", "-e", script], capture_output=True, timeout=10)
-                    time.sleep(0.4)
+                    time.sleep(0.5)
             else:
                 stale_count = 0
                 last_seen_max = cur_max
@@ -479,92 +913,68 @@ end tell'''
     return result
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# ── Single-specialty scraper ───────────────────────────────────────────────────
 
-def main():
-    specialty = sys.argv[1] if len(sys.argv) > 1 else "current"
-    start_idx = int(sys.argv[2]) if len(sys.argv) > 2 else 0
-
-    print(f"=== MedikTest AX Scraper v2 — {specialty} ===")
-
-    if not refresh_runner():
-        print("ERROR: MedikTest not found. Open the app first.")
-        sys.exit(1)
-    print(f"  Runner PID={_window_pid}, WID={_window_id}, bounds={_window_bounds}")
-
-    spec_dir = os.path.join(TESTS_DIR, specialty)
+def scrape_current_specialty(spec_name, start_block=0):
+    """Scrape all blocks of the currently loaded specialty. Returns (total_q, total_valid)."""
+    spec_dir = os.path.join(TESTS_DIR, spec_name)
     os.makedirs(spec_dir, exist_ok=True)
 
-    # Ensure on block list
-    state, elems = get_screen_state()
-    print(f"  Screen state: {state}")
+    # Ensure we're on block list
+    state, _ = get_screen_state()
     if state == "in_block":
-        print("  → Going back to block list...")
         press_back()
-        time.sleep(1)
-        state, elems = get_screen_state()
-        print(f"  → New state: {state}")
-
+        time.sleep(1.5)
+        state, _ = get_screen_state()
     if state != "block_list":
-        print(f"  ERROR: Expected block_list, got '{state}'.")
-        print("  Please navigate to the specialty block list in MedikTest, then re-run.")
-        sys.exit(1)
+        print(f"  ERROR: expected block_list, got '{state}'")
+        return 0, 0
 
-    num_blocks = count_blocks()
-    print(f"  Detected {num_blocks} blocks")
+    # Enumerate all blocks by scrolling
+    all_ranges = collect_all_block_ranges()
+    print(f"  Blocks: {len(all_ranges)} — {all_ranges}")
 
-    for block_idx in range(start_idx, num_blocks):
-        # Navigate to block list if needed
+    for idx, (b_start, b_end) in enumerate(all_ranges):
+        if idx < start_block:
+            continue
+        expected_q = b_end - b_start + 1
+        block_file = os.path.join(spec_dir, f"block_{b_start}-{b_end}.json")
+
+        # Skip if already scraped well
+        if os.path.exists(block_file):
+            try:
+                existing = json.load(open(block_file))
+                valid = sum(1 for q in existing if q.get("correctIndex", -1) >= 0)
+                if len(existing) >= expected_q and valid >= expected_q * 0.9:
+                    print(f"\n--- [{idx+1}/{len(all_ranges)}] {b_start}-{b_end}: SKIP ({len(existing)}q {valid}✓) ---")
+                    continue
+            except Exception:
+                pass
+
+        print(f"\n--- [{idx+1}/{len(all_ranges)}] {b_start}–{b_end} ({expected_q}q) ---")
+
+        # Ensure on block list before opening
         state, _ = get_screen_state()
         if state != "block_list":
             press_back()
-            time.sleep(1)
-            state, _ = get_screen_state()
+            time.sleep(1.5)
 
-        # Determine expected range (from block list)
-        state2, elems2 = get_screen_state()
-        block_buttons = get_block_elems(elems2)
-        if block_idx >= len(block_buttons):
-            print(f"  Block {block_idx} out of range")
-            break
-        label = ax_label(block_buttons[block_idx])
-        nums = re.findall(r'\d+', label)
-        if len(nums) < 2:
-            continue
-        b_start, b_end = int(nums[0]), int(nums[1])
-        expected_q = b_end - b_start + 1
-
-        block_file = os.path.join(spec_dir, f"block_{b_start}-{b_end}.json")
-
-        # Skip if already good quality
-        if os.path.exists(block_file):
-            existing = json.load(open(block_file))
-            valid = sum(1 for q in existing if q.get("correctIndex", -1) >= 0)
-            if len(existing) >= expected_q and valid >= expected_q * 0.9:
-                print(f"\n--- Block {block_idx+1}/{num_blocks}: {b_start}-{b_end}: SKIP ({len(existing)}q {valid}✓) ---")
-                continue
-
-        print(f"\n--- Block {block_idx+1}/{num_blocks}: {b_start}–{b_end} ({expected_q}q) ---")
-
-        result = open_block(block_idx)
-        if not result:
-            print(f"  FAIL opening block {block_idx}")
+        if not open_block_by_range(b_start, b_end):
+            print(f"  FAIL: could not open block {b_start}-{b_end}")
             continue
 
         questions = scrape_block(b_start, b_end)
 
-        # Go back
         press_back()
-        time.sleep(1)
+        time.sleep(1.5)
 
-        # Save
         with open(block_file, "w", encoding="utf-8") as f:
             json.dump(questions, f, ensure_ascii=False, indent=2)
         valid = sum(1 for q in questions if q["correctIndex"] >= 0)
         pct = valid * 100 // max(len(questions), 1)
-        print(f"  ✓ Saved {block_file}: {len(questions)}q, {valid}✓ ({pct}%)")
+        print(f"  ✓ Saved: {len(questions)}q, {valid}✓ ({pct}%)")
 
-    # Final summary
+    # Summary for this specialty
     total_q = total_v = 0
     for fn in sorted(os.listdir(spec_dir)):
         if fn.endswith(".json"):
@@ -572,7 +982,67 @@ def main():
             v = sum(1 for q in data if q.get("correctIndex", -1) >= 0)
             total_q += len(data)
             total_v += v
-    print(f"\n=== DONE: {specialty} — {total_q}q total, {total_v}✓ ===")
+    return total_q, total_v
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+def main():
+    """Usage:
+      python3 ax_scraper.py current           — scrape current specialty (app on block list)
+      python3 ax_scraper.py урология          — scrape specific name (must be on its block list)
+      python3 ax_scraper.py --all             — scrape all ORDINATOR_SPECIALTIES in order
+      python3 ax_scraper.py --all Акушерство  — resume from matching specialty name
+    """
+    if not refresh_runner():
+        print("ERROR: MedikTest not found. Open the app first.")
+        sys.exit(1)
+    print(f"Runner PID={_window_pid}, WID={_window_id}, bounds={_window_bounds}")
+
+    mode = sys.argv[1] if len(sys.argv) > 1 else "current"
+
+    if mode == "--all":
+        # Multi-specialty mode
+        resume_from = sys.argv[2].lower() if len(sys.argv) > 2 else ""
+        started = not resume_from
+        grand_total = grand_valid = 0
+
+        for spec_name in ORDINATOR_SPECIALTIES:
+            if not started:
+                if resume_from in spec_name.lower():
+                    started = True
+                else:
+                    print(f"  skip {spec_name}")
+                    continue
+
+            print(f"\n{'='*60}")
+            print(f"=== SPECIALTY: {spec_name} ===")
+            print(f"{'='*60}")
+
+            # Switch to this specialty
+            if not switch_specialty(spec_name):
+                print(f"  SKIP (could not switch to '{spec_name}')")
+                continue
+
+            refresh_runner()
+            time.sleep(1.0)
+
+            tq, tv = scrape_current_specialty(spec_name)
+            grand_total += tq
+            grand_valid += tv
+            print(f"  [{spec_name}] {tq}q, {tv}✓")
+
+        print(f"\n{'='*60}")
+        print(f"=== ALL DONE: {grand_total}q total, {grand_valid}✓ ===")
+
+    else:
+        # Single specialty mode — app must already be on block list
+        spec_name = mode
+        print(f"=== Scraping: {spec_name} ===")
+
+        start_block = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+        tq, tv = scrape_current_specialty(spec_name, start_block)
+        print(f"\n=== DONE: {spec_name} — {tq}q total, {tv}✓ ===")
 
 
 if __name__ == "__main__":

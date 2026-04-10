@@ -5,6 +5,19 @@ export interface CardHistoryEntry {
   consecutiveFails: number;
 }
 
+export interface DailyCaseHistoryEntry {
+  completedAt: string;
+  totalPoints: number;
+  maxPoints: number;
+  steps: {
+    isCorrect: boolean;
+    selectedIndex: number;
+    timeMs: number;
+    points: number;
+    timedOut: boolean;
+  }[];
+}
+
 export interface UserProgress {
   streakCurrent: number;
   streakBest: number;
@@ -25,6 +38,7 @@ export interface UserProgress {
   perfectBlitzCount: number;
   typeCounts: Record<string, number>;
   topicsAnswered: string[];
+  dailyCaseHistory: Record<string, DailyCaseHistoryEntry>;
 }
 
 export interface CardAnswer {

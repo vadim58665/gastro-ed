@@ -1,3 +1,5 @@
+import type { DifficultyLevel } from "./card";
+
 export interface TestQuestion {
   id: string;
   specialty: string;
@@ -6,6 +8,7 @@ export interface TestQuestion {
   options: string[];
   correctIndex: number;
   explanation?: string;
+  difficulty?: DifficultyLevel;
 }
 
 export interface CaseQuestion {

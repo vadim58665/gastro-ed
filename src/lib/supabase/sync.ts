@@ -1,5 +1,9 @@
 import { getSupabase } from "./client";
-import type { UserProgress } from "@/types/user";
+import type {
+  UserProgress,
+  CardHistoryEntry,
+  DailyCaseHistoryEntry,
+} from "@/types/user";
 import type { ReviewCard } from "@/hooks/useReview";
 
 const PROGRESS_KEY = "gastro-ed-progress";
@@ -22,6 +26,17 @@ export async function pushProgress(
     last_active_date: progress.lastActiveDate || null,
     daily_goal: progress.dailyGoal,
     today_cards_seen: progress.todayCardsSeen,
+    xp: progress.xp,
+    level: progress.level,
+    unlocked_achievements: progress.unlockedAchievements,
+    completed_challenge_ids: progress.completedChallengeIds,
+    card_history: progress.cardHistory,
+    daily_goal_streak: progress.dailyGoalStreak,
+    daily_goal_streak_best: progress.dailyGoalStreakBest,
+    perfect_blitz_count: progress.perfectBlitzCount,
+    type_counts: progress.typeCounts,
+    topics_answered: progress.topicsAnswered,
+    daily_case_history: progress.dailyCaseHistory,
     updated_at: new Date().toISOString(),
   });
   if (error) console.error("pushProgress:", error.message);
@@ -73,18 +88,28 @@ async function pullProgress(
     .eq("user_id", userId)
     .single();
   if (error || !data) return null;
+  const defaults = getDefaultProgress();
   return {
-    ...getDefaultProgress(),
-    streakCurrent: data.streak_current,
-    streakBest: data.streak_best,
-    totalPoints: data.total_points,
-    cardsSeen: data.cards_seen,
-    cardsCorrect: data.cards_correct,
+    streakCurrent: data.streak_current ?? 0,
+    streakBest: data.streak_best ?? 0,
+    totalPoints: data.total_points ?? 0,
+    cardsSeen: data.cards_seen ?? 0,
+    cardsCorrect: data.cards_correct ?? 0,
     lastActiveDate: data.last_active_date || "",
-    dailyGoal: data.daily_goal,
-    todayCardsSeen: data.today_cards_seen,
+    dailyGoal: data.daily_goal ?? defaults.dailyGoal,
+    todayCardsSeen: data.today_cards_seen ?? 0,
     updatedAt: data.updated_at,
-    xp: data.xp ?? data.total_points ?? 0,
+    xp: data.xp ?? 0,
+    level: data.level ?? 1,
+    unlockedAchievements: data.unlocked_achievements ?? {},
+    completedChallengeIds: data.completed_challenge_ids ?? [],
+    cardHistory: data.card_history ?? {},
+    dailyGoalStreak: data.daily_goal_streak ?? 0,
+    dailyGoalStreakBest: data.daily_goal_streak_best ?? 0,
+    perfectBlitzCount: data.perfect_blitz_count ?? 0,
+    typeCounts: data.type_counts ?? {},
+    topicsAnswered: data.topics_answered ?? [],
+    dailyCaseHistory: data.daily_case_history ?? {},
   };
 }
 
@@ -107,7 +132,75 @@ async function pullReviewCards(userId: string): Promise<ReviewCard[]> {
 
 // --- Merge ---
 
-function mergeProgress(
+function mergeCardHistory(
+  a: Record<string, CardHistoryEntry>,
+  b: Record<string, CardHistoryEntry>
+): Record<string, CardHistoryEntry> {
+  const out: Record<string, CardHistoryEntry> = { ...a };
+  for (const [id, entry] of Object.entries(b)) {
+    const existing = out[id];
+    if (!existing) {
+      out[id] = entry;
+      continue;
+    }
+    // Per-card: take the freshest by lastSeen, but accumulate attempts/correct
+    // as the maximum across both sides (each side is a monotonic counter).
+    const freshest =
+      (entry.lastSeen || "") >= (existing.lastSeen || "") ? entry : existing;
+    out[id] = {
+      attempts: Math.max(existing.attempts, entry.attempts),
+      correct: Math.max(existing.correct, entry.correct),
+      lastSeen: freshest.lastSeen,
+      consecutiveFails: freshest.consecutiveFails,
+    };
+  }
+  return out;
+}
+
+function mergeDailyCaseHistory(
+  a: Record<string, DailyCaseHistoryEntry>,
+  b: Record<string, DailyCaseHistoryEntry>
+): Record<string, DailyCaseHistoryEntry> {
+  // Keyed by date; a case is completed once per day, so last write wins on
+  // completedAt (later timestamp beats earlier).
+  const out: Record<string, DailyCaseHistoryEntry> = { ...a };
+  for (const [date, entry] of Object.entries(b)) {
+    const existing = out[date];
+    if (!existing || (entry.completedAt || "") > (existing.completedAt || "")) {
+      out[date] = entry;
+    }
+  }
+  return out;
+}
+
+function mergeTypeCounts(
+  a: Record<string, number>,
+  b: Record<string, number>
+): Record<string, number> {
+  const out: Record<string, number> = { ...a };
+  for (const [k, v] of Object.entries(b)) {
+    out[k] = Math.max(out[k] ?? 0, v);
+  }
+  return out;
+}
+
+function unionUnique<T>(a: T[], b: T[]): T[] {
+  return Array.from(new Set([...(a ?? []), ...(b ?? [])]));
+}
+
+function mergeAchievements(
+  a: Record<string, string>,
+  b: Record<string, string>
+): Record<string, string> {
+  // Keep the earliest unlock timestamp on conflict — it's the true first-unlock.
+  const out: Record<string, string> = { ...a };
+  for (const [k, v] of Object.entries(b)) {
+    if (!(k in out) || v < out[k]) out[k] = v;
+  }
+  return out;
+}
+
+export function mergeProgress(
   local: UserProgress,
   remote: UserProgress
 ): UserProgress {
@@ -115,19 +208,57 @@ function mergeProgress(
   const remoteDate = remote.lastActiveDate || "";
   const useLocalStreak = localDate >= remoteDate;
 
-  const winner = useLocalStreak ? local : remote;
+  // streakCurrent/lastActiveDate/todayCardsSeen go together — they describe
+  // the same "today" snapshot, so we pick one side as the source.
+  const snapshot = useLocalStreak ? local : remote;
+
   return {
-    ...getDefaultProgress(),
-    ...winner,
+    streakCurrent: snapshot.streakCurrent,
+    lastActiveDate: snapshot.lastActiveDate,
+    todayCardsSeen: snapshot.todayCardsSeen,
     streakBest: Math.max(local.streakBest, remote.streakBest),
     totalPoints: Math.max(local.totalPoints, remote.totalPoints),
     cardsSeen: Math.max(local.cardsSeen, remote.cardsSeen),
     cardsCorrect: Math.max(local.cardsCorrect, remote.cardsCorrect),
-    xp: Math.max(local.xp || 0, remote.xp || 0),
-    dailyGoal: local.dailyGoal,
-    dailyGoalStreak: Math.max(local.dailyGoalStreak || 0, remote.dailyGoalStreak || 0),
-    dailyGoalStreakBest: Math.max(local.dailyGoalStreakBest || 0, remote.dailyGoalStreakBest || 0),
-    perfectBlitzCount: Math.max(local.perfectBlitzCount || 0, remote.perfectBlitzCount || 0),
+    xp: Math.max(local.xp ?? 0, remote.xp ?? 0),
+    level: Math.max(local.level ?? 1, remote.level ?? 1),
+    dailyGoal: local.dailyGoal, // user setting: local device wins
+    dailyGoalStreak: Math.max(
+      local.dailyGoalStreak ?? 0,
+      remote.dailyGoalStreak ?? 0
+    ),
+    dailyGoalStreakBest: Math.max(
+      local.dailyGoalStreakBest ?? 0,
+      remote.dailyGoalStreakBest ?? 0
+    ),
+    perfectBlitzCount: Math.max(
+      local.perfectBlitzCount ?? 0,
+      remote.perfectBlitzCount ?? 0
+    ),
+    unlockedAchievements: mergeAchievements(
+      local.unlockedAchievements ?? {},
+      remote.unlockedAchievements ?? {}
+    ),
+    completedChallengeIds: unionUnique(
+      local.completedChallengeIds ?? [],
+      remote.completedChallengeIds ?? []
+    ),
+    cardHistory: mergeCardHistory(
+      local.cardHistory ?? {},
+      remote.cardHistory ?? {}
+    ),
+    typeCounts: mergeTypeCounts(
+      local.typeCounts ?? {},
+      remote.typeCounts ?? {}
+    ),
+    topicsAnswered: unionUnique(
+      local.topicsAnswered ?? [],
+      remote.topicsAnswered ?? []
+    ),
+    dailyCaseHistory: mergeDailyCaseHistory(
+      local.dailyCaseHistory ?? {},
+      remote.dailyCaseHistory ?? {}
+    ),
     updatedAt: new Date().toISOString(),
   };
 }
@@ -168,7 +299,7 @@ function loadLocalProgress(): UserProgress {
   try {
     const saved = localStorage.getItem(PROGRESS_KEY);
     if (!saved) return getDefaultProgress();
-    return JSON.parse(saved) as UserProgress;
+    return { ...getDefaultProgress(), ...JSON.parse(saved) } as UserProgress;
   } catch {
     return getDefaultProgress();
   }
@@ -214,6 +345,7 @@ function getDefaultProgress(): UserProgress {
     perfectBlitzCount: 0,
     typeCounts: {},
     topicsAnswered: [],
+    dailyCaseHistory: {},
   };
 }
 
@@ -227,19 +359,15 @@ export async function fullSync(userId: string): Promise<void> {
     const localProgress = loadLocalProgress();
     const localCards = loadLocalReviewCards();
 
-    // Merge progress
     const mergedProgress = remoteProgress
       ? mergeProgress(localProgress, remoteProgress)
       : { ...localProgress, updatedAt: new Date().toISOString() };
 
-    // Merge review cards
     const mergedCards = mergeReviewCards(localCards, remoteCards);
 
-    // Write to localStorage
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(mergedProgress));
     localStorage.setItem(REVIEW_KEY, JSON.stringify(mergedCards));
 
-    // Push to Supabase
     await Promise.all([
       pushProgress(userId, mergedProgress),
       pushReviewCards(userId, mergedCards),

@@ -26,6 +26,7 @@ const defaultProgress: UserProgress = {
   perfectBlitzCount: 0,
   typeCounts: {},
   topicsAnswered: [],
+  dailyCaseHistory: {},
 };
 
 function getLocalDateStr(date = new Date()): string {

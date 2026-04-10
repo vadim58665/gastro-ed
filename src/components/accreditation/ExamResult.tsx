@@ -29,8 +29,8 @@ export default function ExamResultView({ result }: Props) {
 
         <div className={`inline-block px-4 py-2 rounded-xl text-sm font-medium mb-8 ${
           result.passed
-            ? "bg-emerald-50 text-emerald-700"
-            : "bg-rose-50 text-rose-600"
+            ? "bg-success-light text-success"
+            : "bg-danger-light text-danger"
         }`}>
           {result.passed ? "Зачёт" : "Не сдано"}
         </div>
