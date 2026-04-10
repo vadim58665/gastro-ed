@@ -64,7 +64,7 @@ export default function SubscriptionPage() {
     return (
       <div className="h-screen flex flex-col">
         <TopBar showBack />
-        <main className="flex-1 pt-16 pb-20 overflow-y-auto">
+        <main className="flex-1 pt-24 pb-20 overflow-y-auto">
           <div className="max-w-lg mx-auto px-6 py-12">
             <p className="text-[10px] uppercase tracking-[0.15em] text-muted mb-2">
               ПОДПИСКА АКТИВНА
@@ -103,7 +103,7 @@ export default function SubscriptionPage() {
   return (
     <div className="h-screen flex flex-col">
       <TopBar showBack />
-      <main className="flex-1 pt-16 pb-20 overflow-y-auto">
+      <main className="flex-1 pt-24 pb-20 overflow-y-auto">
         <div className="max-w-lg mx-auto px-6 py-8">
           <p className="text-[10px] uppercase tracking-[0.15em] text-muted mb-2">
             MEDMIND

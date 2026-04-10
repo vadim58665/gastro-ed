@@ -43,9 +43,9 @@ export default function ClinicalCase({ card, onAnswer }: Props) {
             "border-border bg-card hover:bg-surface text-foreground";
           if (answered) {
             if (opt.isCorrect)
-              style = "border-success bg-success-light text-emerald-800";
+              style = "border-success bg-success/10 text-success";
             else if (i === selected)
-              style = "border-danger bg-danger-light text-rose-800";
+              style = "border-danger bg-danger/10 text-danger";
             else style = "border-border bg-card opacity-40 text-foreground";
           }
           return (
@@ -63,8 +63,8 @@ export default function ClinicalCase({ card, onAnswer }: Props) {
         <div
           className={`animate-result mt-1 p-4 rounded-2xl text-sm leading-relaxed ${
             card.options[selected].isCorrect
-              ? "bg-success-light border border-success/30 text-emerald-800"
-              : "bg-danger-light border border-danger/30 text-rose-800"
+              ? "bg-success/10 border border-success/30 text-success"
+              : "bg-danger/10 border border-danger/30 text-danger"
           }`}
         >
           <div className="font-bold mb-1">

@@ -39,6 +39,13 @@ html, body {
   -webkit-overflow-scrolling: touch;
 }
 
+*, *::before, *::after {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Ambient page depth — subtle radial for luxury minimalism */
 body {
   background-color: var(--color-background);
@@ -296,11 +303,6 @@ body {
   position: relative;
   border-radius: inherit;
   isolation: isolate;
-  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2),
-              box-shadow 0.35s ease;
-}
-.magic-card:hover {
-  transform: translateY(-2px);
 }
 .magic-card-border {
   position: absolute;

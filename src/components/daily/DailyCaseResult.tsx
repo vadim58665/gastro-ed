@@ -2,24 +2,22 @@
 
 import { useState } from "react";
 import type { DailyCase, StepResult, DailyCaseStep } from "@/types/dailyCase";
-import MagicCard from "@/components/ui/MagicCard";
 import NumberTicker from "@/components/ui/NumberTicker";
-import GradientRing from "@/components/ui/GradientRing";
 
 interface Props {
   dailyCase: DailyCase;
   stepResults: StepResult[];
-  dateStr: string;
+  dateStr?: string;
 }
 
 const stepLabels: Record<DailyCaseStep["type"], string> = {
   complaint: "Жалобы",
   history: "Анамнез",
   labs: "Анализы",
-  examination: "Обследование",
-  differential: "Дифф.диагноз",
+  examination: "Осмотр",
+  differential: "Дифф.",
   diagnosis: "Диагноз",
-  complication: "Осложнения",
+  complication: "Осложн.",
   treatment: "Лечение",
   monitoring: "Контроль",
   prognosis: "Прогноз",
@@ -31,8 +29,132 @@ function formatTime(ms: number): string {
   return `${Math.floor(sec / 60)}м ${sec % 60}с`;
 }
 
+function StepRing({ isCorrect, points, label }: { isCorrect: boolean; points: number; label: string }) {
+  const size = 52;
+  const thickness = 1.5;
+  const radius = (size - thickness) / 2;
+  const circumference = 2 * Math.PI * radius;
+
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+          {/* Track */}
+          <circle
+            cx={size / 2} cy={size / 2} r={radius}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={thickness}
+            className="text-border/50"
+          />
+          {/* Fill for correct */}
+          {isCorrect && (
+            <circle
+              cx={size / 2} cy={size / 2} r={radius}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={thickness}
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={0}
+              className="text-foreground/80"
+              style={{ transition: "stroke-dashoffset 0.6s cubic-bezier(0.2,0.9,0.3,1)" }}
+            />
+          )}
+        </svg>
+        {/* Icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          {isCorrect ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          ) : (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-border">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          )}
+        </div>
+      </div>
+      <span className="text-[8px] font-medium uppercase tracking-[0.08em] text-muted/70 leading-none">
+        {label}
+      </span>
+      <span className="text-[10px] font-medium tabular-nums text-muted/80">
+        {points}
+      </span>
+    </div>
+  );
+}
+
+function BreakdownAccordion({
+  dailyCase,
+  stepResults,
+  stepLabels,
+  formatTime,
+}: {
+  dailyCase: DailyCase;
+  stepResults: StepResult[];
+  stepLabels: Record<string, string>;
+  formatTime: (ms: number) => string;
+}) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const wrongSteps = dailyCase.steps
+    .map((s, i) => ({ s, i, r: stepResults[i] }))
+    .filter(({ r }) => !r.isCorrect);
+
+  if (wrongSteps.length === 0) {
+    return (
+      <div className="text-center py-4 text-[12px] text-muted">
+        Все этапы пройдены верно
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col divide-y divide-border/40 border border-border/40 rounded-2xl overflow-hidden">
+      {wrongSteps.map(({ s, i, r }) => {
+        const selectedOpt = r.selectedIndex >= 0 ? s.options[r.selectedIndex] : null;
+        const correctOpt = s.options.find((o) => o.isCorrect)!;
+        const isOpen = openIndex === i;
+        return (
+          <button
+            key={i}
+            className="w-full text-left"
+            onClick={() => setOpenIndex(isOpen ? null : i)}
+          >
+            <div className="flex items-center justify-between px-4 py-3.5">
+              <div className="flex items-center gap-3">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-muted/40 shrink-0">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+                <span className="text-[13px] font-medium text-foreground/75">{stepLabels[s.type]}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] text-muted/60">{formatTime(r.timeMs)}</span>
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none" className={`text-muted/50 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}>
+                  <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            {isOpen && (
+              <div className="px-4 pb-4 flex flex-col gap-2 text-left border-t border-border/30">
+                {selectedOpt && (
+                  <p className="text-[12px] text-muted/55 line-through pt-3">{selectedOpt.text}</p>
+                )}
+                <p className="text-[13px] text-foreground/80 font-medium">{correctOpt.text}</p>
+                {correctOpt.explanation && (
+                  <p className="text-[12px] text-muted leading-relaxed">{correctOpt.explanation}</p>
+                )}
+              </div>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function DailyCaseResult({ dailyCase, stepResults, dateStr }: Props) {
-  const [copied, setCopied] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
   const totalPoints = stepResults.reduce((s, r) => s + r.points, 0);
@@ -42,87 +164,45 @@ export default function DailyCaseResult({ dailyCase, stepResults, dateStr }: Pro
   const allCorrect = correctCount === dailyCase.steps.length;
   const percentage = Math.round((totalPoints / maxPoints) * 100);
 
-  const formattedDate = (() => {
-    const [, m, d] = dateStr.split("-");
-    return `${d}.${m}`;
-  })();
-
-  const shareText = [
-    `Диагноз дня ${formattedDate}`,
-    `${totalPoints}/${maxPoints} очков (${percentage}%)`,
-    stepResults.map((r) => (r.isCorrect ? "\u{1F7E2}" : "\u{1F534}")).join(""),
-    `${dailyCase.specialty} | ${formatTime(totalTime)}`,
-    "#GastroEd",
-  ].join("\n");
-
-  const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(shareText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {}
-  };
-
   return (
-    <div className="flex flex-col gap-6 animate-result">
-      {/* Score rings */}
-      <div className="flex justify-center gap-3 flex-wrap">
+    <div className="flex flex-col animate-result">
+
+      {/* Rings */}
+      <div className="flex justify-center gap-5 flex-wrap pt-6 pb-8">
         {stepResults.map((r, i) => (
-          <div key={i} className="flex flex-col items-center gap-1.5">
-            <div className="relative">
-              <GradientRing value={r.isCorrect ? 100 : 0} size={56} thickness={4} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                {r.isCorrect ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                )}
-              </div>
-            </div>
-            <div className="text-[10px] text-muted font-semibold tabular-nums">
-              {r.points}<span className="text-muted/50">/500</span>
-            </div>
-          </div>
+          <StepRing
+            key={i}
+            isCorrect={r.isCorrect}
+            points={r.points}
+            label={stepLabels[dailyCase.steps[i].type]}
+          />
         ))}
       </div>
 
-      {/* Total score hero */}
-      <MagicCard
-        className="rounded-3xl"
-        gradientFrom="#6366f1"
-        gradientTo="#a855f7"
-        gradientSize={320}
-        spotlightColor="rgba(168, 85, 247, 0.14)"
-      >
-        <div className="text-center py-7 px-5">
-          <div className="text-[10px] uppercase tracking-[0.28em] text-muted font-semibold mb-2">
-            итоговый счёт
-          </div>
-          <div className="text-7xl font-extralight text-foreground tracking-tight leading-none tabular-nums">
-            <NumberTicker value={totalPoints} />
-          </div>
-          <div className="text-[11px] uppercase tracking-[0.2em] text-muted font-medium mt-3">
-            из {maxPoints} очков
-          </div>
-          <div className="mt-5 mx-auto w-48 h-[3px] bg-border/60 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full bg-foreground/80 transition-all duration-1000"
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
-          <div className="mt-2 text-[10px] uppercase tracking-[0.18em] text-muted font-semibold tabular-nums">
-            {percentage}%
-          </div>
+      {/* Score */}
+      <div className="text-center pb-8">
+        <p className="text-[10px] uppercase tracking-[0.28em] text-muted font-semibold mb-2">
+          Итоговый счёт
+        </p>
+        <div className="text-7xl font-extralight text-foreground tracking-tight leading-none tabular-nums">
+          <NumberTicker value={totalPoints} />
         </div>
-      </MagicCard>
+        <p className="text-[11px] text-muted mt-2">из {maxPoints} очков</p>
 
-      {/* Stats row */}
-      <div className="flex justify-center gap-6">
+        <div className="mt-5 mx-auto w-32 h-px bg-border/50 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-foreground/60 rounded-full transition-all duration-1000"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+        <p className="text-[11px] text-muted font-medium mt-1.5 tabular-nums">{percentage}%</p>
+      </div>
+
+      {/* Divider */}
+      <div className="w-10 h-px bg-border mx-auto mb-8" />
+
+      {/* Stats */}
+      <div className="flex justify-center gap-8 mb-8">
         <div className="text-center">
           <div className="text-2xl font-extralight text-foreground tabular-nums">{correctCount}/{dailyCase.steps.length}</div>
           <div className="text-[9px] uppercase tracking-[0.18em] text-muted font-semibold mt-1">верных</div>
@@ -140,69 +220,29 @@ export default function DailyCaseResult({ dailyCase, stepResults, dateStr }: Pro
       </div>
 
       {/* Outcome */}
-      <div
-        className={`p-5 rounded-2xl text-sm leading-relaxed ${
-          allCorrect
-            ? "bg-success-light border border-success/30 text-emerald-800"
-            : "bg-danger-light border border-danger/30 text-rose-800"
-        }`}
-      >
-        <div className="font-bold mb-1 uppercase tracking-[0.1em] text-xs">
+      <div className="px-5 py-4 rounded-2xl border border-border/60 mb-8">
+        <div className="text-[10px] font-semibold mb-1.5 uppercase tracking-[0.15em] text-muted">
           {allCorrect ? "Пациент выздоровел" : "Состояние ухудшилось"}
         </div>
-        {allCorrect ? dailyCase.outcome.correct : dailyCase.outcome.wrong}
+        <span className="text-sm text-foreground/65 leading-relaxed">
+          {allCorrect ? dailyCase.outcome.correct : dailyCase.outcome.wrong}
+        </span>
       </div>
 
-      {/* Разбор — toggle */}
-      <button
-        onClick={() => setShowDetails(!showDetails)}
-        className="btn-press py-3 text-[11px] font-semibold text-muted uppercase tracking-[0.2em] hover:text-foreground transition-colors"
-      >
-        {showDetails ? "Скрыть разбор" : "Показать разбор"}
-      </button>
+      {/* Actions */}
+      <div className="mb-6">
+        <button
+          onClick={() => setShowDetails(!showDetails)}
+          className="btn-press w-full py-3.5 rounded-2xl border border-border/60 text-[11px] font-semibold text-muted uppercase tracking-[0.2em] hover:text-foreground hover:bg-surface transition-colors"
+        >
+          {showDetails ? "Скрыть разбор" : "Показать разбор"}
+        </button>
+      </div>
 
+      {/* Details — only wrong steps, accordion */}
       {showDetails && (
-        <div className="flex flex-col gap-4">
-          {dailyCase.steps.map((s, i) => {
-            const r = stepResults[i];
-            const selectedOpt = s.options[r.selectedIndex];
-            const correctOpt = s.options.find((o) => o.isCorrect)!;
-            return (
-              <div key={i} className="rounded-2xl border border-border overflow-hidden">
-                <div className={`px-4 py-2.5 flex items-center justify-between text-xs font-bold uppercase tracking-wider ${
-                  r.isCorrect ? "bg-success-light text-emerald-700" : "bg-danger-light text-rose-700"
-                }`}>
-                  <span>{stepLabels[s.type]}: {s.title}</span>
-                  <span>{r.points} очков · {formatTime(r.timeMs)}</span>
-                </div>
-                <div className="p-4 flex flex-col gap-2">
-                  {!r.isCorrect && (
-                    <div className="text-sm">
-                      <span className="text-danger font-medium">Ваш ответ: </span>
-                      <span className="text-foreground/70">{selectedOpt.text}</span>
-                    </div>
-                  )}
-                  <div className="text-sm">
-                    <span className="text-success font-medium">Верный ответ: </span>
-                    <span className="text-foreground/70">{correctOpt.text}</span>
-                  </div>
-                  <div className="mt-1 text-sm text-foreground/60 leading-relaxed">
-                    {correctOpt.explanation}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <BreakdownAccordion dailyCase={dailyCase} stepResults={stepResults} stepLabels={stepLabels} formatTime={formatTime} />
       )}
-
-      {/* Share */}
-      <button
-        onClick={handleShare}
-        className="btn-press w-full py-4 rounded-2xl bg-foreground text-white text-xs uppercase tracking-[0.2em] font-semibold shadow-lg shadow-foreground/15 hover:shadow-xl hover:shadow-foreground/20 transition-all"
-      >
-        {copied ? "Скопировано!" : "Поделиться результатом"}
-      </button>
     </div>
   );
 }

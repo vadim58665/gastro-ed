@@ -12,10 +12,12 @@ import {
 export type ThemeId = "default" | "mocha" | "graphite";
 export type LanguageId = "ru" | "en" | "uk" | "kk";
 export type CompanionKind = "orb" | "doctor" | "mouse" | "owl";
+export type CompanionVisibility = "visible" | "half" | "hidden";
 
 const THEME_KEY = "gastro-ed-theme";
 const LANG_KEY = "gastro-ed-language";
 const COMPANION_KEY = "gastro-ed-companion";
+const COMPANION_VIS_KEY = "gastro-ed-companion-visibility";
 
 interface ThemeContextValue {
   theme: ThemeId;
@@ -24,6 +26,8 @@ interface ThemeContextValue {
   setLanguage: (l: LanguageId) => void;
   companion: CompanionKind;
   setCompanion: (c: CompanionKind) => void;
+  companionVisibility: CompanionVisibility;
+  setCompanionVisibility: (v: CompanionVisibility) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
@@ -33,12 +37,15 @@ const ThemeContext = createContext<ThemeContextValue>({
   setLanguage: () => {},
   companion: "orb",
   setCompanion: () => {},
+  companionVisibility: "visible",
+  setCompanionVisibility: () => {},
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeId>("default");
   const [language, setLanguageState] = useState<LanguageId>("ru");
   const [companion, setCompanionState] = useState<CompanionKind>("orb");
+  const [companionVisibility, setCompanionVisibilityState] = useState<CompanionVisibility>("visible");
 
   // Load persisted values after hydration to avoid SSR mismatch
   useEffect(() => {
@@ -59,6 +66,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         storedCompanion === "owl"
       ) {
         setCompanionState(storedCompanion);
+      }
+      const storedVis = localStorage.getItem(COMPANION_VIS_KEY) as CompanionVisibility | null;
+      if (storedVis === "visible" || storedVis === "half" || storedVis === "hidden") {
+        setCompanionVisibilityState(storedVis);
       }
     } catch {}
   }, []);
@@ -91,9 +102,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, []);
 
+  const setCompanionVisibility = useCallback((v: CompanionVisibility) => {
+    setCompanionVisibilityState(v);
+    try {
+      localStorage.setItem(COMPANION_VIS_KEY, v);
+    } catch {}
+  }, []);
+
   return (
     <ThemeContext.Provider
-      value={{ theme, setTheme, language, setLanguage, companion, setCompanion }}
+      value={{ theme, setTheme, language, setLanguage, companion, setCompanion, companionVisibility, setCompanionVisibility }}
     >
       {children}
     </ThemeContext.Provider>

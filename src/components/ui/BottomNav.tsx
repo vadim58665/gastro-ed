@@ -14,15 +14,21 @@ const gridIcon = (
   </svg>
 );
 
-const refreshIcon = (
+const errorIcon = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    {/* Back card (peeking) */}
-    <path d="M8 3h11a2 2 0 0 1 2 2v13" opacity="0.55" />
-    {/* Front card */}
-    <rect x="3" y="7" width="14" height="14" rx="2" />
-    {/* Rewind arrow inside front card */}
-    <path d="M7 14a3 3 0 1 0 1-2.2" />
-    <polyline points="7 10 7 13 10 13" />
+    <circle cx="12" cy="12" r="10" />
+    <path d="M15 9l-6 6" />
+    <path d="M9 9l6 6" />
+  </svg>
+);
+
+const stationIcon = (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 21h18" />
+    <path d="M5 21V7l7-4 7 4v14" />
+    <path d="M9 21v-6h6v6" />
+    <path d="M10 10h4" />
+    <path d="M12 8v4" />
   </svg>
 );
 
@@ -61,26 +67,28 @@ const caseIcon = (
 const feedTabs = [
   { href: "/feed", label: "Лента", icon: gridIcon },
   { href: "/daily-case", label: "Диагноз", icon: caseIcon },
-  { href: "/review", label: "Повтор", icon: refreshIcon },
+  { href: "/review", label: "Ошибки", icon: errorIcon },
   { href: "/profile", label: "Профиль", icon: userIcon },
 ];
 
 const prepTabs = [
   { href: "/tests", label: "Тесты", icon: listIcon },
-  { href: "/daily-case", label: "Диагноз", icon: caseIcon },
   { href: "/cases", label: "Задачи", icon: checkIcon },
+  { href: "/review", label: "Ошибки", icon: errorIcon },
+  { href: "/stations", label: "Станции", icon: stationIcon },
   { href: "/profile", label: "Профиль", icon: userIcon },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { dueCount } = useReview();
+  const { getDueCount } = useReview();
   const { mode } = useMode();
+  const dueCount = getDueCount(mode === "feed" ? "feed" : "prep");
 
   const tabs = mode === "feed" ? feedTabs : prepTabs;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/85 backdrop-blur-xl border-t border-border/60 z-50 shadow-[0_-1px_0_rgba(255,255,255,0.9)_inset,0_-8px_28px_-12px_rgba(17,24,39,0.14)]">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background/85 backdrop-blur-xl border-t border-border/60 z-50">
       <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
         {tabs.map((tab) => {
           const isActive = pathname.startsWith(tab.href);
@@ -88,7 +96,7 @@ export default function BottomNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl transition-all ${
+              className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl transition-colors ${
                 isActive
                   ? "text-primary bg-primary-light shadow-[inset_0_1px_0_rgba(255,255,255,0.9),inset_0_0_0_1px_rgba(99,102,241,0.12),0_2px_8px_-2px_rgba(99,102,241,0.2)]"
                   : "text-muted hover:text-foreground/80"

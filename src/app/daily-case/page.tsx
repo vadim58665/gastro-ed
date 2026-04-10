@@ -14,10 +14,12 @@ export default function DailyCasePage() {
   const dailyCase = getDailyCase(dateStr);
   const existing = progress.dailyCaseHistory[dateStr];
   const [stepResults, setStepResults] = useState<StepResult[] | null>(null);
+  const [started, setStarted] = useState(false);
 
   useEffect(() => {
     if (existing) {
       setStepResults(existing.steps);
+      setStarted(true);
     }
   }, [existing]);
 
@@ -85,6 +87,29 @@ export default function DailyCasePage() {
               stepResults={stepResults}
               dateStr={dateStr}
             />
+          ) : !started ? (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+              <div className="text-6xl font-extralight text-foreground tracking-tight mb-2">
+                {dailyCase.steps.length}
+              </div>
+              <p className="text-[10px] uppercase tracking-[0.24em] text-muted font-semibold mb-6">
+                {dailyCase.steps.length === 1 ? "этап" : "этапов"}
+              </p>
+
+              <p className="text-sm text-foreground/80 leading-relaxed max-w-xs mb-2">
+                {dailyCase.title}
+              </p>
+              <p className="text-xs text-muted leading-relaxed max-w-xs mb-10">
+                На каждый этап дается ограниченное время. Отвечайте быстро и точно для максимума очков.
+              </p>
+
+              <button
+                onClick={() => setStarted(true)}
+                className="px-10 py-4 rounded-2xl bg-foreground text-background text-sm font-semibold uppercase tracking-[0.2em] btn-press shadow-[0_4px_20px_-4px_rgba(17,24,39,0.3)]"
+              >
+                Начать
+              </button>
+            </div>
           ) : (
             <DailyCasePlayer
               dailyCase={dailyCase}

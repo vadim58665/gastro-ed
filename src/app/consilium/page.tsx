@@ -5,6 +5,7 @@ import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useRouter } from "next/navigation";
+import { getSupabase } from "@/lib/supabase/client";
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -42,7 +43,7 @@ export default function ConsiliumPage() {
     return (
       <div className="h-screen flex flex-col">
         <TopBar />
-        <main className="flex-1 pt-16 pb-20 flex items-center justify-center px-6">
+        <main className="flex-1 pt-24 pb-20 flex items-center justify-center px-6">
           <div className="text-center">
             <p className="text-sm text-foreground mb-2">Режим Консилиум</p>
             <p className="text-xs text-muted mb-6 leading-relaxed">
@@ -98,9 +99,13 @@ export default function ConsiliumPage() {
 
     try {
       abortRef.current = new AbortController();
+      const session = await getSupabase().auth.getSession();
+      const token = session.data.session?.access_token;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
       const res = await fetch("/api/medmind/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           message: history[history.length - 1].content,
           contextTopic: "Консилиум",
@@ -166,7 +171,7 @@ export default function ConsiliumPage() {
     return (
       <div className="h-screen flex flex-col">
         <TopBar />
-        <main className="flex-1 pt-16 pb-20 flex items-center justify-center px-6">
+        <main className="flex-1 pt-24 pb-20 flex items-center justify-center px-6">
           <div className="text-center max-w-xs">
             <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-6">
               Консилиум
@@ -193,7 +198,7 @@ export default function ConsiliumPage() {
   return (
     <div className="h-screen flex flex-col">
       <TopBar />
-      <main className="flex-1 pt-16 pb-4 overflow-y-auto">
+      <main className="flex-1 pt-24 pb-4 overflow-y-auto">
         <div className="px-4 pt-4">
           <p className="text-[10px] uppercase tracking-[0.15em] text-muted font-medium mb-4 text-center">
             Консилиум - приём пациента
