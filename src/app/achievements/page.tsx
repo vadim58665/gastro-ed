@@ -3,6 +3,8 @@
 import { useGamification } from "@/hooks/useGamification";
 import AchievementCard from "@/components/ui/AchievementCard";
 import LevelBadge from "@/components/ui/LevelBadge";
+import TopBar from "@/components/ui/TopBar";
+import BottomNav from "@/components/ui/BottomNav";
 
 const categoryLabels: Record<string, string> = {
   streak: "Регулярность",
@@ -29,7 +31,9 @@ export default function AchievementsPage() {
   );
 
   return (
-    <main className="px-4 pb-24 pt-4">
+    <div className="h-screen flex flex-col">
+      <TopBar showBack />
+      <main className="flex-1 pt-24 pb-20 overflow-y-auto px-4">
         <div className="flex items-center justify-between mb-6">
           <div>
             <p className="text-3xl font-extralight text-foreground">
@@ -63,5 +67,7 @@ export default function AchievementsPage() {
           ))}
         </div>
       </main>
+      <BottomNav />
+    </div>
   );
 }

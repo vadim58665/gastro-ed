@@ -3,7 +3,9 @@
 import { useCallback, useRef } from "react";
 import { useProgress } from "./useProgress";
 import { useReview } from "./useReview";
+import type { ReviewSource } from "./useReview";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMode } from "@/contexts/ModeContext";
 import { logAnswer } from "@/lib/supabase/sync";
 import { achievements } from "@/data/achievements";
 import { getLevelForXp } from "@/data/levels";
@@ -68,6 +70,7 @@ export function useGamification() {
   const { progress, saveProgress } = useProgress();
   const { scheduleCard } = useReview();
   const { user } = useAuth();
+  const { mode } = useMode();
   const progressRef = useRef(progress);
   progressRef.current = progress;
 
@@ -120,8 +123,11 @@ export function useGamification() {
         xpGained += 100; // 100 cards/day milestone
       }
 
-      // Schedule FSRS
-      scheduleCard(cardId, isCorrect);
+      // Добавляем в очередь ошибок только при неверном ответе
+      if (!isCorrect) {
+        const reviewSource: ReviewSource = mode === "feed" ? "feed" : "prep";
+        scheduleCard(cardId, false, reviewSource);
+      }
 
       // Build the FULL updated progress (single source of truth)
       const newStreak = isFirstToday
@@ -192,7 +198,7 @@ export function useGamification() {
         dailyGoalReached,
       };
     },
-    [saveProgress, scheduleCard, user]
+    [saveProgress, scheduleCard, user, mode]
   );
 
   const currentLevel = getLevelForXp(progress.xp || 0);

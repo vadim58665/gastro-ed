@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTheme, type CompanionKind } from "@/contexts/ThemeContext";
+import { useTheme, type CompanionKind, type CompanionVisibility } from "@/contexts/ThemeContext";
 
 export type CharacterState = "idle" | "thinking" | "happy" | "sad" | "speaking" | "sleeping";
 
@@ -13,20 +13,14 @@ interface CharacterAvatarProps {
   character?: CompanionKind;
 }
 
-type Edge = "left" | "right";
 interface Position {
-  edge: Edge;
-  offset: number;
+  x: number; // percentage from left (0-100)
+  y: number; // percentage from top (0-100)
 }
 
-export const DEFAULT_POSITION: Position = { edge: "right", offset: 70 };
+export const DEFAULT_POSITION: Position = { x: 88, y: 70 };
 export const STORAGE_KEY = "medmind-avatar-position";
-/** Vertical safe zone — keep the character clear of the top/bottom nav bars
- *  and, crucially, of the page-level quick-action buttons that sit near the top. */
-const MIN_VERTICAL_OFFSET = 32;
-const MAX_VERTICAL_OFFSET = 82;
-/** Inset from the edge — character always sits fully on-screen. */
-const EDGE_INSET_RATIO = 0.16;
+const PADDING_PX = 8;
 
 const GLOW_COLORS: Record<CompanionKind, string> = {
   orb: "radial-gradient(circle at 30% 30%, rgba(168, 85, 247, 0.55), rgba(99, 102, 241, 0.3) 50%, transparent 75%)",
@@ -46,7 +40,7 @@ export default function CharacterAvatar({
   size = 76,
   character,
 }: CharacterAvatarProps) {
-  const { companion: companionFromCtx } = useTheme();
+  const { companion: companionFromCtx, companionVisibility } = useTheme();
   const companion: CompanionKind = character ?? companionFromCtx;
 
   const [position, setPosition] = useState<Position>(DEFAULT_POSITION);
@@ -60,15 +54,15 @@ export default function CharacterAvatar({
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved) as {
-          edge?: string;
-          offset?: number;
-        };
-        // Migrate legacy top/bottom positions to a safe left/right slot.
-        const edge: Edge = parsed.edge === "left" ? "left" : "right";
-        const rawOffset = typeof parsed.offset === "number" ? parsed.offset : DEFAULT_POSITION.offset;
-        const offset = Math.max(MIN_VERTICAL_OFFSET, Math.min(MAX_VERTICAL_OFFSET, rawOffset));
-        setPosition({ edge, offset });
+        const parsed = JSON.parse(saved);
+        // Migrate from old edge/offset format
+        if (parsed.edge !== undefined) {
+          const x = parsed.edge === "left" ? 12 : 88;
+          const y = typeof parsed.offset === "number" ? parsed.offset : 70;
+          setPosition({ x, y });
+        } else if (typeof parsed.x === "number" && typeof parsed.y === "number") {
+          setPosition({ x: parsed.x, y: parsed.y });
+        }
       }
     } catch {}
   }, []);
@@ -83,21 +77,9 @@ export default function CharacterAvatar({
   // Listen for external position changes (from ProfileSheet controls).
   useEffect(() => {
     const onReset = () => setPosition(DEFAULT_POSITION);
-    const onSet = (e: Event) => {
-      const detail = (e as CustomEvent<Partial<Position>>).detail;
-      if (!detail) return;
-      setPosition((prev) => {
-        const edge: Edge = detail.edge === "left" ? "left" : detail.edge === "right" ? "right" : prev.edge;
-        const rawOffset = typeof detail.offset === "number" ? detail.offset : prev.offset;
-        const offset = Math.max(MIN_VERTICAL_OFFSET, Math.min(MAX_VERTICAL_OFFSET, rawOffset));
-        return { edge, offset };
-      });
-    };
     window.addEventListener("medmind-avatar-reset", onReset);
-    window.addEventListener("medmind-avatar-set", onSet as EventListener);
     return () => {
       window.removeEventListener("medmind-avatar-reset", onReset);
-      window.removeEventListener("medmind-avatar-set", onSet as EventListener);
     };
   }, []);
 
@@ -112,16 +94,24 @@ export default function CharacterAvatar({
   }, [state]);
 
   const positionStyle: React.CSSProperties = (() => {
-    // Character always sits fully on-screen with a small inset from the edge.
-    const edgeOffset = size * EDGE_INSET_RATIO;
-    if (position.edge === "right") {
-      return { right: edgeOffset, top: `${position.offset}%`, transform: "translateY(-50%)" };
+    const isHalf = companionVisibility === "half";
+    const halfShift = isHalf ? size * 0.5 : 0;
+    // Determine nearest edge for half-hide direction
+    const nearRight = position.x > 50;
+    let left = `calc(${position.x}% - ${size / 2}px)`;
+    if (isHalf) {
+      left = nearRight
+        ? `calc(${position.x}% - ${size / 2 - halfShift}px)`
+        : `calc(${position.x}% - ${size / 2 + halfShift}px)`;
     }
-    return { left: edgeOffset, top: `${position.offset}%`, transform: "translateY(-50%)" };
+    return {
+      left,
+      top: `calc(${position.y}% - ${size / 2}px)`,
+    };
   })();
 
   const lookTilt = tilting ? 6 : 0;
-  const tiltDeg = position.edge === "right" ? -lookTilt : lookTilt;
+  const tiltDeg = position.x > 50 ? -lookTilt : lookTilt;
   const bodyRotationStyle: React.CSSProperties = {
     transform: `rotate(${tiltDeg}deg)`,
     transition: "transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1)",
@@ -143,12 +133,14 @@ export default function CharacterAvatar({
     if (dragRef.current.moved) {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      // Snap to the nearer vertical edge (left or right) — top/bottom are disallowed
-      // to avoid collisions with the TopBar/BottomNav.
-      const edge: Edge = e.clientX < w / 2 ? "left" : "right";
-      const rawOffset = (e.clientY / h) * 100;
-      const offset = Math.max(MIN_VERTICAL_OFFSET, Math.min(MAX_VERTICAL_OFFSET, rawOffset));
-      setPosition({ edge, offset });
+      const half = size / 2;
+      const minX = ((PADDING_PX + half) / w) * 100;
+      const maxX = ((w - PADDING_PX - half) / w) * 100;
+      const minY = ((PADDING_PX + half) / h) * 100;
+      const maxY = ((h - PADDING_PX - half) / h) * 100;
+      const x = Math.max(minX, Math.min(maxX, (e.clientX / w) * 100));
+      const y = Math.max(minY, Math.min(maxY, (e.clientY / h) * 100));
+      setPosition({ x, y });
     }
   };
 
@@ -178,7 +170,7 @@ export default function CharacterAvatar({
         height: size,
         transition: dragging
           ? "none"
-          : "right 500ms cubic-bezier(0.34, 1.56, 0.64, 1), left 500ms cubic-bezier(0.34, 1.56, 0.64, 1), top 500ms cubic-bezier(0.34, 1.56, 0.64, 1), bottom 500ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 300ms",
+          : "left 500ms cubic-bezier(0.34, 1.56, 0.64, 1), top 500ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 300ms",
       }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}

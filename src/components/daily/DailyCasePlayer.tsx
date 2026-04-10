@@ -3,7 +3,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import type { DailyCase, DailyCaseStep, StepResult } from "@/types/dailyCase";
 import { calculateStepPoints, STEP_TIME_LIMIT } from "@/types/dailyCase";
-import MagicCard from "@/components/ui/MagicCard";
 
 interface Props {
   dailyCase: DailyCase;
@@ -185,17 +184,9 @@ export default function DailyCasePlayer({ dailyCase, onComplete }: Props) {
         <div className="text-[10px] font-semibold text-muted uppercase tracking-[0.22em]">
           {step.title}
         </div>
-        <MagicCard
-          className="rounded-2xl"
-          gradientFrom="#6366f1"
-          gradientTo="#a855f7"
-          gradientSize={240}
-          spotlightColor="rgba(168, 85, 247, 0.1)"
-        >
-          <div className="p-5 text-[13px] leading-relaxed text-foreground/85">
-            {step.description}
-          </div>
-        </MagicCard>
+        <div className="rounded-2xl bg-surface/70 border border-border/40 p-5 text-[13px] leading-relaxed text-foreground/85">
+          {step.description}
+        </div>
       </div>
 
       {/* Options */}
@@ -204,19 +195,9 @@ export default function DailyCasePlayer({ dailyCase, onComplete }: Props) {
           <button
             key={i}
             onClick={() => handleSelect(i)}
-            className="btn-press group block w-full"
+            className="btn-press w-full text-left px-5 py-4 rounded-2xl bg-surface border border-border/40 text-[13px] font-medium text-foreground hover:border-border transition-colors"
           >
-            <MagicCard
-              className="rounded-2xl"
-              gradientFrom="#94a3b8"
-              gradientTo="#cbd5e1"
-              gradientSize={200}
-              spotlightColor="rgba(100, 116, 139, 0.08)"
-            >
-              <div className="text-left px-5 py-4 text-[13px] font-medium text-foreground">
-                {step.options[i].text}
-              </div>
-            </MagicCard>
+            {step.options[i].text}
           </button>
         ))}
       </div>

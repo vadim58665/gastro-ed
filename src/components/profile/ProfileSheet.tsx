@@ -6,35 +6,11 @@ import {
   type ThemeId,
   type LanguageId,
   type CompanionKind,
+  type CompanionVisibility,
 } from "@/contexts/ThemeContext";
 import CharacterAvatarPreview from "@/components/medmind/CharacterAvatarPreview";
-import { DEFAULT_POSITION, STORAGE_KEY as AVATAR_POS_KEY } from "@/components/medmind/CharacterAvatar";
+import { STORAGE_KEY as AVATAR_POS_KEY, DEFAULT_POSITION } from "@/components/medmind/CharacterAvatar";
 
-type AvatarPos = { edge: "left" | "right"; offset: number };
-
-function readAvatarPos(): AvatarPos {
-  if (typeof window === "undefined") return { ...DEFAULT_POSITION };
-  try {
-    const raw = localStorage.getItem(AVATAR_POS_KEY);
-    if (!raw) return { ...DEFAULT_POSITION };
-    const parsed = JSON.parse(raw) as Partial<AvatarPos>;
-    const edge: "left" | "right" = parsed.edge === "left" ? "left" : "right";
-    const offset = typeof parsed.offset === "number" ? parsed.offset : DEFAULT_POSITION.offset;
-    return { edge, offset };
-  } catch {
-    return { ...DEFAULT_POSITION };
-  }
-}
-
-function writeAvatarPos(partial: Partial<AvatarPos>) {
-  const current = readAvatarPos();
-  const next: AvatarPos = { ...current, ...partial };
-  try {
-    localStorage.setItem(AVATAR_POS_KEY, JSON.stringify(next));
-  } catch {}
-  window.dispatchEvent(new CustomEvent("medmind-avatar-set", { detail: partial }));
-  return next;
-}
 
 interface Props {
   open: boolean;
@@ -94,8 +70,7 @@ const companions: Array<{
 type View = "menu" | "language" | "styles" | "companion";
 
 export default function ProfileSheet({ open, kind, onClose }: Props) {
-  const { theme, setTheme, language, setLanguage, companion, setCompanion } = useTheme();
-  const [avatarPos, setAvatarPos] = useState<AvatarPos>(() => ({ ...DEFAULT_POSITION }));
+  const { theme, setTheme, language, setLanguage, companion, setCompanion, companionVisibility, setCompanionVisibility } = useTheme();
   const [view, setView] = useState<View>("menu");
 
   // Sync internal view when the sheet opens with a specific kind.
@@ -106,10 +81,6 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
     else if (kind === "companion") setView("companion");
   }, [open, kind]);
 
-  // Re-sync avatar position whenever the companion view becomes visible.
-  useEffect(() => {
-    if (open && view === "companion") setAvatarPos(readAvatarPos());
-  }, [open, view]);
 
   const currentLang = languages.find((l) => l.id === language);
 
@@ -249,47 +220,71 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
                 );
               })}
 
-              {/* Position controls */}
-              <div className="mt-2 rounded-2xl border border-border bg-surface p-4 flex flex-col gap-3">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-muted font-semibold">
+              {/* Position hint */}
+              <div className="mt-2 rounded-2xl border border-border bg-surface p-4">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-muted font-semibold mb-2">
                   Положение
                 </p>
+                <p className="text-[10px] text-muted leading-relaxed">
+                  Перетащите персонажа в любое место на экране.
+                </p>
+              </div>
 
-                {/* Side segmented control */}
-                <div className="grid grid-cols-2 gap-2">
-                  {(["left", "right"] as const).map((side) => {
-                    const active = avatarPos.edge === side;
+              {/* Visibility controls */}
+              <div className="mt-2 rounded-2xl border border-border bg-surface p-4 flex flex-col gap-3">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-muted font-semibold">
+                  Видимость
+                </p>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { id: "visible" as CompanionVisibility, label: "Виден", icon: "eye" },
+                    { id: "half" as CompanionVisibility, label: "Прячется", icon: "half" },
+                    { id: "hidden" as CompanionVisibility, label: "Скрыт", icon: "hidden" },
+                  ]).map((opt) => {
+                    const active = companionVisibility === opt.id;
                     return (
                       <button
-                        key={side}
-                        onClick={() => setAvatarPos(writeAvatarPos({ edge: side }))}
-                        className={`btn-press flex items-center justify-center gap-2 py-2.5 rounded-xl border transition-colors text-xs font-semibold ${
+                        key={opt.id}
+                        onClick={() => setCompanionVisibility(opt.id)}
+                        className={`btn-press flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl border transition-colors text-xs font-semibold ${
                           active
                             ? "border-foreground/40 bg-card text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]"
                             : "border-border bg-transparent text-muted hover:text-foreground"
                         }`}
                       >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          style={{ transform: side === "right" ? "scaleX(-1)" : undefined }}
-                        >
-                          <polyline points="15 18 9 12 15 6" />
-                        </svg>
-                        {side === "left" ? "Слева" : "Справа"}
+                        {opt.icon === "eye" && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                        {opt.icon === "half" && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                            <line x1="2" y1="2" x2="12" y2="12" />
+                          </svg>
+                        )}
+                        {opt.icon === "hidden" && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                        )}
+                        {opt.label}
                       </button>
                     );
                   })}
                 </div>
 
                 <p className="text-[10px] text-muted leading-relaxed">
-                  Совет: персонажа можно просто перетащить пальцем к любому краю.
+                  {companionVisibility === "hidden"
+                    ? "Персонаж полностью скрыт со всех страниц"
+                    : companionVisibility === "half"
+                      ? "Персонаж выглядывает из-за края экрана"
+                      : "Персонаж полностью виден на экране"}
                 </p>
               </div>
 
@@ -299,7 +294,6 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
                     localStorage.setItem(AVATAR_POS_KEY, JSON.stringify(DEFAULT_POSITION));
                   } catch {}
                   window.dispatchEvent(new CustomEvent("medmind-avatar-reset"));
-                  setAvatarPos({ ...DEFAULT_POSITION });
                 }}
                 className="btn-press w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-border bg-surface text-xs uppercase tracking-[0.22em] text-muted hover:text-foreground hover:border-foreground/20 transition-colors"
               >

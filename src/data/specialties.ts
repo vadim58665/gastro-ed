@@ -15,8 +15,9 @@ export interface AccreditationCategory {
 export const accreditationCategories: AccreditationCategory[] = [
   {
     id: "ordinatura",
-    name: "Первичная специализированная аккредитация (ординатура)",
-    description: "Для врачей, окончивших ординатуру по узкой специальности",
+    name: "Первичная специализированная аккредитация (ординатура, ДПО)",
+    description:
+      "Для студентов, уже окончивших ординатуру по узкой специальности, а также для врачей, прошедших профессиональную переподготовку",
     specialties: [
       { id: "akusherstvo-ginekologiya", name: "Акушерство и гинекология" },
       { id: "allergologiya", name: "Аллергология" },
@@ -83,7 +84,8 @@ export const accreditationCategories: AccreditationCategory[] = [
   {
     id: "specialitet",
     name: "Первичная аккредитация (специалитет)",
-    description: "Для выпускников медицинских вузов",
+    description:
+      "Для выпускников медицинских вузов",
     specialties: [
       { id: "lechebnoe-delo", name: "Лечебное дело" },
       { id: "pediatriya", name: "Педиатрия" },
@@ -95,6 +97,54 @@ export const accreditationCategories: AccreditationCategory[] = [
       { id: "meditsinskaya-kibernetika", name: "Медицинская кибернетика" },
       { id: "sestrinskoe-delo", name: "Сестринское дело" },
     ],
+  },
+  {
+    id: "spo-special",
+    name: "Первичная специализированная аккредитация (СПО)",
+    description:
+      "Для выпускников среднего профессионального образования, получивших узконаправленную специализацию",
+    specialties: [],
+  },
+  {
+    id: "spo-primary",
+    name: "Первичная аккредитация (СПО)",
+    description:
+      "Для выпускников среднего профессионального образования",
+    specialties: [],
+  },
+  {
+    id: "profperepodgotovka",
+    name: "Высшее образование - переподготовка",
+    description:
+      "Раздел предназначен для специалистов, окончивших программу профессиональной переподготовки",
+    specialties: [],
+  },
+  {
+    id: "non-medical",
+    name: "Первичная специализированная аккредитация (немедицинское образование)",
+    description:
+      "Для лиц с немедицинским высшим образованием, прошедших профессиональную переподготовку",
+    specialties: [],
+  },
+  {
+    id: "preliminary",
+    name: "Предварительный этап аккредитации",
+    description:
+      "Для иностранных граждан и лиц, получивших образование в иностранных учреждениях",
+    specialties: [],
+  },
+  {
+    id: "accreditation-2018",
+    name: "Аккредитация 2018",
+    description:
+      "Тесты из файлов ФМЗА последних лет. Некоторые ВУЗы используют их для проведения госэкзаменов",
+    specialties: [],
+  },
+  {
+    id: "vuz-tests",
+    name: "Тесты ВУЗов",
+    description: "Внутренние тестовые базы медицинских вузов",
+    specialties: [],
   },
 ];
 

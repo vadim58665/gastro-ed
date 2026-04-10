@@ -4,6 +4,7 @@ import { useMemo, useCallback, useState, useRef, useEffect } from "react";
 import type { Card } from "@/types/card";
 import { useGamification } from "@/hooks/useGamification";
 import { useMedMind } from "@/contexts/MedMindContext";
+import { useMedMindCompanion } from "@/hooks/useMedMindCompanion";
 import CardRenderer from "./CardRenderer";
 import DailyGoalCelebration from "@/components/ui/DailyGoalCelebration";
 import AchievementUnlock from "@/components/ui/AchievementUnlock";
@@ -31,6 +32,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 export default function CardFeed({ cards }: Props) {
   const { progress, recordAnswerWithGamification } = useGamification();
   const { setCurrentCard } = useMedMind();
+  const { onCorrectAnswer, onWrongAnswer } = useMedMindCompanion();
   const { fatigue, recordAnswer: recordFatigue, dismiss: dismissFatigue } = useFatigueDetection();
   const shuffled = useMemo(() => shuffleArray(cards), [cards]);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -60,6 +62,7 @@ export default function CardFeed({ cards }: Props) {
   const handleAnswer = useCallback(
     (card: Card, isCorrect: boolean) => {
       isCorrect ? hapticCorrect() : hapticWrong();
+      isCorrect ? onCorrectAnswer() : onWrongAnswer();
       recordFatigue(isCorrect);
       const event = recordAnswerWithGamification(
         isCorrect,
@@ -76,7 +79,7 @@ export default function CardFeed({ cards }: Props) {
         setShowCelebration(true);
       }
     },
-    [recordAnswerWithGamification, recordFatigue]
+    [recordAnswerWithGamification, recordFatigue, onCorrectAnswer, onWrongAnswer]
   );
 
   return (

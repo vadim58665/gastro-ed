@@ -43,7 +43,7 @@ export default function ProfilePage() {
   return (
     <div className="h-screen flex flex-col">
       <TopBar />
-      <main className="flex-1 pt-16 pb-20 overflow-y-auto">
+      <main className="flex-1 pt-24 pb-20 overflow-y-auto">
         {/* Quick actions: unified settings */}
         <div className="px-6 pt-4 flex items-center justify-end">
           <button

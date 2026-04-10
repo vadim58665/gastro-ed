@@ -6,7 +6,7 @@ import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import SoftListRow from "@/components/ui/SoftListRow";
 import { demoCards } from "@/data/cards";
-import { accreditationCategories, getCardCount, isSpecialtyAvailable } from "@/data/specialties";
+import { allSpecialties, getCardCount, isSpecialtyAvailable } from "@/data/specialties";
 import { useReview } from "@/hooks/useReview";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
 
@@ -27,32 +27,30 @@ export default function TopicsPage() {
   const topicsBySpecialty = useMemo(() => {
     const map = new Map<string, { name: string; total: number; answered: number }[]>();
 
-    for (const cat of accreditationCategories) {
-      for (const spec of cat.specialties) {
-        const cards = demoCards.filter((c) => c.specialty === spec.name);
-        if (cards.length === 0) continue;
+    for (const spec of allSpecialties) {
+      const cards = demoCards.filter((c) => c.specialty === spec.name);
+      if (cards.length === 0) continue;
 
-        const totalMap = new Map<string, number>();
-        const answeredMap = new Map<string, number>();
+      const totalMap = new Map<string, number>();
+      const answeredMap = new Map<string, number>();
 
-        for (const card of cards) {
-          totalMap.set(card.topic, (totalMap.get(card.topic) || 0) + 1);
-          if (answeredIds.has(card.id)) {
-            answeredMap.set(card.topic, (answeredMap.get(card.topic) || 0) + 1);
-          }
+      for (const card of cards) {
+        totalMap.set(card.topic, (totalMap.get(card.topic) || 0) + 1);
+        if (answeredIds.has(card.id)) {
+          answeredMap.set(card.topic, (answeredMap.get(card.topic) || 0) + 1);
         }
-
-        map.set(
-          spec.id,
-          Array.from(totalMap.entries())
-            .map(([name, count]) => ({
-              name,
-              total: count,
-              answered: answeredMap.get(name) || 0,
-            }))
-            .sort((a, b) => b.total - a.total)
-        );
       }
+
+      map.set(
+        spec.id,
+        Array.from(totalMap.entries())
+          .map(([name, count]) => ({
+            name,
+            total: count,
+            answered: answeredMap.get(name) || 0,
+          }))
+          .sort((a, b) => b.total - a.total)
+      );
     }
     return map;
   }, [answeredIds]);
@@ -79,7 +77,7 @@ export default function TopicsPage() {
   return (
     <div className="h-screen flex flex-col">
       <TopBar />
-      <main className="flex-1 pt-16 pb-20 overflow-y-auto">
+      <main className="flex-1 pt-24 pb-20 overflow-y-auto">
         {/* Header */}
         <div className="px-6 pt-8 pb-6 text-center">
           <p className="text-xs uppercase tracking-[0.25em] text-muted font-medium mb-3">
@@ -130,128 +128,89 @@ export default function TopicsPage() {
 
         <div className="w-12 h-px bg-border mx-auto mb-6" />
 
-        {/* Categories */}
+        {/* Specialties */}
         <div className="px-6 pb-8">
-          {accreditationCategories.map((category, catIndex) => (
-            <div key={category.id} className={catIndex > 0 ? "mt-8" : ""}>
-              <h2 className="text-sm font-medium text-foreground mb-1">
-                {category.name}
-              </h2>
-              <p className="text-xs text-muted mb-4">
-                {category.description}
-              </p>
+          <h2 className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-4">
+            Специальности
+          </h2>
+          <div className="space-y-2">
+            {allSpecialties.map((spec) => {
+              const count = getCardCount(spec.name);
+              const available = isSpecialtyAvailable(spec.name);
+              const isExpanded = expandedId === spec.id;
+              const topics = topicsBySpecialty.get(spec.id);
+              const hasTopics = available && topics && topics.length > 0;
+              const initial = spec.name.trim()[0]?.toUpperCase() ?? "";
 
-              <div className="space-y-2">
-                {category.specialties.map((spec) => {
-                  const count = getCardCount(spec.name);
-                  const available = isSpecialtyAvailable(spec.name);
-                  const isExpanded = expandedId === spec.id;
-                  const topics = topicsBySpecialty.get(spec.id);
-                  const hasTopics = available && topics && topics.length > 0;
-                  const initial = spec.name.trim()[0]?.toUpperCase() ?? "";
+              if (!available) return null;
 
-                  return (
-                    <div key={spec.id}>
-                      <SoftListRow
-                        onClick={() => {
-                          if (!available) return;
-                          if (hasTopics) toggleAccordion(spec.id);
-                          else handleSpecialtyClick(spec.id);
-                        }}
-                        disabled={!available}
-                        icon={
-                          <span className="text-base font-semibold tracking-tight">
-                            {initial}
+              return (
+                <div key={spec.id}>
+                  <SoftListRow
+                    onClick={() => {
+                      if (hasTopics) toggleAccordion(spec.id);
+                      else handleSpecialtyClick(spec.id);
+                    }}
+                    icon={
+                      <span className="text-base font-semibold tracking-tight">
+                        {initial}
+                      </span>
+                    }
+                    title={spec.name}
+                    subtitle={`${count} ${count === 1 ? "карточка" : "карточек"}`}
+                    trailing={
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.75"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`text-muted transition-transform duration-200 ${
+                          isExpanded ? "rotate-90" : ""
+                        }`}
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    }
+                  />
+
+                  {/* Expanded topics */}
+                  {isExpanded && topics && (
+                    <div className="ml-16 mt-1 mb-2 space-y-0.5">
+                      {topics.map((topic) => (
+                        <button
+                          key={topic.name}
+                          onClick={() => handleTopicClick(spec.id, topic.name)}
+                          className="w-full text-left px-4 py-3 rounded-xl hover:bg-surface transition-colors group"
+                        >
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-sm font-light text-foreground group-hover:text-primary transition-colors">
+                              {topic.name}
+                            </span>
+                            <span className="text-lg font-extralight text-foreground tracking-tight">
+                              {topic.total}
+                            </span>
+                          </div>
+                          <div className="w-full h-0.5 bg-border rounded-full overflow-hidden mt-1.5">
+                            <div
+                              className="h-full bg-foreground/30 rounded-full transition-all duration-500"
+                              style={{ width: `${(topic.answered / topic.total) * 100}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-muted mt-0.5">
+                            {topic.answered} / {topic.total}
                           </span>
-                        }
-                        title={
-                          <>
-                            {spec.name}
-                            {!available && (
-                              <span className="ml-2 text-[9px] uppercase tracking-wider text-muted font-medium">
-                                Скоро
-                              </span>
-                            )}
-                          </>
-                        }
-                        subtitle={
-                          available && count > 0
-                            ? `${count} ${count === 1 ? "карточка" : "карточек"}`
-                            : undefined
-                        }
-                        trailing={
-                          hasTopics ? (
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.75"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className={`text-muted transition-transform duration-200 ${
-                                isExpanded ? "rotate-90" : ""
-                              }`}
-                            >
-                              <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                          ) : available ? (
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.75"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="text-muted"
-                            >
-                              <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                          ) : (
-                            <span />
-                          )
-                        }
-                      />
-
-                      {/* Expanded topics */}
-                      {isExpanded && topics && (
-                        <div className="ml-16 mt-1 mb-2 space-y-0.5">
-                          {topics.map((topic) => (
-                            <button
-                              key={topic.name}
-                              onClick={() => handleTopicClick(spec.id, topic.name)}
-                              className="w-full text-left px-4 py-3 rounded-xl hover:bg-surface transition-colors group"
-                            >
-                              <div className="flex items-baseline justify-between">
-                                <span className="text-sm font-light text-foreground group-hover:text-primary transition-colors">
-                                  {topic.name}
-                                </span>
-                                <span className="text-lg font-extralight text-foreground tracking-tight">
-                                  {topic.total}
-                                </span>
-                              </div>
-                              <div className="w-full h-0.5 bg-border rounded-full overflow-hidden mt-1.5">
-                                <div
-                                  className="h-full bg-foreground/30 rounded-full transition-all duration-500"
-                                  style={{ width: `${(topic.answered / topic.total) * 100}%` }}
-                                />
-                              </div>
-                              <span className="text-[10px] text-muted mt-0.5">
-                                {topic.answered} / {topic.total}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                        </button>
+                      ))}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </main>
       <BottomNav />

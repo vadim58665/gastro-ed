@@ -8,6 +8,7 @@ import { useMedMindCompanion } from "@/hooks/useMedMindCompanion";
 import { useMedMind } from "@/contexts/MedMindContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
+import { useTheme } from "@/contexts/ThemeContext";
 import { saveMnemonic } from "./AnkiExport";
 
 type QuickAction = "explain" | "mnemonic" | "poem" | "hint" | "free" | "explain_friend" | "why_chain";
@@ -39,6 +40,7 @@ export default function CompanionOverlay() {
   const { characterState, bubbleMessage, onThinking, onIdle } = useMedMindCompanion();
   const { currentCard, isOpen, toggle, close } = useMedMind();
   const { isPro } = useSubscription();
+  const { companionVisibility } = useTheme();
 
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
@@ -55,7 +57,7 @@ export default function CompanionOverlay() {
   const { isListening, isSupported: voiceSupported, toggle: toggleVoice } = useVoiceInput(handleVoiceResult);
 
   const isHidden = HIDDEN_PATHS.some((p) => pathname.startsWith(p));
-  if (isHidden) return null;
+  if (isHidden || companionVisibility === "hidden") return null;
 
   const cardText = getCardText(currentCard);
   const cardTopic = currentCard?.topic;
@@ -194,8 +196,8 @@ export default function CompanionOverlay() {
 
   return (
     <>
-      {/* Bubble (когда popup закрыт) */}
-      {!isOpen && <CharacterBubble message={bubbleMessage} />}
+      {/* Bubble (когда popup закрыт и персонаж полностью виден) */}
+      {!isOpen && companionVisibility === "visible" && <CharacterBubble message={bubbleMessage} />}
 
       {/* Popup panel */}
       {isOpen && (

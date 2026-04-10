@@ -3,9 +3,10 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
+import BottomNav from "@/components/ui/BottomNav";
 import { demoCards } from "@/data/cards";
 import type { Card, ClinicalCaseCard } from "@/types/card";
-import { useProgress } from "@/hooks/useProgress";
+import { useGamification } from "@/hooks/useGamification";
 
 const BLITZ_COUNT = 5;
 const STORAGE_KEY = "gastro_blitz_date";
@@ -26,7 +27,7 @@ function getLocalDate(): string {
 
 export default function MorningBlitzPage() {
   const router = useRouter();
-  const { recordAnswer } = useProgress();
+  const { recordAnswerWithGamification } = useGamification();
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [results, setResults] = useState<boolean[]>([]);
@@ -53,7 +54,7 @@ export default function MorningBlitzPage() {
     if (selected !== null) return;
     setSelected(idx);
     const isCorrect = q.options[idx].isCorrect;
-    recordAnswer(isCorrect, q.id);
+    recordAnswerWithGamification(isCorrect, q.id, q.type, q.topic);
     setResults((prev) => [...prev, isCorrect]);
   }
 
@@ -70,8 +71,8 @@ export default function MorningBlitzPage() {
   if (alreadyDone) {
     return (
       <div className="h-screen flex flex-col">
-        <TopBar />
-        <main className="flex-1 pt-16 flex items-center justify-center px-6">
+        <TopBar showBack />
+        <main className="flex-1 pt-24 flex items-center justify-center px-6">
           <div className="text-center">
             <div className="text-5xl font-extralight text-foreground tracking-tight leading-none mb-4">
               ✓
@@ -86,6 +87,7 @@ export default function MorningBlitzPage() {
             </button>
           </div>
         </main>
+        <BottomNav />
       </div>
     );
   }
@@ -94,8 +96,8 @@ export default function MorningBlitzPage() {
     const correct = results.filter(Boolean).length;
     return (
       <div className="h-screen flex flex-col">
-        <TopBar />
-        <main className="flex-1 pt-16 flex items-center justify-center px-6">
+        <TopBar showBack />
+        <main className="flex-1 pt-24 flex items-center justify-center px-6">
           <div className="text-center">
             <div className="text-5xl font-extralight text-foreground tracking-tight leading-none mb-2">
               {correct}/{BLITZ_COUNT}
@@ -127,14 +129,15 @@ export default function MorningBlitzPage() {
             </button>
           </div>
         </main>
+        <BottomNav />
       </div>
     );
   }
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar />
-      <main className="flex-1 pt-16 overflow-y-auto">
+      <TopBar showBack />
+      <main className="flex-1 pt-24 overflow-y-auto">
         <div className="px-6 pt-8">
           {/* Progress */}
           <div className="flex items-center justify-between mb-6">
@@ -214,6 +217,7 @@ export default function MorningBlitzPage() {
           )}
         </div>
       </main>
+      <BottomNav />
     </div>
   );
 }

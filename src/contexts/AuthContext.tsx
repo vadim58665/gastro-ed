@@ -17,6 +17,7 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   signInWithEmail: (email: string) => Promise<{ error: string | null }>;
+  verifyOtp: (email: string, token: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -24,6 +25,7 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
   signInWithEmail: async () => ({ error: null }),
+  verifyOtp: async () => ({ error: null }),
   signOut: async () => {},
 });
 
@@ -79,9 +81,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithEmail = useCallback(async (email: string) => {
     const supabase = getSupabase();
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithOtp({ email });
+    return { error: error?.message ?? null };
+  }, []);
+
+  const verifyOtp = useCallback(async (email: string, token: string) => {
+    const supabase = getSupabase();
+    const { error } = await supabase.auth.verifyOtp({
       email,
-      options: { emailRedirectTo: window.location.origin },
+      token,
+      type: "email",
     });
     return { error: error?.message ?? null };
   }, []);
@@ -93,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithEmail, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signInWithEmail, verifyOtp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
