@@ -10,8 +10,9 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { useTheme } from "@/contexts/ThemeContext";
 import { saveMnemonic } from "./AnkiExport";
+import MarkdownResponse from "./MarkdownResponse";
 
-type QuickAction = "explain" | "mnemonic" | "poem" | "hint" | "free" | "explain_friend" | "why_chain";
+type QuickAction = "explain" | "mnemonic" | "poem" | "hint" | "free" | "explain_friend" | "why_chain" | "plan";
 
 const HIDDEN_PATHS = ["/welcome", "/auth", "/subscription"];
 
@@ -23,6 +24,7 @@ const ACTIONS: { key: QuickAction; label: string }[] = [
   { key: "hint", label: "Подсказка" },
   { key: "explain_friend", label: "Объясни как другу" },
   { key: "why_chain", label: "Почему?" },
+  { key: "plan", label: "План обучения" },
 ];
 
 function getCardText(card: any): string {
@@ -163,6 +165,9 @@ export default function CompanionOverlay() {
       why_chain: cardText
         ? `Я ответил на этот вопрос. Спроси меня "Почему ты выбрал этот ответ?" и затем разбери мой ход рассуждений. Задавай уточняющие вопросы "Почему?", чтобы я глубже понял тему:\n\n${cardText}`
         : "Спроси меня, почему я ответил именно так на последний вопрос, и разбери мой ход мышления",
+      plan: cardTopic
+        ? `Составь учебный план по теме: ${cardTopic}`
+        : "Составь учебный план по последней теме",
     };
     setShowInput(false);
     sendMessage(prompts[action], action);
@@ -236,9 +241,9 @@ export default function CompanionOverlay() {
 
             {/* Response area */}
             {(response || isStreaming) && (
-              <div className="flex-1 overflow-y-auto px-4 py-3 text-sm text-foreground leading-relaxed max-h-[40vh]">
+              <div className="flex-1 overflow-y-auto px-4 py-3 max-h-[40vh]">
                 {response ? (
-                  <div className="whitespace-pre-wrap">{response}</div>
+                  <MarkdownResponse content={response} streaming={isStreaming} />
                 ) : (
                   <span className="inline-flex gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-muted animate-pulse" />

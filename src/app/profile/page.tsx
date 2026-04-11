@@ -22,6 +22,7 @@ import ExamCountdown from "@/components/analytics/ExamCountdown";
 import WeeklyDigest from "@/components/analytics/WeeklyDigest";
 import TopicDependencyMap from "@/components/analytics/TopicDependencyMap";
 import AnkiExport from "@/components/medmind/AnkiExport";
+import SavedContentLibrary from "@/components/medmind/SavedContentLibrary";
 import Link from "next/link";
 
 export default function ProfilePage() {
@@ -177,6 +178,14 @@ export default function ProfilePage() {
             Карта тем
           </p>
           <TopicDependencyMap />
+
+          {/* Saved Content Library */}
+          {isPro && (
+            <>
+              <div className="w-full divider-soft my-8" />
+              <SavedContentLibrary />
+            </>
+          )}
 
           {/* Anki Export */}
           <div className="w-full divider-soft my-8" />

@@ -15,6 +15,7 @@ import MagicCard from "@/components/ui/MagicCard";
 import type { AchievementDef } from "@/types/gamification";
 import { useFatigueDetection } from "@/hooks/useFatigueDetection";
 import FatigueBanner from "@/components/ui/FatigueBanner";
+import PostAnswerActions, { type PostAction } from "@/components/medmind/PostAnswerActions";
 
 interface Props {
   cards: Card[];
@@ -36,6 +37,7 @@ export default function CardFeed({ cards }: Props) {
   const { fatigue, recordAnswer: recordFatigue, dismiss: dismissFatigue } = useFatigueDetection();
   const shuffled = useMemo(() => shuffleArray(cards), [cards]);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [answeredCardId, setAnsweredCardId] = useState<string | null>(null);
   const [pendingAchievement, setPendingAchievement] =
     useState<AchievementDef | null>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -64,6 +66,7 @@ export default function CardFeed({ cards }: Props) {
       isCorrect ? hapticCorrect() : hapticWrong();
       isCorrect ? onCorrectAnswer() : onWrongAnswer();
       recordFatigue(isCorrect);
+      setAnsweredCardId(card.id);
       const event = recordAnswerWithGamification(
         isCorrect,
         card.id,
@@ -137,6 +140,21 @@ export default function CardFeed({ cards }: Props) {
                   <KeyFactBanner keyFact={card.keyFact} />
                 )}
                 <CardRenderer card={card} onAnswer={(isCorrect) => handleAnswer(card, isCorrect)} cardHistory={history} />
+                {answeredCardId === card.id && (
+                  <div className="px-6 pb-4">
+                    <PostAnswerActions
+                      onAction={(action) => {
+                        const topic = card.topic;
+                        const q = encodeURIComponent(
+                          "question" in card ? (card as any).question ?? "" :
+                          "statement" in card ? (card as any).statement ?? "" :
+                          "scenario" in card ? (card as any).scenario ?? "" : ""
+                        );
+                        window.location.href = `/companion?topic=${encodeURIComponent(topic)}&q=${q}&action=${action}`;
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </MagicCard>
           </div>

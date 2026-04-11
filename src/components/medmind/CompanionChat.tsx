@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import QuickActions, { type QuickAction } from "./QuickActions";
+import MarkdownResponse from "./MarkdownResponse";
 
 interface ChatMessage {
   id: string;
@@ -220,6 +221,8 @@ export default function CompanionChat({
                   <span className="w-1.5 h-1.5 rounded-full bg-muted animate-pulse" style={{ animationDelay: "0.15s" }} />
                   <span className="w-1.5 h-1.5 rounded-full bg-muted animate-pulse" style={{ animationDelay: "0.3s" }} />
                 </span>
+              ) : msg.role === "assistant" ? (
+                <MarkdownResponse content={msg.content} streaming={isStreaming && msg === messages[messages.length - 1]} />
               ) : (
                 <div className="whitespace-pre-wrap">{msg.content}</div>
               )}
