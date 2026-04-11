@@ -53,3 +53,9 @@ next-env.d.ts
 /public/download_images.sh
 /public/images/
 .superpowers/
+
+# wiki raw binaries (markdown sources committed, binaries not)
+wiki/raw/**/*.pdf
+wiki/raw/**/*.docx
+wiki/raw/**/*.pptx
+wiki/raw/**/*.xlsx

@@ -28,3 +28,10 @@
 
 ## Spec
 - Full product specification in `SPEC.md`
+
+## Wiki
+- LLM-maintained knowledge base in `wiki/`
+- Schema and conventions: `wiki/schema.md`
+- Before answering medical or project questions, check `wiki/index.md` first
+- After valuable queries, offer to save answer as wiki page
+- Operations: ingest (add source), query (ask questions), lint (health-check)
