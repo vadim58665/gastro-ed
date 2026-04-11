@@ -52,8 +52,14 @@ const languages: Array<{
 }> = [
   { id: "ru", name: "Русский", native: "Русский", enabled: true },
   { id: "en", name: "Английский", native: "English", enabled: false },
-  { id: "uk", name: "Украинский", native: "Українська", enabled: false },
+  { id: "zh", name: "Китайский", native: "中文", enabled: false },
+  { id: "ar", name: "Арабский", native: "العربية", enabled: false },
+  { id: "hi", name: "Хинди", native: "हिन्दी", enabled: false },
   { id: "kk", name: "Казахский", native: "Қазақша", enabled: false },
+  { id: "uz", name: "Узбекский", native: "O'zbek", enabled: false },
+  { id: "tr", name: "Турецкий", native: "Türkçe", enabled: false },
+  { id: "fa", name: "Фарси", native: "فارسی", enabled: false },
+  { id: "vi", name: "Вьетнамский", native: "Tiếng Việt", enabled: false },
 ];
 
 const companions: Array<{

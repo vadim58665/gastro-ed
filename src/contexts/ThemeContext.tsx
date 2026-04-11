@@ -10,7 +10,7 @@ import {
 } from "react";
 
 export type ThemeId = "default" | "mocha" | "graphite";
-export type LanguageId = "ru" | "en" | "uk" | "kk";
+export type LanguageId = "ru" | "en" | "zh" | "ar" | "hi" | "kk" | "uz" | "tr" | "fa" | "vi";
 export type CompanionKind = "orb" | "doctor" | "mouse" | "owl";
 export type CompanionVisibility = "visible" | "half" | "hidden";
 
@@ -55,7 +55,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setThemeState(storedTheme);
       }
       const storedLang = localStorage.getItem(LANG_KEY) as LanguageId | null;
-      if (storedLang === "ru" || storedLang === "en" || storedLang === "uk" || storedLang === "kk") {
+      if (storedLang === "ru" || storedLang === "en" || storedLang === "zh" || storedLang === "ar" || storedLang === "hi" || storedLang === "kk" || storedLang === "uz" || storedLang === "tr" || storedLang === "fa" || storedLang === "vi") {
         setLanguageState(storedLang);
       }
       const storedCompanion = localStorage.getItem(COMPANION_KEY) as CompanionKind | null;
