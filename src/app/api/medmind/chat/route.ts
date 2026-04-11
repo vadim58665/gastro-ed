@@ -2,6 +2,11 @@ import { authenticateRequest, errorResponse, getServiceSupabase } from "../../_l
 import { checkRateLimit, rateLimitResponse } from "../../_lib/rate-limit";
 import { checkDailyCap, dailyCapResponse, logApiUsage } from "../../_lib/cost-tracker";
 import { streamChat, estimateCostUsd } from "../../_lib/claude";
+import { fetchUserLearningProfile } from "../../_lib/user-profile";
+import { getAppStatsForUser } from "../../_lib/rag/app-content-index";
+import { retrieveContext } from "../../_lib/rag";
+import { selectModel } from "../../_lib/model-router";
+import type { PromptContext } from "../../_lib/prompts/system-prompt";
 
 export async function POST(req: Request) {
   try {
@@ -36,13 +41,36 @@ export async function POST(req: Request) {
 
     // Build messages array with history
     const messages: { role: "user" | "assistant"; content: string }[] = [
-      ...(history ?? []).slice(-10), // Keep last 10 messages for context
+      ...(history ?? []).slice(-10),
       { role: "user" as const, content: message },
     ];
 
-    const systemSuffix = contextTopic
-      ? `Текущая тема обсуждения: ${contextTopic}`
-      : undefined;
+    const isFollowUp = (history?.length ?? 0) > 0;
+
+    // Gather context for modular prompt system
+    const [userProfile, appStats, ragContext] = await Promise.all([
+      fetchUserLearningProfile(userId).catch(() => null),
+      getAppStatsForUser().catch(() => ({
+        totalCards: 0,
+        totalSpecialties: 0,
+        totalAccreditationQuestions: 0,
+      })),
+      contextTopic
+        ? retrieveContext(contextTopic, undefined, 1500).catch(() => "")
+        : Promise.resolve(""),
+    ]);
+
+    const promptContext: PromptContext = {
+      action: "chat",
+      specialty: userProfile?.specialty,
+      topic: contextTopic ?? undefined,
+      userProfile: userProfile ?? undefined,
+      appStats,
+      ragContext: ragContext || undefined,
+    };
+
+    // Determine model
+    const { model } = selectModel("chat", { isFollowUp });
 
     // Stream response
     const encoder = new TextEncoder();
@@ -51,7 +79,10 @@ export async function POST(req: Request) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of streamChat(messages, systemSuffix)) {
+          for await (const chunk of streamChat(messages, {
+            promptContext,
+            isFollowUp,
+          })) {
             fullResponse += chunk;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`));
           }
@@ -64,11 +95,11 @@ export async function POST(req: Request) {
             context_topic: contextTopic ?? null,
           });
 
-          // Estimate cost (rough: ~400 input + output length tokens)
+          // Estimate cost
           const estimatedInput = messages.reduce((s, m) => s + m.content.length / 4, 0);
           const estimatedOutput = fullResponse.length / 4;
-          const cost = estimateCostUsd("claude-sonnet-4-20250514", Math.round(estimatedInput), Math.round(estimatedOutput));
-          await logApiUsage(userId, "chat", "claude-sonnet-4-20250514", Math.round(estimatedInput), Math.round(estimatedOutput), cost);
+          const cost = estimateCostUsd(model, Math.round(estimatedInput), Math.round(estimatedOutput));
+          await logApiUsage(userId, "chat", model, Math.round(estimatedInput), Math.round(estimatedOutput), cost);
 
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();

@@ -1,4 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { buildSystemPrompt, type PromptContext } from "./prompts/system-prompt";
+import { selectModel, estimateCost } from "./model-router";
 
 let client: Anthropic | null = null;
 
@@ -8,14 +10,17 @@ function getClient(): Anthropic {
   return client;
 }
 
-const MEDMIND_SYSTEM = `Ты MedMind  - медицинский ИИ-педагог для врачей. Пиши на русском языке.
+// Legacy system prompt for backwards compatibility during migration
+const MEDMIND_SYSTEM_LEGACY = `Ты MedMind - медицинский ИИ-педагог для врачей. Пиши на русском языке.
 Генерируй клинически точный контент. Без эмодзи. Цитируй источники где возможно.
 Будь кратким и конкретным.`;
 
 export interface GenerateOptions {
+  /** @deprecated Use promptContext instead */
   systemSuffix?: string;
   maxTokens?: number;
   model?: "claude-sonnet-4-20250514" | "claude-haiku-4-5-20251001";
+  promptContext?: PromptContext;
 }
 
 export interface GenerateResult {
@@ -29,11 +34,24 @@ export async function generateText(
   userPrompt: string,
   options: GenerateOptions = {}
 ): Promise<GenerateResult> {
-  const model = options.model ?? "claude-sonnet-4-20250514";
-  const maxTokens = options.maxTokens ?? 1024;
-  const system = options.systemSuffix
-    ? `${MEDMIND_SYSTEM}\n${options.systemSuffix}`
-    : MEDMIND_SYSTEM;
+  let model: string;
+  let maxTokens: number;
+  let system: string;
+
+  if (options.promptContext) {
+    // New modular prompt system
+    const selection = selectModel(options.promptContext.action);
+    model = options.model ?? selection.model;
+    maxTokens = options.maxTokens ?? selection.maxTokens;
+    system = buildSystemPrompt(options.promptContext);
+  } else {
+    // Legacy path
+    model = options.model ?? "claude-sonnet-4-20250514";
+    maxTokens = options.maxTokens ?? 1024;
+    system = options.systemSuffix
+      ? `${MEDMIND_SYSTEM_LEGACY}\n${options.systemSuffix}`
+      : MEDMIND_SYSTEM_LEGACY;
+  }
 
   try {
     const response = await getClient().messages.create({
@@ -66,17 +84,50 @@ export async function generateText(
   }
 }
 
+export interface StreamChatOptions {
+  /** @deprecated Use promptContext instead */
+  systemSuffix?: string;
+  promptContext?: PromptContext;
+  isFollowUp?: boolean;
+}
+
 export async function* streamChat(
   messages: { role: "user" | "assistant"; content: string }[],
-  systemSuffix?: string
+  options?: string | StreamChatOptions
 ): AsyncGenerator<string> {
-  const system = systemSuffix
-    ? `${MEDMIND_SYSTEM}\n${systemSuffix}`
-    : MEDMIND_SYSTEM;
+  let system: string;
+  let model: string;
+  let maxTokens: number;
+
+  // Handle both legacy (string) and new (object) signatures
+  if (typeof options === "string" || options === undefined) {
+    const suffix = options as string | undefined;
+    system = suffix
+      ? `${MEDMIND_SYSTEM_LEGACY}\n${suffix}`
+      : MEDMIND_SYSTEM_LEGACY;
+    model = "claude-sonnet-4-20250514";
+    maxTokens = 1024;
+  } else {
+    if (options.promptContext) {
+      system = buildSystemPrompt(options.promptContext);
+      const selection = selectModel(
+        options.promptContext.action,
+        { isFollowUp: options.isFollowUp }
+      );
+      model = selection.model;
+      maxTokens = selection.maxTokens;
+    } else {
+      system = options.systemSuffix
+        ? `${MEDMIND_SYSTEM_LEGACY}\n${options.systemSuffix}`
+        : MEDMIND_SYSTEM_LEGACY;
+      model = "claude-sonnet-4-20250514";
+      maxTokens = 1024;
+    }
+  }
 
   const stream = getClient().messages.stream({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1024,
+    model,
+    max_tokens: maxTokens,
     system,
     messages,
   });
@@ -91,14 +142,15 @@ export async function* streamChat(
   }
 }
 
-// Cost estimation: Sonnet input=$3/M, output=$15/M; Haiku input=$0.80/M, output=$4/M
+/** @deprecated Use estimateCost from model-router instead */
 export function estimateCostUsd(
   model: string,
   inputTokens: number,
   outputTokens: number
 ): number {
-  if (model.includes("haiku")) {
-    return (inputTokens * 0.8 + outputTokens * 4) / 1_000_000;
-  }
-  return (inputTokens * 3 + outputTokens * 15) / 1_000_000;
+  return estimateCost(
+    model as "claude-sonnet-4-20250514" | "claude-haiku-4-5-20251001",
+    inputTokens,
+    outputTokens
+  );
 }
