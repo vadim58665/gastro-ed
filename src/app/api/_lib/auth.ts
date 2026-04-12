@@ -11,6 +11,15 @@ export async function authenticateRequest(
   req: Request
 ): Promise<{ userId: string }> {
   const authHeader = req.headers.get("authorization");
+
+  // Dev bypass: allow test token when DEV_MODE is enabled
+  if (
+    process.env.NEXT_PUBLIC_DEV_MODE === "true" &&
+    authHeader === "Bearer dev-test-token"
+  ) {
+    return { userId: "dev-test-user" };
+  }
+
   if (!authHeader?.startsWith("Bearer ")) {
     throw new AuthError("Missing authorization header");
   }
