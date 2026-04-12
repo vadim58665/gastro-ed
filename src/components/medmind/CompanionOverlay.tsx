@@ -11,6 +11,7 @@ import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { useTheme } from "@/contexts/ThemeContext";
 import { saveMnemonic } from "./AnkiExport";
 import MarkdownResponse from "./MarkdownResponse";
+import { getSupabase } from "@/lib/supabase/client";
 
 type QuickAction = "explain" | "mnemonic" | "poem" | "hint" | "free" | "explain_friend" | "why_chain" | "plan";
 
@@ -77,9 +78,14 @@ export default function CompanionOverlay() {
 
     try {
       abortRef.current = new AbortController();
+      const { data: { session } } = await getSupabase().auth.getSession();
+      const token = session?.access_token ?? (process.env.NEXT_PUBLIC_DEV_MODE === "true" ? "dev-test-token" : "");
       const res = await fetch("/api/medmind/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({
           message: text.trim(),
           contextTopic: cardTopic,
