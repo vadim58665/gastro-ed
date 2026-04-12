@@ -170,6 +170,13 @@ export default function ReviewPage() {
 
   const hasAnyCards = allReviewCards.filter((rc) => !source || (rc.source || "feed") === source).length > 0;
 
+  // Reset to idle if session has no current card (must be before any early returns)
+  useEffect(() => {
+    if (pageState === "session" && !currentCard) {
+      setPageState("idle");
+    }
+  }, [pageState, currentCard]);
+
   // Shared card list component
   const renderCardList = () => (
     <>
@@ -533,12 +540,6 @@ export default function ReviewPage() {
   }
 
   // === SESSION STATE ===
-  useEffect(() => {
-    if (pageState === "session" && !currentCard) {
-      setPageState("idle");
-    }
-  }, [pageState, currentCard]);
-
   if (!currentCard) {
     return null;
   }

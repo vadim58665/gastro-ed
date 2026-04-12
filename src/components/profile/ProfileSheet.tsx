@@ -7,6 +7,7 @@ import {
   type LanguageId,
   type CompanionKind,
   type CompanionVisibility,
+  type CompanionSize,
 } from "@/contexts/ThemeContext";
 import CharacterAvatarPreview from "@/components/medmind/CharacterAvatarPreview";
 import { STORAGE_KEY as AVATAR_POS_KEY, DEFAULT_POSITION } from "@/components/medmind/CharacterAvatar";
@@ -76,7 +77,7 @@ const companions: Array<{
 type View = "menu" | "language" | "styles" | "companion";
 
 export default function ProfileSheet({ open, kind, onClose }: Props) {
-  const { theme, setTheme, language, setLanguage, companion, setCompanion, companionVisibility, setCompanionVisibility } = useTheme();
+  const { theme, setTheme, language, setLanguage, companion, setCompanion, companionVisibility, setCompanionVisibility, companionSize, setCompanionSize } = useTheme();
   const [view, setView] = useState<View>("menu");
 
   // Sync internal view when the sheet opens with a specific kind.
@@ -195,7 +196,7 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
               />
             </div>
           ) : view === "companion" ? (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 overflow-y-auto max-h-[60vh] overscroll-contain">
               {companions.map((c) => {
                 const active = c.id === companion;
                 return (
@@ -234,6 +235,36 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
                 <p className="text-[10px] text-muted leading-relaxed">
                   Перетащите персонажа в любое место на экране.
                 </p>
+              </div>
+
+              {/* Size controls */}
+              <div className="mt-2 rounded-2xl border border-border bg-surface p-4 flex flex-col gap-3">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-muted font-semibold">
+                  Размер
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { id: "small" as CompanionSize, label: "Маленький", px: 40 },
+                    { id: "medium" as CompanionSize, label: "Средний", px: 56 },
+                    { id: "large" as CompanionSize, label: "Большой", px: 72 },
+                  ]).map((opt) => {
+                    const active = companionSize === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        onClick={() => setCompanionSize(opt.id)}
+                        className={`btn-press flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl border transition-colors text-xs font-semibold ${
+                          active
+                            ? "border-foreground/40 bg-card text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]"
+                            : "border-border bg-transparent text-muted hover:text-foreground"
+                        }`}
+                      >
+                        <CharacterAvatarPreview kind={companion} size={opt.px / 2} />
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Visibility controls */}

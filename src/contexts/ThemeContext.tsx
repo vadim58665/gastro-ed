@@ -13,11 +13,13 @@ export type ThemeId = "default" | "mocha" | "graphite";
 export type LanguageId = "ru" | "en" | "zh" | "ar" | "hi" | "kk" | "uz" | "tr" | "fa" | "vi";
 export type CompanionKind = "orb" | "doctor" | "mouse" | "owl";
 export type CompanionVisibility = "visible" | "half" | "hidden";
+export type CompanionSize = "small" | "medium" | "large";
 
 const THEME_KEY = "sd-theme";
 const LANG_KEY = "sd-language";
 const COMPANION_KEY = "sd-companion";
 const COMPANION_VIS_KEY = "sd-companion-visibility";
+const COMPANION_SIZE_KEY = "sd-companion-size";
 
 interface ThemeContextValue {
   theme: ThemeId;
@@ -28,6 +30,8 @@ interface ThemeContextValue {
   setCompanion: (c: CompanionKind) => void;
   companionVisibility: CompanionVisibility;
   setCompanionVisibility: (v: CompanionVisibility) => void;
+  companionSize: CompanionSize;
+  setCompanionSize: (s: CompanionSize) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
@@ -39,6 +43,8 @@ const ThemeContext = createContext<ThemeContextValue>({
   setCompanion: () => {},
   companionVisibility: "visible",
   setCompanionVisibility: () => {},
+  companionSize: "medium",
+  setCompanionSize: () => {},
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -46,6 +52,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<LanguageId>("ru");
   const [companion, setCompanionState] = useState<CompanionKind>("orb");
   const [companionVisibility, setCompanionVisibilityState] = useState<CompanionVisibility>("visible");
+  const [companionSize, setCompanionSizeState] = useState<CompanionSize>("medium");
 
   // Load persisted values after hydration to avoid SSR mismatch
   useEffect(() => {
@@ -70,6 +77,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const storedVis = localStorage.getItem(COMPANION_VIS_KEY) as CompanionVisibility | null;
       if (storedVis === "visible" || storedVis === "half" || storedVis === "hidden") {
         setCompanionVisibilityState(storedVis);
+      }
+      const storedSize = localStorage.getItem(COMPANION_SIZE_KEY) as CompanionSize | null;
+      if (storedSize === "small" || storedSize === "medium" || storedSize === "large") {
+        setCompanionSizeState(storedSize);
       }
     } catch {}
   }, []);
@@ -109,9 +120,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, []);
 
+  const setCompanionSize = useCallback((s: CompanionSize) => {
+    setCompanionSizeState(s);
+    try {
+      localStorage.setItem(COMPANION_SIZE_KEY, s);
+    } catch {}
+  }, []);
+
   return (
     <ThemeContext.Provider
-      value={{ theme, setTheme, language, setLanguage, companion, setCompanion, companionVisibility, setCompanionVisibility }}
+      value={{ theme, setTheme, language, setLanguage, companion, setCompanion, companionVisibility, setCompanionVisibility, companionSize, setCompanionSize }}
     >
       {children}
     </ThemeContext.Provider>
