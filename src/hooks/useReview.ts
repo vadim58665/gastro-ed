@@ -49,9 +49,12 @@ function loadReviewCards(): ReviewCard[] {
   }
 }
 
+const REVIEW_UPDATE_EVENT = "sd-review-updated";
+
 function saveReviewCards(cards: ReviewCard[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+    window.dispatchEvent(new Event(REVIEW_UPDATE_EVENT));
   } catch (e) {
     console.error("Failed to save review cards to localStorage", e);
   }
@@ -63,6 +66,9 @@ export function useReview() {
 
   useEffect(() => {
     setReviewCards(loadReviewCards());
+    const handleUpdate = () => setReviewCards(loadReviewCards());
+    window.addEventListener(REVIEW_UPDATE_EVENT, handleUpdate);
+    return () => window.removeEventListener(REVIEW_UPDATE_EVENT, handleUpdate);
   }, []);
 
   const syncToSupabase = useCallback(
