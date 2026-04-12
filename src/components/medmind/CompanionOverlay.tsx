@@ -42,7 +42,8 @@ export default function CompanionOverlay() {
   const { characterState, bubbleMessage, onThinking, onIdle } = useMedMindCompanion();
   const { currentCard, isOpen, toggle, close } = useMedMind();
   const { isPro } = useSubscription();
-  const { companionVisibility } = useTheme();
+  const { companionVisibility, companionSize } = useTheme();
+  const avatarSize = companionSize === "small" ? 52 : companionSize === "large" ? 96 : 76;
 
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
@@ -355,7 +356,7 @@ export default function CompanionOverlay() {
       )}
 
       {/* Character avatar */}
-      <CharacterAvatar state={characterState} onClick={toggle} />
+      <CharacterAvatar state={characterState} onClick={toggle} size={avatarSize} />
     </>
   );
 }
