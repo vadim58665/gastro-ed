@@ -77,7 +77,9 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const [subscription, setSubscription] = useState<SubscriptionState>(loadLocal);
 
   const isPro =
-    subscription.status === "active" || subscription.status === "trial";
+    process.env.NEXT_PUBLIC_DEV_MODE === "true" ||
+    subscription.status === "active" ||
+    subscription.status === "trial";
 
   const refreshSubscription = useCallback(async () => {
     const token = await getAuthToken();
