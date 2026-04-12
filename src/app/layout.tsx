@@ -20,13 +20,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "GastroEd",
-  description: "Интерактивное обучение гастроэнтерологии для врачей",
+  title: "УмныйВрач",
+  description: "Интерактивное обучение для врачей",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "GastroEd",
+    title: "УмныйВрач",
   },
 };
 

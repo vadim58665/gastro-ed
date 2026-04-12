@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { pushProgress } from "@/lib/supabase/sync";
 import { defaultProgress } from "@/data/defaults";
 
-const STORAGE_KEY = "gastro-ed-progress";
+const STORAGE_KEY = "sd-progress";
 
 function getLocalDateStr(date = new Date()): string {
   const y = date.getFullYear();

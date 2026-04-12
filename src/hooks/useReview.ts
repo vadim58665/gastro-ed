@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { pushReviewCards } from "@/lib/supabase/sync";
 import { demoCards } from "@/data/cards";
 
-const STORAGE_KEY = "gastro-ed-review";
+const STORAGE_KEY = "sd-review";
 
 export type ReviewSource = "feed" | "prep";
 

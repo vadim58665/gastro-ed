@@ -7,8 +7,8 @@ import type {
 } from "@/types/user";
 import type { ReviewCard } from "@/hooks/useReview";
 
-const PROGRESS_KEY = "gastro-ed-progress";
-const REVIEW_KEY = "gastro-ed-review";
+const PROGRESS_KEY = "sd-progress";
+const REVIEW_KEY = "sd-review";
 
 // --- Push ---
 

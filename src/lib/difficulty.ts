@@ -58,7 +58,7 @@ function shuffle<T>(arr: T[]): T[] {
   return copy;
 }
 
-const STORAGE_KEY = "gastro-ed-difficulty-level";
+const STORAGE_KEY = "sd-difficulty-level";
 
 export function getStoredDifficulty(): DifficultyLevel {
   if (typeof window === "undefined") return DEFAULT_DIFFICULTY;

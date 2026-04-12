@@ -1,4 +1,4 @@
-const CACHE_NAME = "gastroed-v1";
+const CACHE_NAME = "smartdoc-v2";
 const PRECACHE_URLS = [
   "/",
   "/topics",

@@ -14,10 +14,10 @@ export type LanguageId = "ru" | "en" | "zh" | "ar" | "hi" | "kk" | "uz" | "tr" |
 export type CompanionKind = "orb" | "doctor" | "mouse" | "owl";
 export type CompanionVisibility = "visible" | "half" | "hidden";
 
-const THEME_KEY = "gastro-ed-theme";
-const LANG_KEY = "gastro-ed-language";
-const COMPANION_KEY = "gastro-ed-companion";
-const COMPANION_VIS_KEY = "gastro-ed-companion-visibility";
+const THEME_KEY = "sd-theme";
+const LANG_KEY = "sd-language";
+const COMPANION_KEY = "sd-companion";
+const COMPANION_VIS_KEY = "sd-companion-visibility";
 
 interface ThemeContextValue {
   theme: ThemeId;

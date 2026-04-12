@@ -1,8 +1,8 @@
-# GastroEd — SPEC.md
+# УмныйВрач — SPEC.md
 
 ## Context
 
-GastroEd — интерактивная обучающая платформа для врачей-гастроэнтерологов. Формат "Duolingo для врачей": клинические ситуации, мифы, визуальные квизы, spaced repetition. Источник контента — клинические рекомендации РФ.
+УмныйВрач - интерактивная обучающая платформа для врачей. Формат "Duolingo для врачей": клинические ситуации, мифы, визуальные квизы, spaced repetition. Источник контента - клинические рекомендации РФ.
 
 Автор — практикующий врач. Дизайн — luxury minimalism (референс: johannis.it): большие лёгкие числа, uppercase метки, тонкие разделители, без декоративных иконок.
 
@@ -101,7 +101,7 @@ GastroEd — интерактивная обучающая платформа д
 
 ### Файловая структура (текущая)
 ```
-gastro-ed/
+smartdoc/
 ├── src/
 │   ├── app/
 │   │   ├── layout.tsx          # Root: Inter font, PWA meta, viewport
@@ -151,8 +151,8 @@ card: #ffffff  muted: #94a3b8  border: #e2e8f0  surface: #f1f5f9
 ```
 
 ### Хранение данных (текущее)
-- `localStorage("gastro-ed-progress")` → UserProgress (streak, points, cards)
-- `localStorage("gastro-ed-review")` → ReviewCard[] (FSRS state per card)
+- `localStorage("sd-progress")` → UserProgress (streak, points, cards)
+- `localStorage("sd-review")` → ReviewCard[] (FSRS state per card)
 
 ---
 

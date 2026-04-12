@@ -1,4 +1,4 @@
-import { gastroQuestions } from "./gastroenterologiya";
+import { gastroenterologiyaQuestions } from "./gastroenterologiya";
 import { kardiologiyaQuestions } from "./kardiologiya";
 import { nevrologiyaQuestions } from "./nevrologiya";
 import { hirurgiyaQuestions } from "./hirurgiya";
@@ -7,7 +7,7 @@ import { pediatriyaQuestions } from "./pediatriya";
 import type { TestQuestion } from "@/types/accreditation";
 
 const questionsBySpecialty: Record<string, TestQuestion[]> = {
-  gastroenterologiya: gastroQuestions,
+  gastroenterologiya: gastroenterologiyaQuestions,
   kardiologiya: kardiologiyaQuestions,
   nevrologiya: nevrologiyaQuestions,
   hirurgiya: hirurgiyaQuestions,

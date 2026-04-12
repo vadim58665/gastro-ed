@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef } from "react";
 import type { AccreditationProgress, ExamResult } from "@/types/accreditation";
 
-const STORAGE_KEY = "gastro-ed-accreditation";
+const STORAGE_KEY = "sd-accreditation";
 
 function loadProgress(): Record<string, AccreditationProgress> {
   try {

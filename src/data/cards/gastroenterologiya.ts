@@ -1,6 +1,6 @@
 import type { Card } from "@/types/card";
 
-export const gastroCards: Card[] = [
+export const gastroenterologiyaCards: Card[] = [
   // === КЛИНИЧЕСКИЕ ЗАДАЧКИ ===
   {
     id: "cc-1",
