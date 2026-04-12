@@ -359,9 +359,10 @@ def collect_all_block_ranges():
     return sorted(seen.keys())
 
 
-def open_block_by_range(b_start, b_end):
+def open_block_by_range(b_start, b_end, scroll_from_top=True):
     """Scroll block list to find (b_start, b_end) and open it. Returns True on success."""
-    scroll_list(n_up=40)
+    if scroll_from_top:
+        scroll_list(n_up=40)
     for attempt in range(80):
         state, elems = get_screen_state()
         if state != "block_list":
@@ -883,11 +884,12 @@ end tell'''
                 last_seen_max = cur_max
 
             seen_last = b_end in all_questions
-            if stale_count >= MAX_STALE and seen_last:
-                print(f"    Stale at Q{cur_max}, last question seen — done")
+            have_enough = len(all_questions) >= expected_q * 0.95
+            if stale_count >= MAX_STALE and seen_last and have_enough:
+                print(f"    Stale at Q{cur_max}, {len(all_questions)}/{expected_q}q — done")
                 break
             elif stale_count >= MAX_STALE * 5:
-                print(f"    Hard stale at Q{cur_max} — stopping")
+                print(f"    Hard stale at Q{cur_max}, {len(all_questions)}/{expected_q}q — stopping")
                 break
 
             if cur_max >= b_end and len(all_questions) >= expected_q:
@@ -982,6 +984,81 @@ def scrape_current_specialty(spec_name, start_block=0):
             v = sum(1 for q in data if q.get("correctIndex", -1) >= 0)
             total_q += len(data)
             total_v += v
+    return total_q, total_v
+
+
+# ── Targeted retry ────────────────────────────────────────────────────────────
+
+def scrape_specific_blocks(spec_name, block_ranges):
+    """Scrape only specific blocks without enumerating all.
+
+    Merges new data with existing JSON: questions with correctIndex >= 0
+    take priority over those without.
+
+    Args:
+        spec_name: specialty name (must already be loaded in app)
+        block_ranges: list of (b_start, b_end) tuples to scrape
+
+    Returns:
+        (total_questions, total_valid_answers) across all merged blocks
+    """
+    spec_dir = os.path.join(TESTS_DIR, spec_name)
+    os.makedirs(spec_dir, exist_ok=True)
+
+    # Ensure we're on block list
+    state, _ = get_screen_state()
+    if state == "in_block":
+        press_back()
+        time.sleep(1.5)
+
+    total_q = total_v = 0
+
+    for i, (b_start, b_end) in enumerate(block_ranges):
+        expected_q = b_end - b_start + 1
+        block_file = os.path.join(spec_dir, f"block_{b_start}-{b_end}.json")
+
+        print(f"\n--- [{i+1}/{len(block_ranges)}] {b_start}-{b_end} ({expected_q}q) ---")
+
+        # Load existing data for merge
+        existing = {}
+        if os.path.exists(block_file):
+            try:
+                for q in json.load(open(block_file)):
+                    existing[q["num"]] = q
+            except Exception:
+                pass
+
+        # Open block (scroll from top only for the first one)
+        if not open_block_by_range(b_start, b_end, scroll_from_top=(i == 0)):
+            # Fallback: scroll from top
+            if not open_block_by_range(b_start, b_end, scroll_from_top=True):
+                print(f"  FAIL: block {b_start}-{b_end} not found")
+                continue
+
+        questions = scrape_block(b_start, b_end)
+
+        press_back()
+        time.sleep(1.5)
+
+        # Merge: new questions supplement old; prefer correctIndex >= 0
+        for q in questions:
+            num = q["num"]
+            old = existing.get(num)
+            if old is None:
+                existing[num] = q
+            elif q.get("correctIndex", -1) >= 0:
+                existing[num] = q
+            # else keep old
+
+        merged = sorted(existing.values(), key=lambda x: x["num"])
+        with open(block_file, "w", encoding="utf-8") as f:
+            json.dump(merged, f, ensure_ascii=False, indent=2)
+
+        valid = sum(1 for q in merged if q.get("correctIndex", -1) >= 0)
+        total_q += len(merged)
+        total_v += valid
+        print(f"  Saved: {len(merged)}q, {valid} correct")
+
     return total_q, total_v
 
 
