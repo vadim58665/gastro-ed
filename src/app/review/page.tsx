@@ -43,6 +43,15 @@ interface SessionCard {
   isCorrect: boolean;
 }
 
+function pluralize(n: number, one: string, few: string, many: string): string {
+  const abs = Math.abs(n) % 100;
+  const last = abs % 10;
+  if (abs > 10 && abs < 20) return many;
+  if (last > 1 && last < 5) return few;
+  if (last === 1) return one;
+  return many;
+}
+
 function formatRelativeTime(date: Date): string {
   const now = new Date();
   const diffMs = date.getTime() - now.getTime();
@@ -274,7 +283,7 @@ export default function ReviewPage() {
                   {wrongCards.map((c) => (
                     <div key={c.id} className="flex justify-between items-center px-4 py-3 bg-danger/8 rounded-xl">
                       <span className="text-xs text-foreground">{c.topic}</span>
-                      <span className="text-[10px] text-danger font-semibold">{c.fails} {c.fails === 1 ? "ошибка" : "ошибок"}</span>
+                      <span className="text-[10px] text-danger font-semibold">{c.fails} {pluralize(c.fails, "ошибка", "ошибки", "ошибок")}</span>
                     </div>
                   ))}
                 </div>
@@ -369,7 +378,7 @@ export default function ReviewPage() {
                 {allDueCards.length}
               </div>
               <p className="text-[11px] uppercase tracking-[0.15em] text-muted mt-2 font-medium">
-                {allDueCards.length === 1 ? "карточка" : "карточек"}
+                {pluralize(allDueCards.length, "карточка", "карточки", "карточек")}
               </p>
             </div>
 
@@ -524,8 +533,13 @@ export default function ReviewPage() {
   }
 
   // === SESSION STATE ===
+  useEffect(() => {
+    if (pageState === "session" && !currentCard) {
+      setPageState("idle");
+    }
+  }, [pageState, currentCard]);
+
   if (!currentCard) {
-    setPageState("idle");
     return null;
   }
 

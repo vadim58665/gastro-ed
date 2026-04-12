@@ -3,31 +3,10 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { UserProgress } from "@/types/user";
 import { useAuth } from "@/contexts/AuthContext";
-import { pushProgress, logAnswer } from "@/lib/supabase/sync";
+import { pushProgress } from "@/lib/supabase/sync";
+import { defaultProgress } from "@/data/defaults";
 
 const STORAGE_KEY = "gastro-ed-progress";
-
-const defaultProgress: UserProgress = {
-  streakCurrent: 0,
-  streakBest: 0,
-  totalPoints: 0,
-  cardsSeen: 0,
-  cardsCorrect: 0,
-  lastActiveDate: "",
-  dailyGoal: 10,
-  todayCardsSeen: 0,
-  xp: 0,
-  level: 1,
-  unlockedAchievements: {},
-  completedChallengeIds: [],
-  cardHistory: {},
-  dailyGoalStreak: 0,
-  dailyGoalStreakBest: 0,
-  perfectBlitzCount: 0,
-  typeCounts: {},
-  topicsAnswered: [],
-  dailyCaseHistory: {},
-};
 
 function getLocalDateStr(date = new Date()): string {
   const y = date.getFullYear();
@@ -115,12 +94,8 @@ export function useProgress() {
       };
       updated.streakBest = Math.max(updated.streakBest, updated.streakCurrent);
       saveProgress(updated);
-
-      if (cardId && user && navigator.onLine) {
-        logAnswer(user.id, cardId, isCorrect).catch(console.error);
-      }
     },
-    [saveProgress, user]
+    [saveProgress]
   );
 
   return { progress, recordAnswer, saveProgress };

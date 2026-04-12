@@ -113,7 +113,7 @@ export default function CardFeed({ cards }: Props) {
             className="feed-card min-h-[calc(100vh-8rem)] flex items-center"
           >
             <MagicCard
-              className="w-full max-w-lg mx-auto my-4 mx-3 rounded-3xl card-protected"
+              className="w-full max-w-lg mx-auto my-4 px-3 rounded-3xl card-protected"
               gradientFrom="#6366f1"
               gradientTo="#a855f7"
               gradientSize={320}
