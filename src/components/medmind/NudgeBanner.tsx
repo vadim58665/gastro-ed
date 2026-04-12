@@ -12,18 +12,20 @@ interface Props {
 export default function NudgeBanner({ nudge, onDismiss }: Props) {
   const { engagementLevel } = useSubscription();
   const [visible, setVisible] = useState(true);
+  const isMaximum = engagementLevel === "maximum";
 
-  // Only show in maximum engagement
-  if (engagementLevel !== "maximum") return null;
-
-  // Auto-dismiss after 5s
+  // Auto-dismiss after 5s (only active in maximum engagement)
   useEffect(() => {
+    if (!isMaximum) return;
     const timer = setTimeout(() => {
       setVisible(false);
       onDismiss(nudge.id);
     }, 5000);
     return () => clearTimeout(timer);
-  }, [nudge.id, onDismiss]);
+  }, [isMaximum, nudge.id, onDismiss]);
+
+  // Only show in maximum engagement
+  if (!isMaximum) return null;
 
   if (!visible) return null;
 
