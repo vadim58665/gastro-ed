@@ -10,6 +10,15 @@ import { allSpecialties, getCardCount, isSpecialtyAvailable } from "@/data/speci
 import { useReview } from "@/hooks/useReview";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
 
+function pluralize(n: number, one: string, few: string, many: string): string {
+  const abs = Math.abs(n) % 100;
+  const last = abs % 10;
+  if (abs > 10 && abs < 20) return many;
+  if (last > 1 && last < 5) return few;
+  if (last === 1) return one;
+  return many;
+}
+
 export default function TopicsPage() {
   const { reviewCards } = useReview();
   const { setActiveSpecialty, clearSpecialty } = useSpecialty();
@@ -157,7 +166,7 @@ export default function TopicsPage() {
                       </span>
                     }
                     title={spec.name}
-                    subtitle={`${count} ${count === 1 ? "карточка" : "карточек"}`}
+                    subtitle={`${count} ${pluralize(count, "карточка", "карточки", "карточек")}`}
                     trailing={
                       <svg
                         width="16"

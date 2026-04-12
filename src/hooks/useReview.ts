@@ -112,18 +112,14 @@ export function useReview() {
       const existing = reviewCards.find((rc) => rc.cardId === cardId);
       if (!existing) return;
 
-      let updated: ReviewCard[];
-      if (grade === Rating.Good) {
-        // Правильный ответ — убираем из очереди ошибок
-        updated = reviewCards.filter((rc) => rc.cardId !== cardId);
-      } else {
-        // Ошибка — оставляем, сразу доступна для повтора
-        const result = f.next(existing.fsrs, now, grade);
-        const card = { ...result.card, due: now };
-        updated = reviewCards.map((rc) =>
-          rc.cardId === cardId ? { cardId, fsrs: card, source: rc.source } : rc
-        );
-      }
+      const result = f.next(existing.fsrs, now, grade);
+      const updatedFsrs = grade === Rating.Again
+        ? { ...result.card, due: now }
+        : result.card;
+
+      const updated = reviewCards.map((rc) =>
+        rc.cardId === cardId ? { cardId, fsrs: updatedFsrs, source: rc.source } : rc
+      );
 
       setReviewCards(updated);
       saveReviewCards(updated);

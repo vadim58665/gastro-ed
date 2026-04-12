@@ -1,4 +1,5 @@
-import { getSupabase } from "./client";
+import { getSupabase, isSupabaseConfigured } from "./client";
+import { defaultProgress } from "@/data/defaults";
 import type {
   UserProgress,
   CardHistoryEntry,
@@ -15,6 +16,7 @@ export async function pushProgress(
   userId: string,
   progress: UserProgress
 ): Promise<void> {
+  if (!isSupabaseConfigured()) return;
   const supabase = getSupabase();
   const { error } = await supabase.from("user_progress").upsert({
     user_id: userId,
@@ -46,7 +48,7 @@ export async function pushReviewCards(
   userId: string,
   cards: ReviewCard[]
 ): Promise<void> {
-  if (cards.length === 0) return;
+  if (cards.length === 0 || !isSupabaseConfigured()) return;
   const supabase = getSupabase();
   const rows = cards.map((c) => ({
     user_id: userId,
@@ -67,6 +69,7 @@ export async function logAnswer(
   cardId: string,
   isCorrect: boolean
 ): Promise<void> {
+  if (!isSupabaseConfigured()) return;
   const supabase = getSupabase();
   const { error } = await supabase.from("user_answers").insert({
     user_id: userId,
@@ -326,30 +329,11 @@ function loadLocalReviewCards(): ReviewCard[] {
 }
 
 function getDefaultProgress(): UserProgress {
-  return {
-    streakCurrent: 0,
-    streakBest: 0,
-    totalPoints: 0,
-    cardsSeen: 0,
-    cardsCorrect: 0,
-    lastActiveDate: "",
-    dailyGoal: 10,
-    todayCardsSeen: 0,
-    xp: 0,
-    level: 1,
-    unlockedAchievements: {},
-    completedChallengeIds: [],
-    cardHistory: {},
-    dailyGoalStreak: 0,
-    dailyGoalStreakBest: 0,
-    perfectBlitzCount: 0,
-    typeCounts: {},
-    topicsAnswered: [],
-    dailyCaseHistory: {},
-  };
+  return { ...defaultProgress };
 }
 
 export async function fullSync(userId: string): Promise<void> {
+  if (!isSupabaseConfigured()) return;
   try {
     const [remoteProgress, remoteCards] = await Promise.all([
       pullProgress(userId),
