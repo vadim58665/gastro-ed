@@ -52,8 +52,14 @@ const languages: Array<{
 }> = [
   { id: "ru", name: "Русский", native: "Русский", enabled: true },
   { id: "en", name: "Английский", native: "English", enabled: false },
-  { id: "uk", name: "Украинский", native: "Українська", enabled: false },
+  { id: "zh", name: "Китайский", native: "中文", enabled: false },
+  { id: "ar", name: "Арабский", native: "العربية", enabled: false },
+  { id: "hi", name: "Хинди", native: "हिन्दी", enabled: false },
   { id: "kk", name: "Казахский", native: "Қазақша", enabled: false },
+  { id: "uz", name: "Узбекский", native: "O'zbek", enabled: false },
+  { id: "tr", name: "Турецкий", native: "Türkçe", enabled: false },
+  { id: "fa", name: "Фарси", native: "فارسی", enabled: false },
+  { id: "vi", name: "Вьетнамский", native: "Tiếng Việt", enabled: false },
 ];
 
 const companions: Array<{
@@ -118,8 +124,8 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
           <div className="w-10 h-1 rounded-full bg-border" />
         </div>
 
-        <div className="px-6 pt-5 pb-8">
-          <div className="flex items-center justify-between mb-5">
+        <div className="px-6 pt-5 pb-8 max-h-[85vh] sm:max-h-[80vh] flex flex-col">
+          <div className="flex items-center justify-between mb-5 shrink-0">
             <div className="flex items-center gap-3 min-w-0">
               {view !== "menu" && kind === "settings" && (
                 <button
@@ -165,7 +171,7 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
             </button>
           </div>
 
-          <div className="w-full divider-soft mb-5" />
+          <div className="w-full divider-soft mb-5 shrink-0" />
 
           {view === "menu" ? (
             <div className="flex flex-col gap-3">
@@ -344,7 +350,7 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
               })}
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 overflow-y-auto max-h-[60vh] overscroll-contain">
               {languages.map((l) => {
                 const active = l.id === language;
                 return (
