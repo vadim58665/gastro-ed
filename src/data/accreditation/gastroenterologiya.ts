@@ -1,9 +1,9 @@
 import type { TestQuestion } from "@/types/accreditation";
 
-export const gastroQuestions: TestQuestion[] = [
+export const gastroenterologiyaQuestions: TestQuestion[] = [
   // === Page 1 (Q1-Q20) ===
   {
-    id: "gastro-q-1",
+    id: "ge-q-1",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question: "К биохимическим маркерам активности цирроза печени относят",
@@ -16,7 +16,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-2",
+    id: "ge-q-2",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -30,7 +30,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-3",
+    id: "ge-q-3",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -44,7 +44,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-4",
+    id: "ge-q-4",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -58,7 +58,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-5",
+    id: "ge-q-5",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -72,7 +72,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-6",
+    id: "ge-q-6",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -81,7 +81,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-7",
+    id: "ge-q-7",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -95,7 +95,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 2,
   },
   {
-    id: "gastro-q-8",
+    id: "ge-q-8",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -109,7 +109,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 0,
   },
   {
-    id: "gastro-q-9",
+    id: "ge-q-9",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -118,7 +118,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 0,
   },
   {
-    id: "gastro-q-10",
+    id: "ge-q-10",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question: "Будесонид рекомендован для лечения пациентов с",
@@ -131,7 +131,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-11",
+    id: "ge-q-11",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -145,7 +145,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-12",
+    id: "ge-q-12",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question: "Глюкагон образуется в",
@@ -158,7 +158,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-13",
+    id: "ge-q-13",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -167,7 +167,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-14",
+    id: "ge-q-14",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -181,7 +181,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-15",
+    id: "ge-q-15",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question: "Осмотическим слабительным является",
@@ -189,7 +189,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 0,
   },
   {
-    id: "gastro-q-16",
+    id: "ge-q-16",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -203,7 +203,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 2,
   },
   {
-    id: "gastro-q-17",
+    id: "ge-q-17",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question: "Для лечения эозинофильного эзофагита применяют",
@@ -216,7 +216,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 0,
   },
   {
-    id: "gastro-q-18",
+    id: "ge-q-18",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -230,7 +230,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 0,
   },
   {
-    id: "gastro-q-19",
+    id: "ge-q-19",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -244,7 +244,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 2,
   },
   {
-    id: "gastro-q-20",
+    id: "ge-q-20",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -259,7 +259,7 @@ export const gastroQuestions: TestQuestion[] = [
   },
   // === Page 2 (Q21-Q120) ===
   {
-    id: "gastro-q-21",
+    id: "ge-q-21",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -273,7 +273,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-22",
+    id: "ge-q-22",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question: "Классическая квадротерапия H.pylori включает",
@@ -286,7 +286,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 2,
   },
   {
-    id: "gastro-q-23",
+    id: "ge-q-23",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -300,7 +300,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 0,
   },
   {
-    id: "gastro-q-24",
+    id: "ge-q-24",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -314,7 +314,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-25",
+    id: "ge-q-25",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -328,7 +328,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 2,
   },
   {
-    id: "gastro-q-26",
+    id: "ge-q-26",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -337,7 +337,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 0,
   },
   {
-    id: "gastro-q-27",
+    id: "ge-q-27",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -351,7 +351,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 2,
   },
   {
-    id: "gastro-q-28",
+    id: "ge-q-28",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -365,7 +365,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 2,
   },
   {
-    id: "gastro-q-29",
+    id: "ge-q-29",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -379,7 +379,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 2,
   },
   {
-    id: "gastro-q-30",
+    id: "ge-q-30",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -388,7 +388,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-31",
+    id: "ge-q-31",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -402,7 +402,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-32",
+    id: "ge-q-32",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -411,7 +411,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-33",
+    id: "ge-q-33",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -420,7 +420,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 2,
   },
   {
-    id: "gastro-q-34",
+    id: "ge-q-34",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -434,7 +434,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-35",
+    id: "ge-q-35",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -448,7 +448,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-36",
+    id: "ge-q-36",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question: "При ночном кислотном прорыве назначают",
@@ -461,7 +461,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-37",
+    id: "ge-q-37",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -475,7 +475,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-38",
+    id: "ge-q-38",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -489,7 +489,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-39",
+    id: "ge-q-39",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -503,7 +503,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 0,
   },
   {
-    id: "gastro-q-40",
+    id: "ge-q-40",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -517,7 +517,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-41",
+    id: "ge-q-41",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -531,7 +531,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 0,
   },
   {
-    id: "gastro-q-42",
+    id: "ge-q-42",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -545,7 +545,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-43",
+    id: "ge-q-43",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -559,7 +559,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-44",
+    id: "ge-q-44",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question: "Аглютеновая диета при целиакии назначается",
@@ -572,7 +572,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-45",
+    id: "ge-q-45",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -586,7 +586,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-46",
+    id: "ge-q-46",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -600,7 +600,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 2,
   },
   {
-    id: "gastro-q-47",
+    id: "ge-q-47",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -609,7 +609,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 1,
   },
   {
-    id: "gastro-q-48",
+    id: "ge-q-48",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -623,7 +623,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-49",
+    id: "ge-q-49",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question: "Для подготовки к колоноскопии используется",
@@ -631,7 +631,7 @@ export const gastroQuestions: TestQuestion[] = [
     correctIndex: 3,
   },
   {
-    id: "gastro-q-50",
+    id: "ge-q-50",
     specialty: "Гастроэнтерология",
     blockNumber: 1,
     question:
@@ -952,8 +952,8 @@ const additionalQuestions: Array<{
 // Convert additional questions to full format and append
 additionalQuestions.forEach((item, index) => {
   const qIndex = 51 + index;
-  gastroQuestions.push({
-    id: `gastro-q-${qIndex}`,
+  gastroenterologiyaQuestions.push({
+    id: `ge-q-${qIndex}`,
     specialty: "Гастроэнтерология",
     blockNumber: Math.ceil(qIndex / 100),
     question: item.q,

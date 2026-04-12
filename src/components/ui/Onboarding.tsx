@@ -8,8 +8,8 @@ interface Props {
 
 const steps = [
   {
-    title: "GastroEd",
-    subtitle: "ИНТЕРАКТИВНОЕ ОБУЧЕНИЕ ГАСТРОЭНТЕРОЛОГИИ",
+    title: "УмныйВрач",
+    subtitle: "ИНТЕРАКТИВНОЕ ОБУЧЕНИЕ ДЛЯ ВРАЧЕЙ",
     button: "Далее",
   },
   {

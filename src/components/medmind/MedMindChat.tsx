@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { ChatMessage } from "@/types/medmind";
 
-const STORAGE_KEY = "gastro-ed-medmind-chat";
+const STORAGE_KEY = "sd-medmind-chat";
 
 function loadMessages(): ChatMessage[] {
   if (typeof window === "undefined") return [];

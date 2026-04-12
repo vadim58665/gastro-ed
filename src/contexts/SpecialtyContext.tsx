@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { findSpecialtyById, type Specialty } from "@/data/specialties";
 
-const STORAGE_KEY = "gastro-ed-specialty";
+const STORAGE_KEY = "sd-specialty";
 
 interface SpecialtyContextValue {
   activeSpecialty: Specialty | null;

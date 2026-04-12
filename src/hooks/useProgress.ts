@@ -5,7 +5,7 @@ import type { UserProgress } from "@/types/user";
 import { useAuth } from "@/contexts/AuthContext";
 import { pushProgress, logAnswer } from "@/lib/supabase/sync";
 
-const STORAGE_KEY = "gastro-ed-progress";
+const STORAGE_KEY = "sd-progress";
 
 const defaultProgress: UserProgress = {
   streakCurrent: 0,

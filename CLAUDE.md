@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# GastroEd — Project Conventions
+# УмныйВрач — Project Conventions
 
 ## Architecture
 - Next.js 16 App Router + TypeScript + Tailwind CSS v4

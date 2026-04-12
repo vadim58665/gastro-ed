@@ -10,7 +10,7 @@ interface Props {
   cardHistory?: CardHistoryEntry;
 }
 
-const STORAGE_KEY = "gastro-ed-mnemonics";
+const STORAGE_KEY = "sd-mnemonics";
 
 function loadUserNotes(): Record<string, string> {
   try {

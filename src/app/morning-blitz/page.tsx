@@ -9,7 +9,7 @@ import type { Card, ClinicalCaseCard } from "@/types/card";
 import { useGamification } from "@/hooks/useGamification";
 
 const BLITZ_COUNT = 5;
-const STORAGE_KEY = "gastro_blitz_date";
+const STORAGE_KEY = "sd-blitz-date";
 
 function shuffle<T>(arr: T[]): T[] {
   const copy = [...arr];

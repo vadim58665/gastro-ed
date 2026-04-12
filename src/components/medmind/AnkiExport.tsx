@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const STORAGE_KEY = "gastro_ai_mnemonics";
+const STORAGE_KEY = "sd-ai-mnemonics";
 
 interface SavedMnemonic {
   topic: string;
@@ -33,7 +33,7 @@ function exportToAnki(mnemonics: SavedMnemonic[]) {
   const lines = mnemonics.map((m) => {
     const front = m.question || m.topic;
     const back = m.content.replace(/\t/g, " ").replace(/\n/g, "<br>");
-    const tag = `GastroEd::${m.topic.replace(/\s+/g, "_")}`;
+    const tag = `УмныйВрач::${m.topic.replace(/\s+/g, "_")}`;
     return `${front}\t${back}\t${tag}`;
   });
 
@@ -44,7 +44,7 @@ function exportToAnki(mnemonics: SavedMnemonic[]) {
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = `gastroed_anki_${new Date().toISOString().slice(0, 10)}.txt`;
+  a.download = `smartdoc_anki_${new Date().toISOString().slice(0, 10)}.txt`;
   a.click();
   URL.revokeObjectURL(url);
 }

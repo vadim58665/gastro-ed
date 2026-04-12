@@ -1,6 +1,6 @@
 import type { DailyCase } from "@/types/dailyCase";
 
-export const gastroCases: DailyCase[] = [
+export const gastroenterologiyaCases: DailyCase[] = [
   // #11 - Болезнь Крона (дифф. с ЯК)
   {
     id: "hard-011",

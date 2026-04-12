@@ -141,7 +141,7 @@ export default function WelcomePage() {
             Медицинское образование
           </p>
           <h1 className="text-4xl font-extralight text-foreground tracking-tight mb-3">
-            GastroEd
+            УмныйВрач
           </h1>
           <div className="w-16 divider-soft mx-auto mb-4" />
           <p className="text-sm text-muted font-light leading-relaxed">

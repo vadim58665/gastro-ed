@@ -1,11 +1,11 @@
-# LLM Wiki for GastroEd - Design Spec
+# LLM Wiki for УмныйВрач - Design Spec
 
 **Date:** 2026-04-11
 **Status:** Draft
 
 ## Overview
 
-LLM-maintained knowledge base inside the GastroEd repository. Two domains: medical content (guidelines, articles, concepts) and project knowledge (architecture decisions, feature plans, user feedback). Claude Code reads, writes, and maintains all wiki pages. The user curates sources, directs analysis, and asks questions.
+LLM-maintained knowledge base inside the УмныйВрач repository. Two domains: medical content (guidelines, articles, concepts) and project knowledge (architecture decisions, feature plans, user feedback). Claude Code reads, writes, and maintains all wiki pages. The user curates sources, directs analysis, and asks questions.
 
 Based on Andrej Karpathy's LLM Wiki pattern.
 
@@ -13,7 +13,7 @@ Based on Andrej Karpathy's LLM Wiki pattern.
 
 1. Accumulate medical knowledge from clinical guidelines, articles, textbooks - structured and cross-referenced, not scattered
 2. Capture project decisions, feature rationale, and user feedback that isn't derivable from code or git history
-3. Use wiki as context for generating GastroEd card content and answering medical/project questions
+3. Use wiki as context for generating УмныйВрач card content and answering medical/project questions
 4. Knowledge compounds with every source added, not re-derived on every query
 
 ## Directory Structure

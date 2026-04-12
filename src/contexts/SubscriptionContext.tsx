@@ -15,7 +15,7 @@ import type {
   EngagementLevel,
 } from "@/types/medmind";
 
-const STORAGE_KEY = "gastro-ed-subscription";
+const STORAGE_KEY = "sd-subscription";
 
 interface SubscriptionContextValue {
   subscription: SubscriptionState;

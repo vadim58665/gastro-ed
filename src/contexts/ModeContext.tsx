@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 
 export type AppMode = "feed" | "prep";
 
-const STORAGE_KEY = "gastro-ed-mode";
+const STORAGE_KEY = "sd-mode";
 
 interface ModeContextValue {
   mode: AppMode;

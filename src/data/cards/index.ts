@@ -1,5 +1,5 @@
 import type { Card } from "@/types/card";
-import { gastroCards } from "./gastroenterologiya";
+import { gastroenterologiyaCards } from "./gastroenterologiya";
 import { kardiologiyaCards } from "./kardiologiya";
 import { nevrologiyaCards } from "./nevrologiya";
 import { hirurgiyaCards } from "./hirurgiya";
@@ -37,7 +37,7 @@ import { newGinCards } from "./ginekologiya-new";
 import { newRevmaCards } from "./revmatologiya-new";
 
 export const demoCards: Card[] = [
-  ...gastroCards,
+  ...gastroenterologiyaCards,
   ...kardiologiyaCards,
   ...newKardioCards,
   ...nevrologiyaCards,

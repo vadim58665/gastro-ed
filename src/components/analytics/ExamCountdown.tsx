@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const STORAGE_KEY = "gastro_exam_date";
+const STORAGE_KEY = "sd-exam-date";
 
 export default function ExamCountdown() {
   const [examDate, setExamDate] = useState<string>("");

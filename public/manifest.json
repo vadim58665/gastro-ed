@@ -1,7 +1,7 @@
 {
-  "name": "GastroEd",
-  "short_name": "GastroEd",
-  "description": "Интерактивное обучение гастроэнтерологии для врачей",
+  "name": "УмныйВрач",
+  "short_name": "УмныйВрач",
+  "description": "Интерактивное обучение для врачей",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8f9fc",

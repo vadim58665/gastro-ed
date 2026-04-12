@@ -3,7 +3,7 @@ title: Wiki Schema
 description: Conventions and workflows for LLM-maintained wiki
 ---
 
-# GastroEd Wiki Schema
+# УмныйВрач Wiki Schema
 
 This wiki is maintained by Claude Code. The user curates sources and asks questions. Claude Code reads, writes, and maintains all pages.
 
@@ -154,6 +154,6 @@ When new source contradicts existing wiki content:
 
 ## Content Language
 
-- Page content in Russian (matching GastroEd UI language)
+- Page content in Russian (matching УмныйВрач UI language)
 - Frontmatter field names in English (type, specialty, tags, sources, updated)
 - Medical terms: use accepted Russian terminology, Latin terms where standard (H. pylori, C. difficile)

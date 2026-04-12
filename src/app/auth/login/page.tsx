@@ -93,7 +93,7 @@ export default function LoginPage() {
       <header className="bg-white/90 backdrop-blur-lg border-b border-border px-4 py-3">
         <div className="max-w-lg mx-auto">
           <span className="text-sm font-medium tracking-wide text-foreground">
-            GastroEd
+            УмныйВрач
           </span>
         </div>
       </header>
