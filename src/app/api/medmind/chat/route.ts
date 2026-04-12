@@ -31,13 +31,13 @@ export async function POST(req: Request) {
 
     const supabase = getServiceSupabase();
 
-    // Save user message
-    await supabase.from("medmind_chat_history").insert({
+    // Save user message (non-blocking — DB may be unavailable in dev)
+    supabase.from("medmind_chat_history").insert({
       user_id: userId,
       role: "user",
       content: message,
       context_topic: contextTopic ?? null,
-    });
+    }).then(() => {}).catch(() => {});
 
     // Build messages array with history
     const messages: { role: "user" | "assistant"; content: string }[] = [
@@ -87,19 +87,19 @@ export async function POST(req: Request) {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`));
           }
 
-          // Save assistant response
-          await supabase.from("medmind_chat_history").insert({
+          // Save assistant response (non-blocking)
+          supabase.from("medmind_chat_history").insert({
             user_id: userId,
             role: "assistant",
             content: fullResponse,
             context_topic: contextTopic ?? null,
-          });
+          }).then(() => {}).catch(() => {});
 
-          // Estimate cost
+          // Estimate cost (non-blocking)
           const estimatedInput = messages.reduce((s, m) => s + m.content.length / 4, 0);
           const estimatedOutput = fullResponse.length / 4;
           const cost = estimateCostUsd(model, Math.round(estimatedInput), Math.round(estimatedOutput));
-          await logApiUsage(userId, "chat", model, Math.round(estimatedInput), Math.round(estimatedOutput), cost);
+          logApiUsage(userId, "chat", model, Math.round(estimatedInput), Math.round(estimatedOutput), cost).catch(() => {});
 
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();

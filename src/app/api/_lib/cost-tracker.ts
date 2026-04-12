@@ -22,19 +22,24 @@ export async function logApiUsage(
 }
 
 export async function checkDailyCap(userId: string): Promise<boolean> {
-  const supabase = getServiceSupabase();
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  try {
+    const supabase = getServiceSupabase();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
 
-  const { data } = await supabase
-    .from("ai_usage_log")
-    .select("cost_usd")
-    .eq("user_id", userId)
-    .gte("created_at", todayStart.toISOString());
+    const { data } = await supabase
+      .from("ai_usage_log")
+      .select("cost_usd")
+      .eq("user_id", userId)
+      .gte("created_at", todayStart.toISOString());
 
-  if (!data) return true;
-  const totalToday = data.reduce((sum, row) => sum + Number(row.cost_usd), 0);
-  return totalToday < DAILY_CAP_USD;
+    if (!data) return true;
+    const totalToday = data.reduce((sum, row) => sum + Number(row.cost_usd), 0);
+    return totalToday < DAILY_CAP_USD;
+  } catch {
+    // If DB is unavailable, allow request through
+    return true;
+  }
 }
 
 export function dailyCapResponse() {
