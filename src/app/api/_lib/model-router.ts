@@ -85,7 +85,10 @@ function getMaxTokens(action: PromptAction, model: Model): number {
   ];
 
   if (longActions.includes(action)) return 2048;
-  if (mediumActions.includes(action)) return 1024;
+  // Haiku follow-ups get shorter limit to save tokens
+  if (mediumActions.includes(action)) return model === HAIKU ? 512 : 1024;
+  // Hints and tips are short by nature
+  if (action === "hint" || action === "tip") return 256;
   return 512;
 }
 

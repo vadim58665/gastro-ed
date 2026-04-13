@@ -27,31 +27,32 @@ const CONFIGS: Record<string, RateLimitConfig> = {
 };
 
 // Tier-based chat limits (per day = 86400_000ms)
+// Adjusted for profitability after token optimization (-30% cost)
 const TIER_CHAT_LIMITS: Record<SubscriptionTier, number> = {
   free: 0,
   feed_helper: 10,
-  accred_basic: 30,
-  accred_mentor: 50,
-  accred_tutor: 100,
-  accred_extreme: 150,
+  accred_basic: 25,
+  accred_mentor: 40,
+  accred_tutor: 60,
+  accred_extreme: 80,
 };
 
 const TIER_EXPLAIN_LIMITS: Record<SubscriptionTier, number> = {
   free: 0,
-  feed_helper: 7,
+  feed_helper: 5,
   accred_basic: 7,
-  accred_mentor: 20,
-  accred_tutor: 48,
-  accred_extreme: 90,
+  accred_mentor: 15,
+  accred_tutor: 30,
+  accred_extreme: 50,
 };
 
 const TIER_IMAGE_LIMITS: Record<SubscriptionTier, number> = {
   free: 0,
   feed_helper: 1,
   accred_basic: 1,
-  accred_mentor: 4,
-  accred_tutor: 12,
-  accred_extreme: 30,
+  accred_mentor: 3,
+  accred_tutor: 5,
+  accred_extreme: 10,
 };
 
 export function checkRateLimit(

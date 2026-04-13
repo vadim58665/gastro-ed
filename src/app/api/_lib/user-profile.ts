@@ -1,13 +1,22 @@
 import type { UserLearningProfile } from "./prompts/user-context";
 import { getServiceSupabase } from "./auth";
 
+// In-memory cache with 10-minute TTL to avoid 7+ DB queries per request
+const profileCache = new Map<string, { data: UserLearningProfile; expiry: number }>();
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
 /**
  * Fetches user's learning profile from Supabase for prompt injection.
  * Aggregates data from knowledge_graph, user_answers, profiles, and subscriptions.
+ * Results are cached for 10 minutes to reduce DB load.
  */
 export async function fetchUserLearningProfile(
   userId: string
 ): Promise<UserLearningProfile | null> {
+  const cached = profileCache.get(userId);
+  if (cached && Date.now() < cached.expiry) {
+    return cached.data;
+  }
   const supabase = getServiceSupabase();
 
   // Parallel queries
@@ -110,7 +119,7 @@ export async function fetchUserLearningProfile(
     tier = subData.tier;
   }
 
-  return {
+  const result: UserLearningProfile = {
     specialty: profile.specialty ?? "Лечебное дело",
     accreditationCategory: profile.accreditation_category,
     weakTopics: (weakRes.data ?? []).map(
@@ -133,4 +142,17 @@ export async function fetchUserLearningProfile(
     tier,
     preferredDifficulty: profile.preferred_difficulty,
   };
+
+  // Cache result
+  profileCache.set(userId, { data: result, expiry: Date.now() + CACHE_TTL_MS });
+
+  // Evict stale entries periodically (keep cache small)
+  if (profileCache.size > 100) {
+    const now = Date.now();
+    for (const [key, val] of profileCache) {
+      if (now > val.expiry) profileCache.delete(key);
+    }
+  }
+
+  return result;
 }

@@ -48,17 +48,20 @@ export async function POST(req: Request) {
     const isFollowUp = (history?.length ?? 0) > 0;
 
     // Gather context for modular prompt system
-    const [userProfile, appStats, ragContext] = await Promise.all([
-      fetchUserLearningProfile(userId).catch(() => null),
-      getAppStatsForUser().catch(() => ({
-        totalCards: 0,
-        totalSpecialties: 0,
-        totalAccreditationQuestions: 0,
-      })),
-      contextTopic
-        ? retrieveContext(contextTopic, undefined, 1500).catch(() => "")
-        : Promise.resolve(""),
-    ]);
+    // Skip heavy DB queries for follow-up messages (uses Haiku anyway)
+    const [userProfile, appStats, ragContext] = isFollowUp
+      ? [null, { totalCards: 0, totalSpecialties: 0, totalAccreditationQuestions: 0 }, ""]
+      : await Promise.all([
+          fetchUserLearningProfile(userId).catch(() => null),
+          getAppStatsForUser().catch(() => ({
+            totalCards: 0,
+            totalSpecialties: 0,
+            totalAccreditationQuestions: 0,
+          })),
+          contextTopic
+            ? retrieveContext(contextTopic, undefined, 1000).catch(() => "")
+            : Promise.resolve(""),
+        ]);
 
     const promptContext: PromptContext = {
       action: "chat",
