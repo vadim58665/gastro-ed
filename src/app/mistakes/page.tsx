@@ -5,7 +5,6 @@ import Link from "next/link";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import CardRenderer from "@/components/feed/CardRenderer";
-import { useProgress } from "@/hooks/useProgress";
 import { useGamification } from "@/hooks/useGamification";
 import { demoCards } from "@/data/cards";
 import { getFeedMistakes, groupBySpecialty, groupByTopic } from "@/lib/mistakes";
@@ -29,8 +28,7 @@ function pluralize(n: number, one: string, few: string, many: string): string {
 }
 
 export default function MistakesPage() {
-  const { progress } = useProgress();
-  const { recordAnswerWithGamification } = useGamification();
+  const { progress, recordAnswerWithGamification } = useGamification();
 
   const [pageState, setPageState] = useState<PageState>("idle");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");

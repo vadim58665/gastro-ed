@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef, useSyncExternalStore } from "react";
 import type { UserProgress } from "@/types/user";
 import { useAuth } from "@/contexts/AuthContext";
 import { pushProgress } from "@/lib/supabase/sync";
@@ -21,14 +21,12 @@ function getPreviousDate(dateStr: string): string {
   return getLocalDateStr(prev);
 }
 
-function loadProgress(): UserProgress {
-  if (typeof window === "undefined") return defaultProgress;
+function loadFromStorage(): UserProgress {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return defaultProgress;
     const raw = JSON.parse(saved);
     const parsed: UserProgress = { ...defaultProgress, ...raw };
-    // Migration: set xp from totalPoints if missing
     if (!raw.xp && parsed.totalPoints > 0) {
       parsed.xp = parsed.totalPoints;
     }
@@ -49,25 +47,52 @@ function loadProgress(): UserProgress {
   }
 }
 
+// --- Singleton store: one shared progress across all useProgress() calls ---
+const listeners = new Set<() => void>();
+let snapshot: UserProgress = defaultProgress;
+let initialized = false;
+
+function initStore() {
+  if (initialized || typeof window === "undefined") return;
+  snapshot = loadFromStorage();
+  initialized = true;
+}
+
+function subscribe(cb: () => void): () => void {
+  initStore();
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+
+function getSnapshot(): UserProgress {
+  initStore();
+  return snapshot;
+}
+
+function getServerSnapshot(): UserProgress {
+  return defaultProgress;
+}
+
+function setSnapshot(next: UserProgress) {
+  snapshot = next;
+  listeners.forEach((cb) => cb());
+}
+
 export function useProgress() {
-  const [progress, setProgress] = useState<UserProgress>(defaultProgress);
+  const progress = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const { user } = useAuth();
   const progressRef = useRef(progress);
   progressRef.current = progress;
 
-  useEffect(() => {
-    setProgress(loadProgress());
-  }, []);
-
   const saveProgress = useCallback(
     (updated: UserProgress) => {
       const withTimestamp = { ...updated, updatedAt: new Date().toISOString() };
-      setProgress(withTimestamp);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(withTimestamp));
       } catch (e) {
         console.error("Failed to save progress to localStorage", e);
       }
+      setSnapshot(withTimestamp);
 
       if (user && navigator.onLine) {
         pushProgress(user.id, withTimestamp).catch(console.error);
