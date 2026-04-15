@@ -8,7 +8,9 @@ import SoftListRow from "@/components/ui/SoftListRow";
 import { demoCards } from "@/data/cards";
 import { allSpecialties, getCardCount, isSpecialtyAvailable } from "@/data/specialties";
 import { useReview } from "@/hooks/useReview";
+import { useProgress } from "@/hooks/useProgress";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
+import { getWeakTopics } from "@/lib/weakTopics";
 
 function pluralize(n: number, one: string, few: string, many: string): string {
   const abs = Math.abs(n) % 100;
@@ -21,6 +23,7 @@ function pluralize(n: number, one: string, few: string, many: string): string {
 
 export default function TopicsPage() {
   const { reviewCards } = useReview();
+  const { progress } = useProgress();
   const { setActiveSpecialty, clearSpecialty } = useSpecialty();
   const router = useRouter();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -31,6 +34,23 @@ export default function TopicsPage() {
   );
 
   const totalCards = demoCards.length;
+
+  const modeCounts = useMemo(() => {
+    let myth = 0;
+    let redFlags = 0;
+    let dose = 0;
+    for (const c of demoCards) {
+      if (c.type === "myth_or_fact") myth++;
+      else if (c.type === "red_flags") redFlags++;
+      else if (c.type === "dose_calc") dose++;
+    }
+    return { myth, redFlags, dose };
+  }, []);
+
+  const weakTopicsCount = useMemo(
+    () => getWeakTopics(progress, demoCards).length,
+    [progress]
+  );
 
   // Pre-compute topics per specialty
   const topicsBySpecialty = useMemo(() => {
@@ -67,6 +87,11 @@ export default function TopicsPage() {
   const handleAllClick = () => {
     clearSpecialty();
     router.push("/feed?mode=all");
+  };
+
+  const handleModeClick = (mode: "myth" | "red_flags" | "dose" | "weak") => {
+    clearSpecialty();
+    router.push(`/feed?mode=${mode}`);
   };
 
   const handleSpecialtyClick = (specId: string) => {
@@ -113,6 +138,95 @@ export default function TopicsPage() {
             }
           />
         </div>
+
+        {/* Правда или миф */}
+        {modeCounts.myth > 0 && (
+          <div className="px-6 mb-3">
+            <SoftListRow
+              onClick={() => handleModeClick("myth")}
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M9.5 9.5 a2.5 2.5 0 1 1 3.5 2.3 c-0.9 0.4-1 1-1 1.7" />
+                  <circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none" />
+                </svg>
+              }
+              title="Правда или миф"
+              subtitle="Короткие утверждения: верите или нет"
+              trailing={
+                <span className="text-2xl font-extralight text-foreground tracking-tight">
+                  {modeCounts.myth}
+                </span>
+              }
+            />
+          </div>
+        )}
+
+        {/* Красные флаги */}
+        {modeCounts.redFlags > 0 && (
+          <div className="px-6 mb-3">
+            <SoftListRow
+              onClick={() => handleModeClick("red_flags")}
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 21 V4" />
+                  <path d="M5 4 h11 l-2 3.5 L16 11 H5" />
+                </svg>
+              }
+              title="Красные флаги"
+              subtitle="Распознайте опасные симптомы"
+              trailing={
+                <span className="text-2xl font-extralight text-foreground tracking-tight">
+                  {modeCounts.redFlags}
+                </span>
+              }
+            />
+          </div>
+        )}
+
+        {/* Дозировки */}
+        {modeCounts.dose > 0 && (
+          <div className="px-6 mb-3">
+            <SoftListRow
+              onClick={() => handleModeClick("dose")}
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="9" width="18" height="6" rx="3" />
+                  <path d="M12 9 v6" />
+                </svg>
+              }
+              title="Дозировки"
+              subtitle="Расчёты препаратов в уме"
+              trailing={
+                <span className="text-2xl font-extralight text-foreground tracking-tight">
+                  {modeCounts.dose}
+                </span>
+              }
+            />
+          </div>
+        )}
+
+        {/* Слабые места */}
+        {weakTopicsCount > 0 && (
+          <div className="px-6 mb-3">
+            <SoftListRow
+              onClick={() => handleModeClick("weak")}
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 7 9 13 13 9 21 17" />
+                  <polyline points="15 17 21 17 21 11" />
+                </svg>
+              }
+              title="Слабые места"
+              subtitle="Темы, где вы чаще ошибаетесь"
+              trailing={
+                <span className="text-2xl font-extralight text-foreground tracking-tight">
+                  {weakTopicsCount}
+                </span>
+              }
+            />
+          </div>
+        )}
 
         {/* "Общее"  - all cards */}
         <div className="px-6 mb-6">
