@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
@@ -27,6 +27,15 @@ export default function TopicsPage() {
   const { setActiveSpecialty, clearSpecialty } = useSpecialty();
   const router = useRouter();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [returnToProfile, setReturnToProfile] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("return-to-profile") === "1") {
+        setReturnToProfile(true);
+      }
+    } catch {}
+  }, []);
 
   const answeredIds = useMemo(
     () => new Set(reviewCards.map((rc) => rc.cardId)),
@@ -94,13 +103,29 @@ export default function TopicsPage() {
     router.push(`/feed?mode=${mode}`);
   };
 
+  const consumeReturnFlag = () => {
+    try {
+      sessionStorage.removeItem("return-to-profile");
+    } catch {}
+  };
+
   const handleSpecialtyClick = (specId: string) => {
     setActiveSpecialty(specId);
+    if (returnToProfile) {
+      consumeReturnFlag();
+      router.push("/profile");
+      return;
+    }
     router.push("/feed");
   };
 
   const handleTopicClick = (specId: string, topicName: string) => {
     setActiveSpecialty(specId);
+    if (returnToProfile) {
+      consumeReturnFlag();
+      router.push("/profile");
+      return;
+    }
     router.push(`/feed?topic=${encodeURIComponent(topicName)}`);
   };
 
@@ -115,13 +140,20 @@ export default function TopicsPage() {
         {/* Header */}
         <div className="px-6 pt-8 pb-6 text-center">
           <p className="text-xs uppercase tracking-[0.25em] text-muted font-medium mb-3">
-            Разделы
+            {returnToProfile ? "Выбор специальности" : "Разделы"}
           </p>
           <h1 className="text-3xl font-light text-foreground tracking-tight">
-            Темы
+            {returnToProfile ? "Специальность" : "Темы"}
           </h1>
+          {returnToProfile && (
+            <p className="text-xs text-muted mt-3 max-w-xs mx-auto">
+              Выберите специальность из списка ниже — вы вернётесь в профиль
+            </p>
+          )}
         </div>
 
+        {!returnToProfile && (
+        <>
         {/* Morning Blitz */}
         <div className="px-6 mb-3">
           <SoftListRow
@@ -250,6 +282,8 @@ export default function TopicsPage() {
         </div>
 
         <div className="w-12 h-px bg-border mx-auto mb-6" />
+        </>
+        )}
 
         {/* Specialties */}
         <div className="px-6 pb-8">
@@ -271,7 +305,8 @@ export default function TopicsPage() {
                 <div key={spec.id}>
                   <SoftListRow
                     onClick={() => {
-                      if (hasTopics) toggleAccordion(spec.id);
+                      if (returnToProfile) handleSpecialtyClick(spec.id);
+                      else if (hasTopics) toggleAccordion(spec.id);
                       else handleSpecialtyClick(spec.id);
                     }}
                     icon={

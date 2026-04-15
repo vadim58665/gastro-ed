@@ -13,14 +13,10 @@ import SoftListRow from "@/components/ui/SoftListRow";
 import { useGamification } from "@/hooks/useGamification";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useMedMindAnalytics } from "@/hooks/useMedMindAnalytics";
 import SubscriptionBadge from "@/components/subscription/SubscriptionBadge";
 import EngagementPicker from "@/components/subscription/EngagementPicker";
-import TopicAnalysisCard from "@/components/medmind/TopicAnalysisCard";
-import MasteryDashboard from "@/components/analytics/MasteryDashboard";
 import ExamCountdown from "@/components/analytics/ExamCountdown";
-import WeeklyDigest from "@/components/analytics/WeeklyDigest";
-import TopicDependencyMap from "@/components/analytics/TopicDependencyMap";
+import ExamReadiness from "@/components/analytics/ExamReadiness";
 import AnkiExport from "@/components/medmind/AnkiExport";
 import SavedContentLibrary from "@/components/medmind/SavedContentLibrary";
 import Link from "next/link";
@@ -29,7 +25,6 @@ export default function ProfilePage() {
   const { progress, achievements } = useGamification();
   const { user, signOut, loading } = useAuth();
   const { isPro } = useSubscription();
-  const { topics, weakTopics } = useMedMindAnalytics();
   const [sheetKind, setSheetKind] = useState<"settings" | "styles" | "companion" | null>(null);
   const accuracy =
     progress.cardsSeen > 0
@@ -158,26 +153,12 @@ export default function ProfilePage() {
             subtitle={`${achievements.filter((a) => a.unlocked).length}/${achievements.length} разблокировано`}
           />
 
-          {/* Mastery Dashboard */}
+          {/* Exam Readiness */}
           <div className="w-full divider-soft my-8" />
           <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-4">
-            Мастерство по темам
+            Готовность к экзамену
           </p>
-          <MasteryDashboard />
-
-          {/* Weekly Digest */}
-          <div className="w-full divider-soft my-8" />
-          <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-4">
-            Сводка
-          </p>
-          <WeeklyDigest />
-
-          {/* Topic Dependency Map */}
-          <div className="w-full divider-soft my-8" />
-          <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-4">
-            Карта тем
-          </p>
-          <TopicDependencyMap />
+          <ExamReadiness />
 
           {/* Saved Content Library */}
           {isPro && (
@@ -223,18 +204,6 @@ export default function ProfilePage() {
           {isPro ? (
             <div className="space-y-4">
               <EngagementPicker />
-              {topics.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-[10px] uppercase tracking-[0.15em] text-muted mb-2">
-                    {weakTopics.length > 0
-                      ? `${weakTopics.length} СЛАБЫХ ТЕМ`
-                      : "ВАШИ ТЕМЫ"}
-                  </p>
-                  {topics.slice(0, 6).map((t) => (
-                    <TopicAnalysisCard key={t.topic} topic={t} />
-                  ))}
-                </div>
-              )}
             </div>
           ) : (
             <div className="text-center">
