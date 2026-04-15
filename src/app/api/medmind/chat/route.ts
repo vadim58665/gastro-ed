@@ -32,12 +32,14 @@ export async function POST(req: Request) {
     const supabase = getServiceSupabase();
 
     // Save user message (non-blocking — DB may be unavailable in dev)
-    supabase.from("medmind_chat_history").insert({
-      user_id: userId,
-      role: "user",
-      content: message,
-      context_topic: contextTopic ?? null,
-    }).then(() => {}).catch(() => {});
+    Promise.resolve(
+      supabase.from("medmind_chat_history").insert({
+        user_id: userId,
+        role: "user",
+        content: message,
+        context_topic: contextTopic ?? null,
+      })
+    ).catch(() => {});
 
     // Build messages array with history
     const messages: { role: "user" | "assistant"; content: string }[] = [
@@ -91,12 +93,14 @@ export async function POST(req: Request) {
           }
 
           // Save assistant response (non-blocking)
-          supabase.from("medmind_chat_history").insert({
-            user_id: userId,
-            role: "assistant",
-            content: fullResponse,
-            context_topic: contextTopic ?? null,
-          }).then(() => {}).catch(() => {});
+          Promise.resolve(
+            supabase.from("medmind_chat_history").insert({
+              user_id: userId,
+              role: "assistant",
+              content: fullResponse,
+              context_topic: contextTopic ?? null,
+            })
+          ).catch(() => {});
 
           // Estimate cost (non-blocking)
           const estimatedInput = messages.reduce((s, m) => s + m.content.length / 4, 0);
