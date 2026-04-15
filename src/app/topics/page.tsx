@@ -107,7 +107,7 @@ export default function TopicsPage() {
               </svg>
             }
             title="Утренний блиц"
-            subtitle="5 случайных вопросов — бесплатно"
+            subtitle="5 случайных вопросов"
             trailing={
               <span className="text-2xl font-extralight text-foreground tracking-tight">5</span>
             }

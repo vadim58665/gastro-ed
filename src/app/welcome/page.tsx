@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function WelcomePage() {
-  const { user, loading, signInWithEmail, verifyOtp } = useAuth();
+  const { user, profile, profileConfirmed, loading, signInWithEmail, verifyOtp } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -22,11 +22,17 @@ export default function WelcomePage() {
     return () => clearTimeout(t);
   }, [cooldown]);
 
+  // После входа: ждём ПОДТВЕРЖДЁННОЙ загрузки профиля, потом решаем куда идти.
+  // Если профиль ещё не подтверждён — не мигаем редиректами, просто ждём.
   useEffect(() => {
-    if (!loading && user) {
-      router.replace("/topics");
+    if (loading || !user) return;
+    if (!profileConfirmed) return;
+    if (!profile || profile.nickname === null) {
+      router.replace("/profile/setup");
+      return;
     }
-  }, [user, loading, router]);
+    router.replace("/topics");
+  }, [user, profile, profileConfirmed, loading, router]);
 
   function translateError(msg: string): string {
     if (msg.includes("rate limit")) return "Слишком частые запросы. Подождите минуту.";
@@ -55,18 +61,15 @@ export default function WelcomePage() {
   };
 
   const handleOtpChange = (index: number, value: string) => {
-    // Allow only digits
     const digit = value.replace(/\D/g, "").slice(-1);
     const newOtp = [...otp];
     newOtp[index] = digit;
     setOtp(newOtp);
 
-    // Auto-focus next input
     if (digit && index < 7) {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // Auto-submit when all 8 digits entered
     const code = newOtp.join("");
     if (code.length === 8) {
       submitOtp(code);
@@ -104,7 +107,10 @@ export default function WelcomePage() {
       setError("Неверный код. Проверьте и попробуйте снова.");
       setOtp(["", "", "", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
+      return;
     }
+    // После успешного verifyOtp сработает onAuthStateChange → AuthContext
+    // загрузит profile → useEffect выше отправит на /profile/setup или /topics.
   };
 
   const handleResend = async () => {
@@ -166,7 +172,6 @@ export default function WelcomePage() {
               <span className="text-foreground font-medium">{email}</span>
             </p>
 
-            {/* 8 digit inputs */}
             <div className="flex justify-center gap-2 mb-4" onPaste={handleOtpPaste}>
               {otp.map((digit, i) => (
                 <input
@@ -214,16 +219,14 @@ export default function WelcomePage() {
         ) : (
           /* Email form */
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                required
-                className="input-refined w-full px-4 py-3.5 rounded-2xl text-base font-light text-foreground placeholder:text-muted/60"
-              />
-            </div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              required
+              className="input-refined w-full px-4 py-3.5 rounded-2xl text-base font-light text-foreground placeholder:text-muted/60"
+            />
 
             {error && (
               <p className="text-xs text-rose-500 font-medium px-1">{error}</p>
@@ -232,14 +235,15 @@ export default function WelcomePage() {
             <button
               type="submit"
               disabled={submitting || !email}
-              className="btn-raised-dark w-full py-3.5 text-background rounded-2xl text-sm font-medium tracking-wide disabled:opacity-40"
+              className="btn-raised-dark w-full py-3.5 text-white rounded-2xl text-sm font-medium tracking-wide disabled:opacity-40"
             >
               {submitting ? "Отправка..." : "Получить код"}
             </button>
 
             <p className="text-[10px] text-muted text-center font-light leading-relaxed mt-4">
               Мы отправим 8-значный код на вашу почту.
-              Пароль не&nbsp;нужен.
+              Пароль не&nbsp;нужен. После первого входа нужно
+              будет выбрать никнейм.
             </p>
           </form>
         )}
