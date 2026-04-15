@@ -121,7 +121,7 @@ export default function ProfileSetupPage() {
           <button
             type="submit"
             disabled={submitting || !nicknameValid}
-            className="btn-raised-dark w-full py-3.5 text-white rounded-2xl text-sm font-medium tracking-wide disabled:opacity-40"
+            className="btn-raised-dark w-full py-3.5 text-white rounded-2xl text-sm font-medium tracking-wide disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {submitting ? "Сохранение..." : "Сохранить"}
           </button>
