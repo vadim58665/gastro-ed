@@ -38,6 +38,7 @@ function makeProgress(overrides: Partial<UserProgress> = {}): UserProgress {
     typeCounts: {},
     topicsAnswered: [],
     dailyCaseHistory: {},
+    recentAnswers: [],
     ...overrides,
   };
 }

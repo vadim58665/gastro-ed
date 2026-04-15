@@ -1,9 +1,10 @@
 "use client";
 
-import { getLevelForXp, getXpToNextLevel } from "@/data/levels";
+import { getLevelForXp, getXpToNextLevel, getRankForAccuracy } from "@/data/levels";
 
 interface Props {
   xp: number;
+  recentAnswers: boolean[];
   compact?: boolean;
 }
 
@@ -16,26 +17,31 @@ const colorMap: Record<string, string> = {
   purple: "text-purple-500",
 };
 
-export default function LevelBadge({ xp, compact }: Props) {
+export default function LevelBadge({ xp, recentAnswers, compact }: Props) {
   const level = getLevelForXp(xp);
   const next = getXpToNextLevel(xp);
-  const colorClass = colorMap[level.color] || "text-foreground";
+  const rank = getRankForAccuracy(recentAnswers);
+  const levelColor = colorMap[level.color] || "text-foreground";
+  const rankColor = colorMap[rank.color] || "text-foreground";
 
   if (compact) {
     return (
-      <span className={`text-xs font-medium ${colorClass}`}>
-        Ур. {level.level}
+      <span className={`text-xs font-medium ${rankColor}`}>
+        {rank.title}
       </span>
     );
   }
 
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className={`text-3xl font-extralight ${colorClass}`}>
+      <span className={`text-3xl font-extralight ${levelColor}`}>
         {level.level}
       </span>
-      <span className="text-xs uppercase tracking-widest text-muted">
-        {level.title}
+      <span className="text-[10px] uppercase tracking-[0.2em] text-muted">
+        уровень
+      </span>
+      <span className={`text-sm font-medium ${rankColor} mt-1`}>
+        {rank.title}
       </span>
       {next && (
         <div className="w-24 h-1 bg-border rounded-full overflow-hidden mt-1">

@@ -39,6 +39,7 @@ export interface UserProgress {
   typeCounts: Record<string, number>;
   topicsAnswered: string[];
   dailyCaseHistory: Record<string, DailyCaseHistoryEntry>;
+  recentAnswers: boolean[];
 }
 
 export interface CardAnswer {

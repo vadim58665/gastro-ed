@@ -39,6 +39,7 @@ export async function pushProgress(
     type_counts: progress.typeCounts,
     topics_answered: progress.topicsAnswered,
     daily_case_history: progress.dailyCaseHistory,
+    recent_answers: progress.recentAnswers,
     updated_at: new Date().toISOString(),
   });
   if (error) console.error("pushProgress:", error.message);
@@ -113,6 +114,7 @@ async function pullProgress(
     typeCounts: data.type_counts ?? {},
     topicsAnswered: data.topics_answered ?? [],
     dailyCaseHistory: data.daily_case_history ?? {},
+    recentAnswers: data.recent_answers ?? [],
   };
 }
 
@@ -262,6 +264,9 @@ export function mergeProgress(
       local.dailyCaseHistory ?? {},
       remote.dailyCaseHistory ?? {}
     ),
+    recentAnswers: (local.recentAnswers?.length ?? 0) >= (remote.recentAnswers?.length ?? 0)
+      ? local.recentAnswers ?? []
+      : remote.recentAnswers ?? [],
     updatedAt: new Date().toISOString(),
   };
 }

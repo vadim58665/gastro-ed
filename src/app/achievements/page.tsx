@@ -44,7 +44,7 @@ export default function AchievementsPage() {
               Достижений
             </p>
           </div>
-          <LevelBadge xp={progress.xp || 0} />
+          <LevelBadge xp={progress.xp || 0} recentAnswers={progress.recentAnswers || []} />
         </div>
 
         <div className="space-y-6">

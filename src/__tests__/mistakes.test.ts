@@ -48,6 +48,7 @@ function makeProgress(
     typeCounts: {},
     topicsAnswered: [],
     dailyCaseHistory: {},
+    recentAnswers: [],
   };
 }
 

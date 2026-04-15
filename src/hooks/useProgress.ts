@@ -106,6 +106,7 @@ export function useProgress() {
       const current = progressRef.current;
       const today = getLocalDateStr();
       const isFirstAnswerToday = current.lastActiveDate !== today;
+      const recentAnswers = [...(current.recentAnswers || []), isCorrect].slice(-300);
       const updated: UserProgress = {
         ...current,
         cardsSeen: current.cardsSeen + 1,
@@ -116,6 +117,7 @@ export function useProgress() {
         streakCurrent: isFirstAnswerToday
           ? current.streakCurrent + 1
           : current.streakCurrent || 1,
+        recentAnswers,
       };
       updated.streakBest = Math.max(updated.streakBest, updated.streakCurrent);
       saveProgress(updated);

@@ -20,4 +20,5 @@ export const defaultProgress: UserProgress = {
   typeCounts: {},
   topicsAnswered: [],
   dailyCaseHistory: {},
+  recentAnswers: [],
 };

@@ -58,7 +58,7 @@ export default function ProfilePage() {
         <div className="px-6 pt-4 pb-6 flex flex-col items-center">
           <GlowAvatar initial={avatarLetter} size={96} />
           <div className="mt-6">
-            <LevelBadge xp={progress.xp || 0} />
+            <LevelBadge xp={progress.xp || 0} recentAnswers={progress.recentAnswers || []} />
           </div>
           <p className="text-xs uppercase tracking-[0.22em] text-muted mt-3 font-medium">
             <NumberTicker value={progress.xp || 0} /> XP

@@ -32,8 +32,15 @@ export interface AchievementDef {
 
 export interface LevelDef {
   level: number;
-  title: string;
   xpRequired: number;
+  color: string;
+}
+
+export interface RankDef {
+  id: string;
+  title: string;
+  minAccuracy: number;
+  minCards: number;
   color: string;
 }
 
