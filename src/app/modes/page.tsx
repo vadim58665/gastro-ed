@@ -56,7 +56,7 @@ export default function ModesPage() {
     {
       title: "Работа над ошибками",
       description: `Вопросы, в которых вы ошиблись (${progress.mistakes.length})`,
-      href: "/modes/exam?type=mistakes",
+      href: "/modes/mistakes",
       available: hasMistakes,
     },
     {

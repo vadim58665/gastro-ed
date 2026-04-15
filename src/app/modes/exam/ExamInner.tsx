@@ -37,9 +37,14 @@ export default function ExamInner() {
   const router = useRouter();
   const { activeSpecialty } = useSpecialty();
   const specialtyId = activeSpecialty?.id || "";
-  const { progress, recordMistake, saveExamResult } = useAccreditation(specialtyId);
+  const { progress, recordMistake, removeMistake, saveExamResult } = useAccreditation(specialtyId);
 
   const examType = (searchParams.get("type") || "trial") as ExamType;
+  const blockFilter = useMemo(() => {
+    const raw = searchParams.get("block");
+    const n = raw ? Number(raw) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [searchParams]);
   const config = EXAM_CONFIG[examType] || EXAM_CONFIG.trial;
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -66,7 +71,11 @@ export default function ExamInner() {
       }
       case "mistakes": {
         const mistakeSet = new Set(progress.mistakes);
-        pool = allQuestions.filter((q) => mistakeSet.has(q.id));
+        pool = allQuestions.filter(
+          (q) =>
+            mistakeSet.has(q.id) &&
+            (blockFilter === null || q.blockNumber === blockFilter)
+        );
         break;
       }
       default:
@@ -75,7 +84,7 @@ export default function ExamInner() {
 
     const shuffled = shuffle(pool);
     return shuffled.slice(0, config.count);
-  }, [examType, allQuestions, progress.blocks, progress.mistakes, config.count]);
+  }, [examType, allQuestions, progress.blocks, progress.mistakes, config.count, blockFilter]);
 
   useEffect(() => {
     if (!activeSpecialty) router.push("/topics");
@@ -83,17 +92,20 @@ export default function ExamInner() {
 
   const handleAnswer = useCallback(
     (isCorrect: boolean) => {
+      const q = questions[currentIndex];
       if (isCorrect) {
         setCorrectCount((c) => c + 1);
+        if (examType === "mistakes" && q) {
+          removeMistake(q.id);
+        }
       } else {
-        const q = questions[currentIndex];
         if (q) recordMistake(q.id);
         if (config.marathon) {
           setMarathonFailed(true);
         }
       }
     },
-    [currentIndex, questions, recordMistake, config.marathon]
+    [currentIndex, questions, recordMistake, removeMistake, examType, config.marathon]
   );
 
   const handleNext = useCallback(() => {

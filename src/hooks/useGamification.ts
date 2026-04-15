@@ -79,7 +79,8 @@ export function useGamification() {
       isCorrect: boolean,
       cardId: string,
       cardType: string,
-      topic: string
+      topic: string,
+      options?: { skipReviewSchedule?: boolean }
     ): GamificationEvent => {
       const prev = progressRef.current;
       const previousLevel = getLevelForXp(prev.xp || 0).level;
@@ -123,8 +124,11 @@ export function useGamification() {
         xpGained += 100; // 100 cards/day milestone
       }
 
-      // Добавляем в очередь ошибок только при неверном ответе
-      if (!isCorrect) {
+      // Добавляем в очередь ошибок только при неверном ответе.
+      // skipReviewSchedule=true используется на странице /mistakes — там ошибка
+      // обнуляется через cardHistory.consecutiveFails и не должна возвращаться
+      // через FSRS-расписание.
+      if (!isCorrect && !options?.skipReviewSchedule) {
         const reviewSource: ReviewSource = mode === "feed" ? "feed" : "prep";
         scheduleCard(cardId, false, reviewSource);
       }

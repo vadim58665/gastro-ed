@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useReview } from "@/hooks/useReview";
 import { useMode } from "@/contexts/ModeContext";
+import { useProgress } from "@/hooks/useProgress";
+import { getFeedMistakes } from "@/lib/mistakes";
+import { demoCards } from "@/data/cards";
+import { useMemo } from "react";
 
 const gridIcon = (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -67,23 +70,26 @@ const caseIcon = (
 const feedTabs = [
   { href: "/feed", label: "Лента", icon: gridIcon },
   { href: "/daily-case", label: "Диагноз", icon: caseIcon },
-  { href: "/review", label: "Ошибки", icon: errorIcon },
+  { href: "/mistakes", label: "Ошибки", icon: errorIcon },
   { href: "/profile", label: "Профиль", icon: userIcon },
 ];
 
 const prepTabs = [
   { href: "/tests", label: "Тесты", icon: listIcon },
   { href: "/cases", label: "Задачи", icon: checkIcon },
-  { href: "/review", label: "Ошибки", icon: errorIcon },
+  { href: "/mistakes", label: "Ошибки", icon: errorIcon },
   { href: "/stations", label: "Станции", icon: stationIcon },
   { href: "/profile", label: "Профиль", icon: userIcon },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { getDueCount } = useReview();
+  const { progress } = useProgress();
   const { mode } = useMode();
-  const dueCount = getDueCount(mode === "feed" ? "feed" : "prep");
+  const mistakeCount = useMemo(
+    () => getFeedMistakes(progress, demoCards).length,
+    [progress]
+  );
 
   const tabs = mode === "feed" ? feedTabs : prepTabs;
 
@@ -104,9 +110,9 @@ export default function BottomNav() {
             >
               <span className="relative">
                 {tab.icon}
-                {tab.href === "/review" && dueCount > 0 && (
+                {tab.href === "/mistakes" && mistakeCount > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center bg-rose-500 text-white text-[9px] font-bold rounded-full px-0.5">
-                    {dueCount > 99 ? "99+" : dueCount}
+                    {mistakeCount > 99 ? "99+" : mistakeCount}
                   </span>
                 )}
               </span>

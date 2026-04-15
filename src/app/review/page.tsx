@@ -249,7 +249,7 @@ export default function ReviewPage() {
 
     return (
       <div className="h-screen flex flex-col">
-        <TopBar />
+        <TopBar showBack />
         <main className="flex-1 pt-24 pb-20 overflow-y-auto">
           <div className="px-6 max-w-lg mx-auto">
             <div className="text-center pt-8 pb-6">
@@ -372,14 +372,15 @@ export default function ReviewPage() {
 
   // === IDLE STATE (due cards exist, waiting for user to start) ===
   if (pageState === "idle" && allDueCards.length > 0) {
+    const resting = cardStats.total - allDueCards.length;
     return (
       <div className="h-screen flex flex-col">
-        <TopBar />
+        <TopBar showBack />
         <main className="flex-1 pt-24 pb-20 overflow-y-auto">
           <div className="px-6 max-w-lg mx-auto">
             <div className="text-center pt-8 pb-6">
               <p className="text-[10px] uppercase tracking-[0.25em] text-muted font-semibold mb-1">
-                Готово к повторению
+                Готово сейчас
               </p>
               <div className="text-6xl font-extralight text-foreground tracking-tight leading-none">
                 {allDueCards.length}
@@ -387,6 +388,11 @@ export default function ReviewPage() {
               <p className="text-[11px] uppercase tracking-[0.15em] text-muted mt-2 font-medium">
                 {pluralize(allDueCards.length, "карточка", "карточки", "карточек")}
               </p>
+              {resting > 0 && (
+                <p className="text-[10px] text-muted mt-2 leading-relaxed max-w-[260px] mx-auto">
+                  ещё {resting} {pluralize(resting, "отдыхает", "отдыхают", "отдыхают")} по расписанию — вернутся через 1-15 дней
+                </p>
+              )}
             </div>
 
             <div className="w-12 h-px bg-border mx-auto mb-6" />
@@ -479,7 +485,7 @@ export default function ReviewPage() {
     if (!hasAnyCards) {
       return (
         <div className="h-screen flex flex-col">
-          <TopBar />
+          <TopBar showBack />
           <main className="flex-1 pt-24 pb-20 flex flex-col items-center justify-center">
             <div className="text-center px-6">
               <div className="text-6xl font-extralight text-foreground tracking-tight leading-none mb-3">
@@ -502,7 +508,7 @@ export default function ReviewPage() {
 
     return (
       <div className="h-screen flex flex-col">
-        <TopBar />
+        <TopBar showBack />
         <main className="flex-1 pt-24 pb-20 overflow-y-auto">
           <div className="px-6 max-w-lg mx-auto">
             <div className="text-center pt-8 pb-6">
@@ -555,7 +561,7 @@ export default function ReviewPage() {
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar />
+      <TopBar showBack />
       <main className="flex-1 pt-24 pb-20 overflow-y-auto">
         {/* Progress bar */}
         <div className="px-5 pt-4">

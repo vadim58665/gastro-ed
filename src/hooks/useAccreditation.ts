@@ -83,6 +83,20 @@ export function useAccreditation(specialty: string) {
     [updateProgress]
   );
 
+  const removeMistake = useCallback(
+    (questionId: string) => {
+      updateProgress((prev) => {
+        if (!prev.mistakes.includes(questionId)) return prev;
+        return {
+          ...prev,
+          mistakes: prev.mistakes.filter((id) => id !== questionId),
+          updatedAt: Date.now(),
+        };
+      });
+    },
+    [updateProgress]
+  );
+
   const toggleFavorite = useCallback(
     (questionId: string) => {
       updateProgress((prev) => {
@@ -113,6 +127,7 @@ export function useAccreditation(specialty: string) {
     totalLearned,
     markQuestionLearned,
     recordMistake,
+    removeMistake,
     toggleFavorite,
     saveExamResult,
   };
