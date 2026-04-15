@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { DailyCase, StepResult, DailyCaseStep } from "@/types/dailyCase";
 import NumberTicker from "@/components/ui/NumberTicker";
+import DailyLeaderboard from "./DailyLeaderboard";
 
 interface Props {
   dailyCase: DailyCase;
@@ -243,6 +244,9 @@ export default function DailyCaseResult({ dailyCase, stepResults, dateStr }: Pro
       {showDetails && (
         <BreakdownAccordion dailyCase={dailyCase} stepResults={stepResults} stepLabels={stepLabels} formatTime={formatTime} />
       )}
+
+      {/* Рейтинг дня — всегда виден под кнопкой «Показать разбор» */}
+      {dateStr && <DailyLeaderboard date={dateStr} />}
     </div>
   );
 }

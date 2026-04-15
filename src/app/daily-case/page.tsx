@@ -6,6 +6,7 @@ import DailyCasePlayer from "@/components/daily/DailyCasePlayer";
 import DailyCaseResult from "@/components/daily/DailyCaseResult";
 import { getDailyCase, getTodayDateStr } from "@/data/dailyCases";
 import { useProgress } from "@/hooks/useProgress";
+import { getSupabase } from "@/lib/supabase/client";
 import type { StepResult } from "@/types/dailyCase";
 
 export default function DailyCasePage() {
@@ -41,8 +42,38 @@ export default function DailyCasePage() {
         },
       };
       saveProgress(updated);
+
+      // Отправить результат на сервер для рейтинга (fire-and-forget)
+      void (async () => {
+        try {
+          const {
+            data: { session },
+          } = await getSupabase().auth.getSession();
+          const token =
+            session?.access_token ??
+            (process.env.NEXT_PUBLIC_DEV_MODE === "true"
+              ? "dev-test-token"
+              : null);
+          if (!token) return;
+          await fetch("/api/daily-case/result", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              caseDate: dateStr,
+              caseId: dailyCase.id,
+              totalPoints,
+              maxPoints,
+            }),
+          });
+        } catch {
+          // не ломаем прогресс, если сеть упала
+        }
+      })();
     },
-    [progress, dateStr, saveProgress, dailyCase.steps.length]
+    [progress, dateStr, saveProgress, dailyCase.steps.length, dailyCase.id]
   );
 
   const difficultyLabel =
