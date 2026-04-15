@@ -11,7 +11,6 @@ import AchievementUnlock from "@/components/ui/AchievementUnlock";
 import { hapticCorrect, hapticWrong } from "@/lib/feedback";
 import { isStruggling } from "@/lib/adaptive";
 import KeyFactBanner from "@/components/ui/KeyFactBanner";
-import MagicCard from "@/components/ui/MagicCard";
 import type { AchievementDef } from "@/types/gamification";
 import { useFatigueDetection } from "@/hooks/useFatigueDetection";
 import FatigueBanner from "@/components/ui/FatigueBanner";
@@ -110,53 +109,46 @@ export default function CardFeed({ cards }: Props) {
             key={card.id}
             data-card-id={card.id}
             ref={(el) => { if (el) cardRefs.current.set(card.id, el); }}
-            className="feed-card min-h-[calc(100vh-8rem)] flex items-center"
+            className="feed-card px-3 py-3"
           >
-            <MagicCard
-              className="w-full max-w-lg mx-auto my-4 px-3 rounded-3xl card-protected"
-              gradientFrom="#6366f1"
-              gradientTo="#a855f7"
-              gradientSize={320}
-              spotlightColor="rgba(168, 85, 247, 0.14)"
+            <div
+              className="w-full max-w-lg mx-auto h-full rounded-3xl card-protected surface-raised overflow-y-auto overscroll-contain"
+              onContextMenu={(e) => e.preventDefault()}
+              onCopy={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
             >
-              <div
-                onContextMenu={(e) => e.preventDefault()}
-                onCopy={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-              >
-                <div className="flex items-center justify-between px-6 pt-5 pb-1">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted">
-                    {card.topic}
-                  </span>
-                  {struggling && (
-                    <span
-                      className="w-2 h-2 rounded-full bg-warning"
-                      title="Сложная карточка"
-                      style={{ boxShadow: "0 0 8px rgba(245, 158, 11, 0.7)" }}
-                    />
-                  )}
-                </div>
-                {struggling && card.keyFact && (
-                  <KeyFactBanner keyFact={card.keyFact} />
-                )}
-                <CardRenderer card={card} onAnswer={(isCorrect) => handleAnswer(card, isCorrect)} cardHistory={history} />
-                {answeredCardId === card.id && (
-                  <div className="px-6 pb-4">
-                    <PostAnswerActions
-                      onAction={(action) => {
-                        const topic = card.topic;
-                        const q = encodeURIComponent(
-                          "question" in card ? (card as any).question ?? "" :
-                          "statement" in card ? (card as any).statement ?? "" :
-                          "scenario" in card ? (card as any).scenario ?? "" : ""
-                        );
-                        window.location.href = `/companion?topic=${encodeURIComponent(topic)}&q=${q}&action=${action}`;
-                      }}
-                    />
-                  </div>
+              <div className="flex items-center justify-between px-6 pt-5 pb-1">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted">
+                  {card.topic}
+                </span>
+                {struggling && (
+                  <span
+                    className="w-2 h-2 rounded-full bg-warning"
+                    title="Сложная карточка"
+                    style={{ boxShadow: "0 0 8px rgba(245, 158, 11, 0.7)" }}
+                  />
                 )}
               </div>
-            </MagicCard>
+              {struggling && card.keyFact && (
+                <KeyFactBanner keyFact={card.keyFact} />
+              )}
+              <CardRenderer card={card} onAnswer={(isCorrect) => handleAnswer(card, isCorrect)} cardHistory={history} />
+              {answeredCardId === card.id && (
+                <div className="px-6 pb-4">
+                  <PostAnswerActions
+                    onAction={(action) => {
+                      const topic = card.topic;
+                      const q = encodeURIComponent(
+                        "question" in card ? (card as any).question ?? "" :
+                        "statement" in card ? (card as any).statement ?? "" :
+                        "scenario" in card ? (card as any).scenario ?? "" : ""
+                      );
+                      window.location.href = `/companion?topic=${encodeURIComponent(topic)}&q=${q}&action=${action}`;
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         );
       })}

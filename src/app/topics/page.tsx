@@ -301,35 +301,64 @@ export default function TopicsPage() {
                   />
 
                   {/* Expanded topics */}
-                  {isExpanded && topics && (
-                    <div className="ml-16 mt-1 mb-2 space-y-0.5">
-                      {topics.map((topic) => (
+                  {isExpanded && topics && (() => {
+                    const totalAll = topics.reduce((s, t) => s + t.total, 0);
+                    const answeredAll = topics.reduce((s, t) => s + t.answered, 0);
+                    const progressAll = totalAll > 0 ? (answeredAll / totalAll) * 100 : 0;
+                    return (
+                      <div className="ml-16 mt-1 mb-2 space-y-0.5">
+                        {/* Решать всю специальность целиком */}
                         <button
-                          key={topic.name}
-                          onClick={() => handleTopicClick(spec.id, topic.name)}
-                          className="w-full text-left px-4 py-3 rounded-xl hover:bg-surface transition-colors group"
+                          onClick={() => handleSpecialtyClick(spec.id)}
+                          className="w-full text-left px-4 py-3 rounded-xl border border-primary/15 bg-primary/5 hover:bg-primary/10 transition-colors group"
                         >
                           <div className="flex items-baseline justify-between">
-                            <span className="text-sm font-light text-foreground group-hover:text-primary transition-colors">
-                              {topic.name}
+                            <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                              Все темы специальности
                             </span>
                             <span className="text-lg font-extralight text-foreground tracking-tight">
-                              {topic.total}
+                              {totalAll}
                             </span>
                           </div>
                           <div className="w-full h-0.5 bg-border rounded-full overflow-hidden mt-1.5">
                             <div
-                              className="h-full bg-foreground/30 rounded-full transition-all duration-500"
-                              style={{ width: `${(topic.answered / topic.total) * 100}%` }}
+                              className="h-full bg-primary/50 rounded-full transition-all duration-500"
+                              style={{ width: `${progressAll}%` }}
                             />
                           </div>
                           <span className="text-[10px] text-muted mt-0.5">
-                            {topic.answered} / {topic.total}
+                            {answeredAll} / {totalAll}
                           </span>
                         </button>
-                      ))}
-                    </div>
-                  )}
+
+                        {topics.map((topic) => (
+                          <button
+                            key={topic.name}
+                            onClick={() => handleTopicClick(spec.id, topic.name)}
+                            className="w-full text-left px-4 py-3 rounded-xl hover:bg-surface transition-colors group"
+                          >
+                            <div className="flex items-baseline justify-between">
+                              <span className="text-sm font-light text-foreground group-hover:text-primary transition-colors">
+                                {topic.name}
+                              </span>
+                              <span className="text-lg font-extralight text-foreground tracking-tight">
+                                {topic.total}
+                              </span>
+                            </div>
+                            <div className="w-full h-0.5 bg-border rounded-full overflow-hidden mt-1.5">
+                              <div
+                                className="h-full bg-foreground/30 rounded-full transition-all duration-500"
+                                style={{ width: `${(topic.answered / topic.total) * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-[10px] text-muted mt-0.5">
+                              {topic.answered} / {topic.total}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })}

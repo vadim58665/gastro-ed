@@ -28,7 +28,7 @@ function FeedContent() {
   const searchParams = useSearchParams();
   const topicFilter = searchParams.get("topic");
   const modeParam = searchParams.get("mode");
-  const { activeSpecialty } = useSpecialty();
+  const { activeSpecialty, clearSpecialty } = useSpecialty();
   const { progress } = useProgress();
   const router = useRouter();
   const [diffLevel, setDiffLevel] = useState<DifficultyLevel>(3);
@@ -49,6 +49,11 @@ function FeedContent() {
     setDiffLevel(level);
     setStoredDifficulty(level);
     setShowDiffPicker(false);
+  }
+
+  function handleExit() {
+    clearSpecialty();
+    router.push("/topics");
   }
 
   const cards = useMemo(() => {
@@ -84,13 +89,13 @@ function FeedContent() {
 
   return (
     <>
-      <div className="w-full max-w-lg mx-auto px-4 pt-3 pb-1 flex items-center justify-between gap-2">
+      <div className="flex-none w-full max-w-lg mx-auto px-4 pt-3 pb-1 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          {topicFilter && (
+          {(topicFilter || activeSpecialty) && (
             <button
-              onClick={() => router.back()}
+              onClick={handleExit}
               className="text-muted hover:text-foreground transition-colors -ml-1 shrink-0"
-              aria-label="Назад"
+              aria-label="Выйти из специальности"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
@@ -114,11 +119,13 @@ function FeedContent() {
         </div>
       </div>
       {showDiffPicker && (
-        <div className="w-full max-w-lg mx-auto px-4 pb-2">
+        <div className="flex-none w-full max-w-lg mx-auto px-4 pb-2">
           <DifficultySelector value={diffLevel} onChange={handleDiffChange} compact />
         </div>
       )}
-      <CardFeed cards={cards} />
+      <div className="flex-1 min-h-0">
+        <CardFeed cards={cards} />
+      </div>
     </>
   );
 }
@@ -127,7 +134,7 @@ export default function FeedPage() {
   return (
     <div className="h-screen flex flex-col">
       <TopBar />
-      <main className="flex-1 pt-24 pb-16 overflow-hidden">
+      <main className="flex-1 pt-24 pb-16 overflow-hidden flex flex-col">
         <Suspense>
           <FeedContent />
         </Suspense>

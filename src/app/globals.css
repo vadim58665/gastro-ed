@@ -58,11 +58,15 @@ body {
 .feed-scroll {
   scroll-snap-type: y mandatory;
   overflow-y: auto;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 
 .feed-card {
   scroll-snap-align: start;
+  scroll-snap-stop: always;
+  height: 100%;
 }
 
 /* Elegant card shadow — layered depth with inner top highlight */
