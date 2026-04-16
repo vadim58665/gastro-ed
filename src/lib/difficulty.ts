@@ -58,18 +58,17 @@ function shuffle<T>(arr: T[]): T[] {
   return copy;
 }
 
-const STORAGE_KEY = "sd-difficulty-level";
-
-export function getStoredDifficulty(): DifficultyLevel {
-  if (typeof window === "undefined") return DEFAULT_DIFFICULTY;
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    const num = parseInt(stored, 10);
-    if (num >= 1 && num <= 5) return num as DifficultyLevel;
-  }
-  return DEFAULT_DIFFICULTY;
-}
-
-export function setStoredDifficulty(level: DifficultyLevel): void {
-  localStorage.setItem(STORAGE_KEY, String(level));
+/**
+ * Compute card difficulty from the user's recent answer history.
+ * Maps sliding-window accuracy to DifficultyLevel 1-5.
+ * New users (< 5 answers) start at level 1.
+ */
+export function getAdaptiveDifficulty(recentAnswers: boolean[]): DifficultyLevel {
+  if (recentAnswers.length < 5) return 1;
+  const accuracy = (recentAnswers.filter(Boolean).length / recentAnswers.length) * 100;
+  if (accuracy < 40) return 1;
+  if (accuracy < 68) return 2;
+  if (accuracy < 85) return 3;
+  if (accuracy < 94) return 4;
+  return 5;
 }

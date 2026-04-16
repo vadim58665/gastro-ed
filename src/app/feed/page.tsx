@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useEffect, useState } from "react";
+import { Suspense, useMemo, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import CardFeed from "@/components/feed/CardFeed";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
@@ -8,9 +8,8 @@ import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import { demoCards } from "@/data/cards";
 import QuestionSearch from "@/components/search/QuestionSearch";
-import DifficultySelector from "@/components/medmind/DifficultySelector";
-import { filterByDifficulty, getStoredDifficulty, setStoredDifficulty } from "@/lib/difficulty";
-import type { DifficultyLevel } from "@/types/card";
+import { filterByDifficulty, getAdaptiveDifficulty } from "@/lib/difficulty";
+import { getRankForAccuracy } from "@/data/levels";
 import { useProgress } from "@/hooks/useProgress";
 import { getWeakTopics, getWeakTopicCards } from "@/lib/weakTopics";
 
@@ -31,12 +30,9 @@ function FeedContent() {
   const { activeSpecialty, clearSpecialty } = useSpecialty();
   const { progress } = useProgress();
   const router = useRouter();
-  const [diffLevel, setDiffLevel] = useState<DifficultyLevel>(3);
-  const [showDiffPicker, setShowDiffPicker] = useState(false);
-
-  useEffect(() => {
-    setDiffLevel(getStoredDifficulty());
-  }, []);
+  const recentAnswers = progress.recentAnswers || [];
+  const diffLevel = useMemo(() => getAdaptiveDifficulty(recentAnswers), [recentAnswers]);
+  const rank = useMemo(() => getRankForAccuracy(recentAnswers), [recentAnswers]);
 
   useEffect(() => {
     const isStandalone = modeParam && STANDALONE_MODES.has(modeParam);
@@ -44,12 +40,6 @@ function FeedContent() {
       router.push("/topics");
     }
   }, [activeSpecialty, modeParam, router]);
-
-  function handleDiffChange(level: DifficultyLevel) {
-    setDiffLevel(level);
-    setStoredDifficulty(level);
-    setShowDiffPicker(false);
-  }
 
   function handleExit() {
     clearSpecialty();
@@ -109,20 +99,12 @@ function FeedContent() {
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => setShowDiffPicker(!showDiffPicker)}
-            className="text-[10px] uppercase tracking-widest text-primary/70 hover:text-primary transition-colors px-2 py-1 whitespace-nowrap"
-          >
-            {["", "Студент", "Ординатор", "Врач", "Профессор", "Академик"][diffLevel]}
-          </button>
+          <span className="text-[10px] uppercase tracking-widest text-primary/70 px-2 py-1 whitespace-nowrap">
+            {rank.title}
+          </span>
           <QuestionSearch cards={demoCards} />
         </div>
       </div>
-      {showDiffPicker && (
-        <div className="flex-none w-full max-w-lg mx-auto px-4 pb-2">
-          <DifficultySelector value={diffLevel} onChange={handleDiffChange} compact />
-        </div>
-      )}
       <div className="flex-1 min-h-0">
         <CardFeed cards={cards} />
       </div>
