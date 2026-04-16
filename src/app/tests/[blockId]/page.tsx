@@ -19,7 +19,7 @@ export default function BlockPage() {
   const { activeSpecialty } = useSpecialty();
   const specialtyId = activeSpecialty?.id || "";
   const blockNumber = Number(params.blockId);
-  const { progress, markQuestionLearned, recordMistake } =
+  const { progress, markQuestionLearned, recordAnswer } =
     useAccreditation(specialtyId);
 
   const allQuestions = useMemo(
@@ -41,13 +41,12 @@ export default function BlockPage() {
       const q = testMode.questions[testMode.currentIndex];
       if (!q) return;
       testMode.submitAnswer(q.id, selectedIndex, isCorrect);
+      recordAnswer(q.id, isCorrect);
       if (isCorrect) {
         markQuestionLearned(blockNumber, q.id);
-      } else {
-        recordMistake(q.id);
       }
     },
-    [testMode, blockNumber, markQuestionLearned, recordMistake]
+    [testMode, blockNumber, markQuestionLearned, recordAnswer]
   );
 
   const handleReviewMistakes = useCallback(() => {

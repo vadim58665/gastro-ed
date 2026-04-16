@@ -37,7 +37,7 @@ export default function ExamInner() {
   const router = useRouter();
   const { activeSpecialty } = useSpecialty();
   const specialtyId = activeSpecialty?.id || "";
-  const { progress, recordMistake, removeMistake, saveExamResult } = useAccreditation(specialtyId);
+  const { progress, recordAnswer, saveExamResult } = useAccreditation(specialtyId);
 
   const examType = (searchParams.get("type") || "trial") as ExamType;
   const blockFilter = useMemo(() => {
@@ -95,17 +95,12 @@ export default function ExamInner() {
       const q = questions[currentIndex];
       if (isCorrect) {
         setCorrectCount((c) => c + 1);
-        if (examType === "mistakes" && q) {
-          removeMistake(q.id);
-        }
-      } else {
-        if (q) recordMistake(q.id);
-        if (config.marathon) {
-          setMarathonFailed(true);
-        }
+      } else if (config.marathon) {
+        setMarathonFailed(true);
       }
+      if (q) recordAnswer(q.id, isCorrect);
     },
-    [currentIndex, questions, recordMistake, removeMistake, examType, config.marathon]
+    [currentIndex, questions, recordAnswer, config.marathon]
   );
 
   const handleNext = useCallback(() => {

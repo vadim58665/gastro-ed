@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import type { AccreditationProgress, ExamResult } from "@/types/accreditation";
+import type { AccreditationProgress, ExamResult, QuestionStats } from "@/types/accreditation";
 
 const STORAGE_KEY = "sd-accreditation";
 
@@ -27,26 +27,34 @@ export function useAccreditation(specialty: string) {
   const progressRef = useRef(allProgress);
   progressRef.current = allProgress;
 
-  const progress: AccreditationProgress = allProgress[specialty] || {
-    specialty,
-    blocks: [],
-    examResults: [],
-    mistakes: [],
-    favorites: [],
-    updatedAt: Date.now(),
-  };
+  const raw = allProgress[specialty];
+  const progress: AccreditationProgress = raw
+    ? { ...raw, questionStats: raw.questionStats ?? {} }
+    : {
+        specialty,
+        blocks: [],
+        examResults: [],
+        mistakes: [],
+        favorites: [],
+        questionStats: {},
+        updatedAt: Date.now(),
+      };
 
   const updateProgress = useCallback(
     (updater: (prev: AccreditationProgress) => AccreditationProgress) => {
       setAllProgress((prev) => {
-        const current = prev[specialty] || {
-          specialty,
-          blocks: [],
-          examResults: [],
-          mistakes: [],
-          favorites: [],
-          updatedAt: Date.now(),
-        };
+        const stored = prev[specialty];
+        const current: AccreditationProgress = stored
+          ? { ...stored, questionStats: stored.questionStats ?? {} }
+          : {
+              specialty,
+              blocks: [],
+              examResults: [],
+              mistakes: [],
+              favorites: [],
+              questionStats: {},
+              updatedAt: Date.now(),
+            };
         const updated = { ...prev, [specialty]: updater(current) };
         saveProgress(updated);
         return updated;
@@ -71,27 +79,31 @@ export function useAccreditation(specialty: string) {
     [updateProgress]
   );
 
-  const recordMistake = useCallback(
-    (questionId: string) => {
+  const recordAnswer = useCallback(
+    (questionId: string, correct: boolean) => {
       updateProgress((prev) => {
-        const mistakes = prev.mistakes.includes(questionId)
-          ? prev.mistakes
-          : [...prev.mistakes, questionId];
-        return { ...prev, mistakes, updatedAt: Date.now() };
-      });
-    },
-    [updateProgress]
-  );
-
-  const removeMistake = useCallback(
-    (questionId: string) => {
-      updateProgress((prev) => {
-        if (!prev.mistakes.includes(questionId)) return prev;
-        return {
-          ...prev,
-          mistakes: prev.mistakes.filter((id) => id !== questionId),
-          updatedAt: Date.now(),
+        const stats = { ...(prev.questionStats ?? {}) };
+        const existing: QuestionStats = stats[questionId] ?? {
+          attempts: 0,
+          wrong: 0,
+          lastSeen: 0,
+          wasEverCorrect: false,
         };
+        stats[questionId] = {
+          attempts: existing.attempts + 1,
+          wrong: existing.wrong + (correct ? 0 : 1),
+          lastSeen: Date.now(),
+          wasEverCorrect: existing.wasEverCorrect || correct,
+        };
+
+        let mistakes = prev.mistakes;
+        if (correct) {
+          mistakes = mistakes.filter((id) => id !== questionId);
+        } else if (!mistakes.includes(questionId)) {
+          mistakes = [...mistakes, questionId];
+        }
+
+        return { ...prev, mistakes, questionStats: stats, updatedAt: Date.now() };
       });
     },
     [updateProgress]
@@ -126,8 +138,7 @@ export function useAccreditation(specialty: string) {
     progress,
     totalLearned,
     markQuestionLearned,
-    recordMistake,
-    removeMistake,
+    recordAnswer,
     toggleFavorite,
     saveExamResult,
   };

@@ -1,5 +1,12 @@
 import type { DifficultyLevel } from "./card";
 
+export interface QuestionStats {
+  attempts: number;
+  wrong: number;
+  lastSeen: number;
+  wasEverCorrect: boolean;
+}
+
 export interface TestQuestion {
   id: string;
   specialty: string;
@@ -48,5 +55,6 @@ export interface AccreditationProgress {
   examResults: ExamResult[];
   mistakes: string[];
   favorites: string[];
+  questionStats: Record<string, QuestionStats>;
   updatedAt: number;
 }

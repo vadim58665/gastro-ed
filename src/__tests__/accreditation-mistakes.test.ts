@@ -34,6 +34,7 @@ const emptyProgress: AccreditationProgress = {
   examResults: [],
   mistakes: [],
   favorites: [],
+  questionStats: {},
   updatedAt: 0,
 };
 
