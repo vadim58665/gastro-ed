@@ -65,6 +65,12 @@ export default function CardFeed({ cards }: Props) {
 
   const handleAnswer = useCallback(
     (card: Card, isCorrect: boolean) => {
+      // Снимаем focus с ответившей кнопки: иначе после её удаления из DOM
+      // браузер переносит focus на следующий focusable внутри карточки
+      // и делает scrollIntoView, что триггерит snap на следующую карточку.
+      if (typeof document !== "undefined") {
+        (document.activeElement as HTMLElement | null)?.blur();
+      }
       isCorrect ? hapticCorrect() : hapticWrong();
       isCorrect ? onCorrectAnswer() : onWrongAnswer();
       recordFatigue(isCorrect);
@@ -112,11 +118,12 @@ export default function CardFeed({ cards }: Props) {
           <div
             key={card.id}
             data-card-id={card.id}
+            data-answered={answeredCardId === card.id}
             ref={(el) => { if (el) cardRefs.current.set(card.id, el); }}
             className="feed-card px-3 py-3"
           >
             <div
-              className="w-full max-w-lg mx-auto flex-1 flex flex-col rounded-3xl card-protected surface-raised"
+              className="w-full max-w-lg mx-auto h-full rounded-3xl card-protected surface-raised overflow-y-auto"
               onContextMenu={(e) => e.preventDefault()}
               onCopy={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
