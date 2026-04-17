@@ -61,7 +61,7 @@ export default function MnemonicHint({ cardId, keyFact, cardHistory }: Props) {
           <path d="M9 21h6M12 3a6 6 0 014 10.5V17H8v-3.5A6 6 0 0112 3z" />
         </svg>
         <span className="text-xs uppercase tracking-wider text-muted font-medium">
-          Подсказка для запоминания
+          Мнемоника
         </span>
         <svg
           width="12"

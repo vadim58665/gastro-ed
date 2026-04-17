@@ -9,6 +9,7 @@ import { MedMindProvider } from "@/contexts/MedMindContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import AuthGuard from "@/components/AuthGuard";
 import CompanionOverlay from "@/components/medmind/CompanionOverlay";
+import ScreenAutoSetter from "@/components/medmind/ScreenAutoSetter";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { PostHogProvider } from "@/lib/analytics/posthog-provider";
 import { PageviewTracker } from "@/lib/analytics/pageview-tracker";
@@ -57,6 +58,7 @@ export default function RootLayout({
                   <SpecialtyProvider>
                     <ModeProvider>
                       <MedMindProvider>
+                        <ScreenAutoSetter />
                         {children}
                         <CompanionOverlay />
                         <ServiceWorkerRegister />

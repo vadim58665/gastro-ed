@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 
-export type ThemeId = "default" | "mocha" | "graphite";
+export type ThemeId = "default" | "mocha" | "graphite" | "bordeaux";
 export type LanguageId = "ru" | "en" | "uz" | "kk" | "tk" | "zh" | "hi" | "ar" | "fa" | "tg" | "fr";
 export type CompanionKind = "orb" | "doctor" | "mouse" | "owl";
 export type CompanionVisibility = "visible" | "half" | "hidden";
@@ -58,7 +58,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const storedTheme = localStorage.getItem(THEME_KEY) as ThemeId | null;
-      if (storedTheme === "mocha" || storedTheme === "graphite" || storedTheme === "default") {
+      if (storedTheme === "mocha" || storedTheme === "graphite" || storedTheme === "bordeaux" || storedTheme === "default") {
         setThemeState(storedTheme);
       }
       const storedLang = localStorage.getItem(LANG_KEY) as LanguageId | null;

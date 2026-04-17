@@ -178,6 +178,45 @@ def ax_press(elem):
     return AXUIElementPerformAction(elem, "AXPress") == 0
 
 
+def type_text(text):
+    """Type text via AppleScript keystroke."""
+    escaped = text.replace('\\', '\\\\').replace('"', '\\"')
+    script = f'''tell application "System Events"
+    tell process id {_window_pid}
+        keystroke "{escaped}"
+    end tell
+end tell'''
+    activate()
+    subprocess.run(["osascript", "-e", script], capture_output=True, timeout=10)
+    time.sleep(0.5)
+
+
+def clear_search():
+    """Clear search field: Cmd+A then Delete."""
+    script = f'''tell application "System Events"
+    tell process id {_window_pid}
+        key code 0 using command down
+        delay 0.1
+        key code 51
+    end tell
+end tell'''
+    activate()
+    subprocess.run(["osascript", "-e", script], capture_output=True, timeout=10)
+    time.sleep(0.3)
+
+
+def press_escape():
+    """Press Escape key."""
+    script = f'''tell application "System Events"
+    tell process id {_window_pid}
+        key code 53
+    end tell
+end tell'''
+    activate()
+    subprocess.run(["osascript", "-e", script], capture_output=True, timeout=5)
+    time.sleep(0.3)
+
+
 # ── Screen state detection ────────────────────────────────────────────────────
 
 def get_screen_state():
@@ -514,6 +553,114 @@ def _find_and_press_specialty_in_list(specialty_name):
     return False
 
 
+def open_section_in_vse_razdely(section_name):
+    """From Направления: scroll down to Все разделы and press section_name."""
+    print(f"  [section] Looking for '{section_name}' in Все разделы...", flush=True)
+    _focus_and_scroll_specialty_list(n_pages=40)
+    time.sleep(1.0)
+    for attempt in range(25):
+        refresh_runner()
+        elems = get_inner_elems()
+        for e in elems:
+            d = ax_desc(e)
+            if section_name in d:
+                print(f"  [section] Found, pressing...", flush=True)
+                activate(); ax_press(e); time.sleep(2.0)
+                return True
+        _focus_and_scroll_specialty_list(n_pages=5)
+    print(f"  [section] FAIL: not found", flush=True)
+    return False
+
+
+def discover_specialties_in_section():
+    """Read all specialty names visible after opening a section."""
+    if _window_bounds:
+        wx, wy, ww, wh = _window_bounds
+        _click_at_screen(wx + ww // 2, wy + int(wh * 0.5))
+        activate()
+        script = f'''tell application "System Events"
+    tell process id {_window_pid}
+        repeat 20 times
+            key code 116
+            delay 0.05
+        end repeat
+    end tell
+end tell'''
+        subprocess.run(["osascript", "-e", script], capture_output=True, timeout=10)
+        time.sleep(0.5)
+
+    specialties = []
+    seen = set()
+    no_new = 0
+    for _ in range(60):
+        refresh_runner()
+        elems = get_inner_elems()
+        found_new = False
+        for e in elems:
+            d = ax_desc(e).strip()
+            if not d or len(d) < 4 or d in seen:
+                continue
+            if d in ("Тесты", "Профиль", "Режимы", "Задачи"):
+                continue
+            seen.add(d)
+            first_line = d.split("\n")[0].strip()
+            if first_line and len(first_line) > 3 and first_line not in specialties:
+                specialties.append(first_line)
+                found_new = True
+        if found_new: no_new = 0
+        else:
+            no_new += 1
+            if no_new >= 5: break
+        _focus_and_scroll_specialty_list(n_pages=3)
+    print(f"  [discover] Found {len(specialties)} specialties", flush=True)
+    return specialties
+
+
+def switch_to_section_specialty(section_name, specialty_name):
+    """Full flow: Profile → Переключить → section in Все разделы → specialty → Tests."""
+    print(f"  [sect-sw] {section_name} → {specialty_name}", flush=True)
+    unknown_count = 0
+    for attempt in range(20):
+        refresh_runner()
+        screen = _detect_screen()
+        if attempt < 5 or attempt % 5 == 0:
+            print(f"  [sect-sw] screen={screen}", flush=True)
+        if screen == "profile":
+            break
+        if screen == "tests":
+            navigate_tab("Профиль"); time.sleep(1.5)
+        elif screen in ("spec_list", "направления", "in_block", "downloading"):
+            press_back(); time.sleep(1.2); unknown_count = 0
+        elif screen == "unknown":
+            unknown_count += 1
+            press_back(); time.sleep(1.0)
+            if unknown_count >= 3:
+                navigate_tab("Профиль"); time.sleep(1.5); unknown_count = 0
+    else:
+        print("  [sect-sw] FAIL: Профиль не достигнут", flush=True)
+        return False
+    time.sleep(1.0)
+    if not _press_elem_containing("Переключить специальность"):
+        found = False
+        for e in get_inner_elems():
+            if "Переключить специальность" in ax_desc(e):
+                activate(); ax_press(e); time.sleep(1.5); found = True; break
+        if not found:
+            print("  [sect-sw] FAIL: Переключить не найден", flush=True)
+            return False
+    else:
+        time.sleep(1.0)
+    if not open_section_in_vse_razdely(section_name):
+        return False
+    time.sleep(1.0)
+    if not _find_and_press_specialty_in_list(specialty_name):
+        print(f"  [sect-sw] FAIL: '{specialty_name}' не найден в разделе", flush=True)
+        return False
+    print(f"  [sect-sw] found, → Тесты", flush=True)
+    navigate_tab("Тесты"); time.sleep(1.0)
+    return True
+
+
 def switch_specialty(specialty_name):
     """Full specialty switch flow — handles any starting screen.
     Returns True if successfully switched and back on Tests."""
@@ -566,51 +713,76 @@ def switch_specialty(specialty_name):
     else:
         time.sleep(1.0)
 
-    # Step 3: In "Направления" — scroll looking for already-loaded or category
-    scroll_list(n_up=30)
-    in_spec_list = False
-    for _ in range(80):
-        elems = get_inner_elems()
-        for e in elems:
-            d = ax_desc(e)
-            # Already loaded specialty (shows name + category)
-            if specialty_name in d and "Первичная специализированная аккредитация (ординатура)" in d:
+    # Step 3: Use search on Направления screen to find specialty
+    time.sleep(1.0)
+
+    # 3a: Find and press the search icon (🔍) in top-right corner
+    search_pressed = False
+    elems = get_inner_elems()
+    for e in elems:
+        frame = ax_frame(e)
+        if frame:
+            fx, fy, fw, fh = frame
+            # Search icon: small element in top-right area
+            if fw < 60 and fh < 60 and fy < 120 and fx > 300:
+                print(f"  [switch] pressing search icon at ({fx:.0f},{fy:.0f})")
                 activate()
                 ax_press(e)
                 time.sleep(1.0)
+                search_pressed = True
+                break
+    if not search_pressed:
+        print("  [switch] search icon not found, trying fallback scroll")
+        return _switch_specialty_scroll(specialty_name)
+
+    # 3b: Type specialty name
+    print(f"  [switch] typing '{specialty_name}'")
+    type_text(specialty_name)
+    time.sleep(1.5)
+
+    # 3c: Find and press matching result
+    for attempt in range(10):
+        elems = get_inner_elems()
+        for e in elems:
+            d = ax_desc(e)
+            if specialty_name in d and len(d) > len(specialty_name):
+                print(f"  [switch] found '{specialty_name}', pressing")
+                activate()
+                ax_press(e)
+                time.sleep(1.5)
                 _wait_download()
                 navigate_tab("Тесты")
                 time.sleep(1.0)
                 return True
-            # ПСА ординатура category entry — press it to open specialty list
-            # The category button starts with the PSA text (not specialty name first).
-            # Individual loaded-specialty entries start with the specialty name.
-            if not in_spec_list and d.strip().startswith("Первичная специализированная аккредитация (ординатура)"):
-                print(f"  [switch] opening ПСА category")
+        time.sleep(0.5)
+
+    # If search showed no results, clear and escape
+    print(f"  [switch] search found nothing, clearing")
+    clear_search()
+    press_escape()
+    time.sleep(0.5)
+
+    # Fallback to scroll method
+    return _switch_specialty_scroll(specialty_name)
+
+
+def _switch_specialty_scroll(specialty_name):
+    """Fallback: scroll the Направления list to find specialty."""
+    scroll_list(n_up=120)
+    for _ in range(120):
+        elems = get_inner_elems()
+        for e in elems:
+            d = ax_desc(e)
+            if specialty_name in d and ("аккредитация" in d or "образование" in d.lower()):
+                print(f"  [switch-scroll] found '{specialty_name}', pressing")
                 activate()
                 ax_press(e)
                 time.sleep(1.5)
-                in_spec_list = True
-                scroll_list(n_up=40)
-                break
-        else:
-            if in_spec_list:
-                # In the full specialty list — search for target
-                for e in elems:
-                    d = ax_desc(e)
-                    if d.strip() == specialty_name or d.startswith(specialty_name + "\n"):
-                        print(f"  [switch] found '{specialty_name}', pressing")
-                        activate()
-                        ax_press(e)
-                        time.sleep(1.5)
-                        _wait_download()
-                        navigate_tab("Тесты")
-                        time.sleep(1.0)
-                        return True
-                scroll_list(n_down=3)
-            else:
-                scroll_list(n_down=3)
-
+                _wait_download()
+                navigate_tab("Тесты")
+                time.sleep(1.0)
+                return True
+        scroll_list(n_down=3)
     print(f"  [switch] FAIL: '{specialty_name}' not found")
     return False
 

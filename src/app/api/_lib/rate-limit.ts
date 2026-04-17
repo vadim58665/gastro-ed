@@ -22,6 +22,8 @@ const CONFIGS: Record<string, RateLimitConfig> = {
   image: { maxTokens: 2, refillMs: 3600_000 },
   session: { maxTokens: 3, refillMs: 3600_000 },
   validate: { maxTokens: 10, refillMs: 3600_000 },
+  // Prebuilt content lookup: no token cost, only anti-spam
+  prebuilt: { maxTokens: 500, refillMs: 86400_000 },
   "subscription/create": { maxTokens: 5, refillMs: 3600_000 },
   "subscription/status": { maxTokens: 30, refillMs: 3600_000 },
 };

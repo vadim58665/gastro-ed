@@ -13,9 +13,6 @@ import MatchPairs from "@/components/cards/MatchPairs";
 import PriorityRank from "@/components/cards/PriorityRank";
 import CauseChain from "@/components/cards/CauseChain";
 import DoseCalc from "@/components/cards/DoseCalc";
-import MnemonicHint from "@/components/ui/MnemonicHint";
-import ContextualTip from "@/components/medmind/ContextualTip";
-
 interface Props {
   card: Card;
   onAnswer: (isCorrect: boolean) => void;
@@ -23,6 +20,7 @@ interface Props {
 }
 
 export default function CardRenderer({ card, onAnswer, cardHistory }: Props) {
+  void cardHistory;
   let content: React.ReactNode;
   switch (card.type) {
     case "clinical_case":
@@ -60,21 +58,5 @@ export default function CardRenderer({ card, onAnswer, cardHistory }: Props) {
       break;
   }
 
-  return (
-    <>
-      {content}
-      <div className="px-6 pb-4">
-        <MnemonicHint
-          cardId={card.id}
-          keyFact={card.keyFact}
-          cardHistory={cardHistory}
-        />
-        <ContextualTip
-          cardId={card.id}
-          topic={card.topic}
-          cardHistory={cardHistory}
-        />
-      </div>
-    </>
-  );
+  return <>{content}</>;
 }

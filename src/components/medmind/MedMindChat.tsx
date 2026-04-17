@@ -35,6 +35,35 @@ export default function MedMindChat() {
     scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
   }, [messages]);
 
+  // One-shot sync of chat history from Supabase on mount so the conversation
+  // survives across devices. If the local cache already has more items we
+  // keep them (user might be mid-reply offline).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const token = await getToken();
+      if (!token) return;
+      try {
+        const res = await fetch("/api/medmind/history?limit=30", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as { messages: ChatMessage[] };
+        if (cancelled) return;
+        if (data.messages.length > messages.length) {
+          setMessages(data.messages);
+          saveMessages(data.messages);
+        }
+      } catch {
+        /* offline — keep local */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const sendMessage = useCallback(async () => {
     const text = input.trim();
     if (!text || streaming) return;

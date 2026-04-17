@@ -3,9 +3,13 @@ import { checkRateLimit, rateLimitResponse } from "../../_lib/rate-limit";
 import { checkDailyCap, dailyCapResponse, logApiUsage } from "../../_lib/cost-tracker";
 import { streamChat, estimateCostUsd } from "../../_lib/claude";
 import { fetchUserLearningProfile } from "../../_lib/user-profile";
-import { getAppStatsForUser } from "../../_lib/rag/app-content-index";
+import { getAppStatsForUser, searchAppContent } from "../../_lib/rag/app-content-index";
 import { retrieveContext } from "../../_lib/rag";
 import { selectModel } from "../../_lib/model-router";
+import {
+  snapshotToProfile,
+  type AccreditationSnapshot,
+} from "../../_lib/accreditation-snapshot";
 import type { PromptContext } from "../../_lib/prompts/system-prompt";
 
 export async function POST(req: Request) {
@@ -19,10 +23,12 @@ export async function POST(req: Request) {
     if (!withinCap) return dailyCapResponse();
 
     const body = await req.json();
-    const { message, contextTopic, history } = body as {
+    const { message, contextTopic, history, mode, accreditationSnapshot } = body as {
       message: string;
       contextTopic?: string;
       history?: { role: "user" | "assistant"; content: string }[];
+      mode?: "feed" | "accreditation" | "other";
+      accreditationSnapshot?: AccreditationSnapshot;
     };
 
     if (!message) {
@@ -49,9 +55,9 @@ export async function POST(req: Request) {
 
     const isFollowUp = (history?.length ?? 0) > 0;
 
-    // Gather context for modular prompt system
-    // Skip heavy DB queries for follow-up messages (uses Haiku anyway)
-    const [userProfile, appStats, ragContext] = isFollowUp
+    // Gather context for modular prompt system.
+    // Skip heavy DB queries for follow-up messages (uses Haiku anyway).
+    const [feedProfile, appStats, wikiContext] = isFollowUp
       ? [null, { totalCards: 0, totalSpecialties: 0, totalAccreditationQuestions: 0 }, ""]
       : await Promise.all([
           fetchUserLearningProfile(userId).catch(() => null),
@@ -64,6 +70,39 @@ export async function POST(req: Request) {
             ? retrieveContext(contextTopic, undefined, 1000).catch(() => "")
             : Promise.resolve(""),
         ]);
+
+    // Two-channel profile: if user is in accreditation mode, swap the feed
+    // profile for the client-supplied accreditation snapshot so the assistant
+    // talks about the right weak topics / blocks / exam results.
+    let userProfile = feedProfile;
+    if (
+      !isFollowUp &&
+      mode === "accreditation" &&
+      accreditationSnapshot &&
+      accreditationSnapshot.specialty
+    ) {
+      userProfile = snapshotToProfile(
+        accreditationSnapshot,
+        feedProfile?.tier ?? "free"
+      );
+    } else if (feedProfile && mode === "feed") {
+      userProfile = { ...feedProfile, mode: "feed" };
+    }
+
+    // Hybrid RAG: extend wiki context with matching cards/questions from the
+    // app itself so the assistant can cite what users see in the UI.
+    const appMatchText = !isFollowUp
+      ? await searchAppContent(contextTopic || message, {
+          limit: 3,
+          preferType:
+            mode === "accreditation"
+              ? "accreditation_question"
+              : mode === "feed"
+                ? "card"
+                : undefined,
+        }).catch(() => "")
+      : "";
+    const ragContext = [wikiContext, appMatchText].filter(Boolean).join("\n\n");
 
     const promptContext: PromptContext = {
       action: "chat",

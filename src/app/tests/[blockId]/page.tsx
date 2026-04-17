@@ -180,6 +180,7 @@ export default function BlockPage() {
               key={`${current.id}-${testMode.mode}-${testMode.currentIndex}`}
               question={current}
               mode={questionMode}
+              specialtyId={specialtyId}
               onAnswer={handleAnswer}
               onNext={testMode.nextQuestion}
               onPrevious={testMode.previousQuestion}

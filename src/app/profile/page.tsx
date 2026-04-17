@@ -1,13 +1,20 @@
 "use client";
 
+import { useEffect } from "react";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import FeedProfile from "@/components/profile/FeedProfile";
 import PrepProfile from "@/components/profile/PrepProfile";
 import { useMode } from "@/contexts/ModeContext";
+import { useMedMind } from "@/contexts/MedMindContext";
 
 export default function ProfilePage() {
   const { mode } = useMode();
+  const { setScreen } = useMedMind();
+
+  useEffect(() => {
+    setScreen({ kind: "profile" });
+  }, [setScreen]);
 
   return (
     <div className="h-screen flex flex-col">

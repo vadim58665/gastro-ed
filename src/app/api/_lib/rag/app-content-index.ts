@@ -132,6 +132,112 @@ export async function getAppContentIndex(): Promise<AppContentIndex> {
   return cachedIndex;
 }
 
+export interface AppMatch {
+  id: string;
+  type: "card" | "accreditation_question";
+  topic?: string;
+  specialty: string;
+  text: string;
+  score: number;
+}
+
+/**
+ * Lightweight keyword search over cards + accreditation questions. Used by the
+ * chat route to enrich RAG context with items the user actually sees in the UI.
+ * No embedding / vector DB — just token overlap scored by topic, specialty,
+ * and question body.
+ */
+export async function searchAppContent(
+  query: string,
+  opts: {
+    limit?: number;
+    preferType?: "card" | "accreditation_question";
+  } = {}
+): Promise<string> {
+  const limit = opts.limit ?? 3;
+  if (!query || query.trim().length < 2) return "";
+
+  const { demoCards } = await import("@/data/cards");
+  const accredMod = await import("@/data/accreditation");
+
+  const q = query.toLowerCase();
+  const tokens = q
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((t) => t.length >= 3);
+  if (tokens.length === 0) return "";
+
+  const matches: AppMatch[] = [];
+
+  for (const card of demoCards) {
+    const body = extractQuestion(card).toLowerCase();
+    const topic = (card.topic ?? "").toLowerCase();
+    const specialty = (card.specialty ?? "").toLowerCase();
+
+    let score = 0;
+    if (topic && q.includes(topic)) score += 3;
+    if (specialty && q.includes(specialty)) score += 2;
+    for (const t of tokens) {
+      if (body.includes(t)) score += 1;
+      if (topic.includes(t)) score += 0.5;
+    }
+    if (score > 0) {
+      matches.push({
+        id: card.id,
+        type: "card",
+        topic: card.topic,
+        specialty: card.specialty,
+        text: extractQuestion(card).slice(0, 240),
+        score: score + (opts.preferType === "card" ? 0.5 : 0),
+      });
+    }
+  }
+
+  const accreditationSpecialtyIds = [
+    "gastroenterologiya",
+    "kardiologiya",
+    "nevrologiya",
+    "hirurgiya",
+    "lechebnoe-delo",
+    "pediatriya",
+  ];
+  for (const specId of accreditationSpecialtyIds) {
+    const questions = accredMod.getQuestionsForSpecialty(specId);
+    for (const qst of questions) {
+      const body = qst.question.toLowerCase();
+      const specialty = qst.specialty.toLowerCase();
+      let score = 0;
+      if (specialty && q.includes(specialty)) score += 2;
+      for (const t of tokens) {
+        if (body.includes(t)) score += 1;
+      }
+      if (score > 0) {
+        matches.push({
+          id: qst.id,
+          type: "accreditation_question",
+          specialty: qst.specialty,
+          text: qst.question.slice(0, 240),
+          score:
+            score +
+            (opts.preferType === "accreditation_question" ? 0.5 : 0),
+        });
+      }
+    }
+  }
+
+  matches.sort((a, b) => b.score - a.score);
+  const top = matches.slice(0, limit);
+  if (top.length === 0) return "";
+
+  const lines = ["<app_matches>"];
+  for (const m of top) {
+    const label = m.type === "card" ? "Карточка" : "Вопрос аккредитации";
+    const topicPart = m.topic ? ` · ${m.topic}` : "";
+    lines.push(`${label} [${m.id}] ${m.specialty}${topicPart}: ${m.text}`);
+  }
+  lines.push("</app_matches>");
+  return lines.join("\n");
+}
+
 /**
  * Builds AppStats for the prompt system, optionally filtered to user's specialty.
  */
