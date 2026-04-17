@@ -42,10 +42,14 @@ export async function GET(req: Request) {
       .eq("user_id", userId)
       .maybeSingle();
 
+    // Dev-bypass: оставляем только для локальной разработки.
+    // NEXT_PUBLIC_ префикс подталкивает операторов ставить флаг в превью/стейдж,
+    // что на сервере открыло бы доступ всем авторизованным — гейтим NODE_ENV.
+    const devBypass =
+      process.env.NODE_ENV !== "production" &&
+      process.env.NEXT_PUBLIC_DEV_MODE === "true";
     const isPro =
-      process.env.NEXT_PUBLIC_DEV_MODE === "true" ||
-      sub?.status === "active" ||
-      sub?.status === "trial";
+      devBypass || sub?.status === "active" || sub?.status === "trial";
 
     if (!isPro) {
       return Response.json(

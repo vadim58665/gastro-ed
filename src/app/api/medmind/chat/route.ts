@@ -87,6 +87,12 @@ export async function POST(req: Request) {
       );
     } else if (feedProfile && mode === "feed") {
       userProfile = { ...feedProfile, mode: "feed" };
+    } else if (mode === "accreditation") {
+      // Accreditation mode без валидного snapshot: принудительно помечаем mode,
+      // чтобы промпт не соврал про «ленту карточек» и не вставил feed-метки.
+      userProfile = feedProfile
+        ? { ...feedProfile, mode: "accreditation" }
+        : null;
     }
 
     // Hybrid RAG: extend wiki context with matching cards/questions from the

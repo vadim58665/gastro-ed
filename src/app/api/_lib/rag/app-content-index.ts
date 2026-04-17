@@ -156,11 +156,13 @@ export async function searchAppContent(
 ): Promise<string> {
   const limit = opts.limit ?? 3;
   if (!query || query.trim().length < 2) return "";
+  // Защита от O(|q|×corpus) амплификации при мусорном/очень длинном сообщении.
+  const clamped = query.length > 2048 ? query.slice(0, 2048) : query;
 
   const { demoCards } = await import("@/data/cards");
   const accredMod = await import("@/data/accreditation");
 
-  const q = query.toLowerCase();
+  const q = clamped.toLowerCase();
   const tokens = q
     .split(/[^\p{L}\p{N}]+/u)
     .filter((t) => t.length >= 3);

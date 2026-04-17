@@ -1,4 +1,5 @@
 import { authenticateRequest, errorResponse, getServiceSupabase } from "../../_lib/auth";
+import { checkRateLimit, rateLimitResponse } from "../../_lib/rate-limit";
 import { TIER_CONFIGS } from "@/types/medmind";
 import type { SubscriptionTier } from "@/types/medmind";
 
@@ -11,6 +12,8 @@ import type { SubscriptionTier } from "@/types/medmind";
 export async function GET(req: Request) {
   try {
     const { userId } = await authenticateRequest(req);
+    const rl = checkRateLimit(userId, "usage");
+    if (!rl.allowed) return rateLimitResponse(rl.retryAfterMs!);
     const supabase = getServiceSupabase();
 
     const todayStart = new Date();

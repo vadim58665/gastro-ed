@@ -47,9 +47,14 @@ export function useMedMindUsage(openKey: boolean) {
       });
       if (res.ok) {
         setData((await res.json()) as UsageData);
+      } else {
+        // Non-ok (401 из-за истёкшего токена, 429, 500) — очищаем
+        // счётчики, чтобы не показывать устаревшие данные.
+        setData(null);
       }
     } catch {
       /* swallow — counters are decorative */
+      setData(null);
     } finally {
       setLoading(false);
     }

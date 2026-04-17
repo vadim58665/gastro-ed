@@ -24,6 +24,9 @@ const CONFIGS: Record<string, RateLimitConfig> = {
   validate: { maxTokens: 10, refillMs: 3600_000 },
   // Prebuilt content lookup: no token cost, only anti-spam
   prebuilt: { maxTokens: 500, refillMs: 86400_000 },
+  // Read-only counters and history: hourly cap against runaway clients.
+  usage: { maxTokens: 60, refillMs: 3600_000 },
+  history: { maxTokens: 30, refillMs: 3600_000 },
   "subscription/create": { maxTokens: 5, refillMs: 3600_000 },
   "subscription/status": { maxTokens: 30, refillMs: 3600_000 },
 };

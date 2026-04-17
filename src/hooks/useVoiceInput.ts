@@ -36,12 +36,17 @@ export function useVoiceInput(
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
+  // Флаг отмены текущего вызова attachAudioMeter — нужен, чтобы cleanupAudio,
+  // сработавший пока getUserMedia ещё висит, мог отменить последующее
+  // присвоение ref'ов и освободить только что полученный поток.
+  const cancelledRef = useRef(false);
 
   const isSupported =
     typeof window !== "undefined" &&
     ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
 
   const cleanupAudio = useCallback(() => {
+    cancelledRef.current = true;
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -68,6 +73,7 @@ export function useVoiceInput(
   const attachAudioMeter = useCallback(async () => {
     // Audio level meter in parallel with SpeechRecognition for a live UI signal.
     // Safari requires a user gesture (start() is called from onClick) + HTTPS.
+    cancelledRef.current = false;
     try {
       const AC =
         (window as typeof window & { webkitAudioContext?: typeof AudioContext })
@@ -76,8 +82,18 @@ export function useVoiceInput(
           .webkitAudioContext;
       if (!AC) return;
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (cancelledRef.current) {
+        for (const t of stream.getTracks()) t.stop();
+        return;
+      }
       streamRef.current = stream;
       const ctx = new AC();
+      if (cancelledRef.current) {
+        ctx.close().catch(() => {});
+        for (const t of stream.getTracks()) t.stop();
+        streamRef.current = null;
+        return;
+      }
       audioCtxRef.current = ctx;
       const source = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
@@ -87,7 +103,7 @@ export function useVoiceInput(
 
       const buf = new Uint8Array(analyser.frequencyBinCount);
       const tick = () => {
-        if (!analyserRef.current) return;
+        if (!analyserRef.current || cancelledRef.current) return;
         analyserRef.current.getByteTimeDomainData(buf);
         // RMS → roughly 0..1.
         let sum = 0;

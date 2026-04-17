@@ -36,8 +36,9 @@ export default function MedMindChat() {
   }, [messages]);
 
   // One-shot sync of chat history from Supabase on mount so the conversation
-  // survives across devices. If the local cache already has more items we
-  // keep them (user might be mid-reply offline).
+  // survives across devices. Функциональный setState читает актуальную длину,
+  // чтобы параллельная отправка сообщения во время /history fetch не была
+  // перезатёрта ответом сервера (bug_008).
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -50,10 +51,13 @@ export default function MedMindChat() {
         if (!res.ok) return;
         const data = (await res.json()) as { messages: ChatMessage[] };
         if (cancelled) return;
-        if (data.messages.length > messages.length) {
-          setMessages(data.messages);
-          saveMessages(data.messages);
-        }
+        setMessages((curr) => {
+          if (data.messages.length > curr.length) {
+            saveMessages(data.messages);
+            return data.messages;
+          }
+          return curr;
+        });
       } catch {
         /* offline — keep local */
       }
@@ -61,7 +65,6 @@ export default function MedMindChat() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sendMessage = useCallback(async () => {

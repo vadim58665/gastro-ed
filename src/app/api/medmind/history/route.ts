@@ -1,4 +1,5 @@
 import { authenticateRequest, errorResponse, getServiceSupabase } from "../../_lib/auth";
+import { checkRateLimit, rateLimitResponse } from "../../_lib/rate-limit";
 
 /**
  * GET /api/medmind/history?limit=20
@@ -8,6 +9,8 @@ import { authenticateRequest, errorResponse, getServiceSupabase } from "../../_l
 export async function GET(req: Request) {
   try {
     const { userId } = await authenticateRequest(req);
+    const rl = checkRateLimit(userId, "history");
+    if (!rl.allowed) return rateLimitResponse(rl.retryAfterMs!);
     const url = new URL(req.url);
     const limit = Math.min(50, Math.max(1, Number(url.searchParams.get("limit") ?? "20")));
 

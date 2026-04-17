@@ -81,6 +81,7 @@ export default function CompanionOverlay() {
   // Cached exam-warning opt-in for the session (so we don't re-prompt every click).
   const [examConfirmed, setExamConfirmed] = useState(false);
   const [pendingAction, setPendingAction] = useState<QuickAction | null>(null);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
 
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
@@ -166,21 +167,25 @@ export default function CompanionOverlay() {
     action: PrebuiltAction
   ): Promise<{ ok: boolean; content?: string; paywall?: boolean }> => {
     if (!entityId || !entityType) return { ok: false };
-    const token = await getToken();
-    const params = new URLSearchParams({
-      entityType,
-      entityId,
-      contentType: PREBUILT_TYPE[action],
-    });
-    const res = await fetch(`/api/medmind/prebuilt?${params.toString()}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return { ok: true, content: data.content };
+    try {
+      const token = await getToken();
+      const params = new URLSearchParams({
+        entityType,
+        entityId,
+        contentType: PREBUILT_TYPE[action],
+      });
+      const res = await fetch(`/api/medmind/prebuilt?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return { ok: true, content: data.content };
+      }
+      if (res.status === 403) return { ok: false, paywall: true };
+      return { ok: false };
+    } catch {
+      return { ok: false };
     }
-    if (res.status === 403) return { ok: false, paywall: true };
-    return { ok: false };
   };
 
   const streamChatRequest = useCallback(
@@ -367,13 +372,15 @@ export default function CompanionOverlay() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
-    if (isExamMode && !examConfirmed) {
-      setPendingAction("free");
-      return;
-    }
     const text = cardText
       ? `${input.trim()}\n\n(Контекст  - текущий вопрос: ${cardText})`
       : input.trim();
+    if (isExamMode && !examConfirmed) {
+      setPendingMessage(text);
+      setPendingAction("free");
+      setInput("");
+      return;
+    }
     streamChatRequest(text);
     setInput("");
   };
@@ -480,15 +487,24 @@ export default function CompanionOverlay() {
                     onClick={() => {
                       setExamConfirmed(true);
                       const a = pendingAction;
+                      const msg = pendingMessage;
                       setPendingAction(null);
-                      if (a) executeAction(a);
+                      setPendingMessage(null);
+                      if (a === "free" && msg) {
+                        streamChatRequest(msg);
+                      } else if (a) {
+                        executeAction(a);
+                      }
                     }}
                     className="flex-1 py-2 rounded-xl bg-primary text-white text-[10px] uppercase tracking-[0.15em] font-semibold btn-press"
                   >
                     Помогите сейчас
                   </button>
                   <button
-                    onClick={() => setPendingAction(null)}
+                    onClick={() => {
+                      setPendingAction(null);
+                      setPendingMessage(null);
+                    }}
                     className="flex-1 py-2 rounded-xl border border-border text-[10px] uppercase tracking-[0.15em] text-muted btn-press"
                   >
                     Подожду
