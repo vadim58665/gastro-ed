@@ -44,7 +44,23 @@ export default function CardFeed({ cards }: Props) {
   const [pendingAchievement, setPendingAchievement] =
     useState<AchievementDef | null>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const innerRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  // После ответа прокручиваем inner-контейнер карточки к низу, чтобы блок
+  // «Верно/Неверно + объяснение» (animate-result) оказался в кадре. Без
+  // этого на коротких экранах объяснение скрывалось за нижней границей
+  // viewport, и пользователь видел только саму кнопку ответа.
+  useEffect(() => {
+    if (!answeredCardId) return;
+    const inner = innerRefs.current.get(answeredCardId);
+    if (!inner) return;
+    // Ждём один frame, чтобы React успел отрисовать блок с ответом.
+    const raf = requestAnimationFrame(() => {
+      inner.scrollTo({ top: inner.scrollHeight, behavior: "smooth" });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [answeredCardId]);
 
   // После ответа snap временно выключен (data-snap-locked="true") — это
   // нужно, чтобы появление блока с объяснением не триггерило автоматический
@@ -152,6 +168,7 @@ export default function CardFeed({ cards }: Props) {
             className="feed-card px-3 py-3"
           >
             <div
+              ref={(el) => { if (el) innerRefs.current.set(card.id, el); }}
               className="w-full max-w-lg mx-auto h-full rounded-3xl card-protected surface-raised overflow-y-auto"
               onContextMenu={(e) => e.preventDefault()}
               onCopy={(e) => e.preventDefault()}
