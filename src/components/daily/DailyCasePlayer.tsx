@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import type { DailyCase, DailyCaseStep, StepResult } from "@/types/dailyCase";
 import { calculateStepPoints, STEP_TIME_LIMIT } from "@/types/dailyCase";
 import { saveSession, type StoredSession } from "@/lib/dailyCaseSession";
+import { useMedMind } from "@/contexts/MedMindContext";
 
 interface Props {
   dailyCase: DailyCase;
@@ -146,6 +147,33 @@ export default function DailyCasePlayer({
       stepResults,
     });
   }, [currentStep, stepResults, dateStr, dailyCase.id, totalSteps]);
+
+  // Передаём контекст текущего шага в MedMind, чтобы ассистент знал, что
+  // пользователь на странице «Диагноз дня» и на каком именно этапе.
+  const { setScreen } = useMedMind();
+  useEffect(() => {
+    setScreen({
+      kind: "daily_case_step",
+      caseId: dailyCase.id,
+      caseTitle: dailyCase.title,
+      stepIndex: currentStep,
+      totalSteps,
+      stepType: step.type,
+      stepTitle: step.title,
+      stepDescription: step.description,
+      options: step.options.map((o) => o.text),
+    });
+  }, [
+    setScreen,
+    dailyCase.id,
+    dailyCase.title,
+    currentStep,
+    totalSteps,
+    step.type,
+    step.title,
+    step.description,
+    step.options,
+  ]);
 
   const handleSelect = (optionIndex: number) => {
     if (lockedRef.current) return;

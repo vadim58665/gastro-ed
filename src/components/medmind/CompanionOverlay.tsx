@@ -116,13 +116,19 @@ export default function CompanionOverlay() {
       ? getCardText(screen.card)
       : screen.kind === "accred_question"
         ? screen.question.question
-        : "";
+        : screen.kind === "daily_case_step"
+          ? `${screen.stepTitle}. ${screen.stepDescription}\n\nВарианты ответа:\n${screen.options
+              .map((o, i) => `${i + 1}. ${o}`)
+              .join("\n")}`
+          : "";
   const cardTopic =
     screen.kind === "feed_card"
       ? screen.card.topic
       : screen.kind === "accred_question"
         ? screen.question.specialty
-        : undefined;
+        : screen.kind === "daily_case_step"
+          ? screen.caseTitle
+          : undefined;
 
   const entityId =
     screen.kind === "feed_card"
@@ -404,18 +410,30 @@ export default function CompanionOverlay() {
 
   // Action list depends on screen kind.
   const hasEntity = entityId !== null;
-  const actions: { key: QuickAction; label: string; prebuilt?: boolean }[] = hasEntity
+  const isDailyCase = screen.kind === "daily_case_step";
+  const actions: { key: QuickAction; label: string; prebuilt?: boolean }[] = isDailyCase
     ? [
-        { key: "hint_prebuilt", label: "Подсказка", prebuilt: true },
-        { key: "explain_short", label: "Объяснить кратко", prebuilt: true },
-        { key: "explain_long", label: "Объяснить подробно", prebuilt: true },
+        // Для «Диагноза дня» prebuilt-контент не генерируется —
+        // используем streaming chat, но с полным текстом шага и опциями в промпте.
+        { key: "hint", label: "Подсказка" },
+        { key: "explain", label: "Объяснить" },
         { key: "free", label: "Свой вопрос" },
         { key: "mnemonic", label: "Мнемоника" },
-        { key: "poem", label: "Стишок" },
         { key: "explain_friend", label: "Объясни как другу" },
         { key: "why_chain", label: "Почему?" },
       ]
-    : [{ key: "free", label: "Свой вопрос" }];
+    : hasEntity
+      ? [
+          { key: "hint_prebuilt", label: "Подсказка", prebuilt: true },
+          { key: "explain_short", label: "Объяснить кратко", prebuilt: true },
+          { key: "explain_long", label: "Объяснить подробно", prebuilt: true },
+          { key: "free", label: "Свой вопрос" },
+          { key: "mnemonic", label: "Мнемоника" },
+          { key: "poem", label: "Стишок" },
+          { key: "explain_friend", label: "Объясни как другу" },
+          { key: "why_chain", label: "Почему?" },
+        ]
+      : [{ key: "free", label: "Свой вопрос" }];
 
   return (
     <>
@@ -443,11 +461,13 @@ export default function CompanionOverlay() {
                 <p className="text-[10px] text-muted uppercase tracking-widest mt-0.5 truncate">
                   {isExamMode
                     ? "экзамен"
-                    : mode === "accreditation"
-                      ? "подготовка"
-                      : mode === "feed"
-                        ? "лента"
-                        : screenLabel}
+                    : isDailyCase
+                      ? `daily-case · шаг ${screen.stepIndex + 1}/${screen.totalSteps}`
+                      : mode === "accreditation"
+                        ? "подготовка"
+                        : mode === "feed"
+                          ? "лента"
+                          : screenLabel}
                   {isPro && usage && (
                     <>
                       {" · Чат "}
@@ -531,7 +551,7 @@ export default function CompanionOverlay() {
             {/* Quick actions / screen hint / paywall */}
             {!pendingAction && !response && !isStreaming && !showInput && (
               isPro ? (
-                !hasEntity ? (
+                !hasEntity && !isDailyCase ? (
                   <div className="px-4 py-4 space-y-3">
                     <p className="text-sm text-foreground">
                       Я вижу, вы на экране «{screenLabel}».

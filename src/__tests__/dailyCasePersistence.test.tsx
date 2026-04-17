@@ -3,9 +3,14 @@ import { render, fireEvent, act } from "@testing-library/react";
 import React from "react";
 
 import DailyCasePlayer from "@/components/daily/DailyCasePlayer";
+import { MedMindProvider } from "@/contexts/MedMindContext";
 import { loadSession, SESSION_KEY } from "@/lib/dailyCaseSession";
 import { STEP_TIME_LIMIT } from "@/types/dailyCase";
 import type { DailyCase } from "@/types/dailyCase";
+
+function renderWithProvider(ui: React.ReactElement) {
+  return render(<MedMindProvider>{ui}</MedMindProvider>);
+}
 
 const mockCase: DailyCase = {
   id: "test-case-001",
@@ -47,7 +52,7 @@ describe("DailyCasePlayer persistence", () => {
 
   it("saves session to localStorage on mount and on step advance", () => {
     const onComplete = vi.fn();
-    render(
+    renderWithProvider(
       <DailyCasePlayer
         dailyCase={mockCase}
         dateStr="2026-04-17"
@@ -88,7 +93,7 @@ describe("DailyCasePlayer persistence", () => {
     };
 
     const onComplete = vi.fn();
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <DailyCasePlayer
         dailyCase={mockCase}
         dateStr="2026-04-17"
@@ -117,7 +122,7 @@ describe("DailyCasePlayer persistence", () => {
 
   it("persists session each time a new answer is picked", () => {
     const onComplete = vi.fn();
-    const { container } = render(
+    const { container } = renderWithProvider(
       <DailyCasePlayer
         dailyCase={mockCase}
         dateStr="2026-04-17"

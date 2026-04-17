@@ -21,6 +21,17 @@ export type ScreenContext =
       isAnswered: boolean;
       selectedIndex?: number;
     }
+  | {
+      kind: "daily_case_step";
+      caseId: string;
+      caseTitle: string;
+      stepIndex: number;
+      totalSteps: number;
+      stepType: string;
+      stepTitle: string;
+      stepDescription: string;
+      options: string[];
+    }
   | { kind: "profile" }
   | { kind: "topics" }
   | { kind: "tests_list" }
@@ -112,6 +123,8 @@ export function deriveScreenLabel(screen: ScreenContext): string {
       return screen.mode === "exam"
         ? "экзамен"
         : "подготовка к аккредитации";
+    case "daily_case_step":
+      return `диагноз дня · шаг ${screen.stepIndex + 1}/${screen.totalSteps}`;
     case "profile":
       return "профиль";
     case "topics":

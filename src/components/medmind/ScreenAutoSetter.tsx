@@ -27,6 +27,8 @@ function screenForPath(pathname: string): ScreenContext | null {
   if (pathname.startsWith("/feed")) return null;
   if (pathname.startsWith("/tests/") && pathname !== "/tests") return null;
   if (pathname.startsWith("/modes/exam")) return null;
+  // DailyCasePlayer сам выставит daily_case_step при каждом шаге.
+  if (pathname.startsWith("/daily-case")) return null;
   if (pathname.startsWith("/profile") && !pathname.startsWith("/profile/setup")) {
     // /profile owns its screen, but /profile/setup is pre-auth.
     return null;
