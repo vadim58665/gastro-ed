@@ -151,7 +151,7 @@ export default function FeedProfile() {
         <ExamReadiness />
 
         {/* Saved Content Library */}
-        {isPro && (
+        {user && (
           <>
             <div className="w-full divider-soft my-8" />
             <SavedContentLibrary />

@@ -20,7 +20,6 @@ import {
   getBlockCount,
 } from "@/data/accreditation";
 import { buildAccreditationSnapshot } from "@/lib/accreditationSnapshot";
-import { saveMnemonic } from "./AnkiExport";
 import MarkdownResponse from "./MarkdownResponse";
 import { getSupabase } from "@/lib/supabase/client";
 
@@ -311,17 +310,26 @@ export default function CompanionOverlay() {
           ["mnemonic", "poem", "explain", "explain_long"].includes(action) &&
           fullResponse
         ) {
-          saveMnemonic({
-            topic: cardTopic || "Общее",
-            question: cardText.slice(0, 200),
-            content: fullResponse,
-            type:
-              action === "poem"
-                ? "poem"
-                : action === "mnemonic"
-                  ? "mnemonic"
-                  : "explanation",
-            createdAt: new Date().toISOString(),
+          const contentType =
+            action === "poem"
+              ? "poem"
+              : action === "mnemonic"
+                ? "mnemonic"
+                : "explanation";
+          fetch("/api/medmind/content", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              contentType,
+              topic: cardTopic || "Общее",
+              questionContext: cardText.slice(0, 200),
+              contentRu: fullResponse,
+            }),
+          }).catch(() => {
+            /* silent: saving is best-effort */
           });
         }
       } catch (err) {

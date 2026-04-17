@@ -1,38 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useSavedContent, type SavedContentItem } from "@/hooks/useSavedContent";
+import { migrateLegacyMnemonics } from "@/lib/migrateLegacyMnemonics";
 
-const STORAGE_KEY = "sd-ai-mnemonics";
+const EXPORTABLE_TYPES = ["mnemonic", "poem", "explanation"] as const;
+type ExportableType = (typeof EXPORTABLE_TYPES)[number];
 
-interface SavedMnemonic {
-  topic: string;
-  question: string;
-  content: string;
-  type: "mnemonic" | "poem" | "explanation";
-  createdAt: string;
+function isExportable(item: SavedContentItem): item is SavedContentItem & { content_type: ExportableType } {
+  return (EXPORTABLE_TYPES as readonly string[]).includes(item.content_type);
 }
 
-export function saveMnemonic(mnemonic: SavedMnemonic) {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]") as SavedMnemonic[];
-    saved.push(mnemonic);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-  } catch {}
-}
-
-export function getSavedMnemonics(): SavedMnemonic[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function exportToAnki(mnemonics: SavedMnemonic[]) {
-  // Anki tab-separated format: front\tback\ttags
-  const lines = mnemonics.map((m) => {
-    const front = m.question || m.topic;
-    const back = m.content.replace(/\t/g, " ").replace(/\n/g, "<br>");
+function exportToAnki(items: SavedContentItem[]) {
+  const lines = items.map((m) => {
+    const front = (m.question_context || m.topic).replace(/\t/g, " ").replace(/\n/g, " ");
+    const back = m.content_ru.replace(/\t/g, " ").replace(/\n/g, "<br>");
     const tag = `УмныйВрач::${m.topic.replace(/\s+/g, "_")}`;
     return `${front}\t${back}\t${tag}`;
   });
@@ -50,13 +32,22 @@ function exportToAnki(mnemonics: SavedMnemonic[]) {
 }
 
 export default function AnkiExport() {
-  const [mnemonics, setMnemonics] = useState<SavedMnemonic[]>([]);
+  const { items, saveContent, refresh } = useSavedContent();
 
   useEffect(() => {
-    setMnemonics(getSavedMnemonics());
-  }, []);
+    let cancelled = false;
+    (async () => {
+      const migrated = await migrateLegacyMnemonicsReturning(saveContent);
+      if (migrated && !cancelled) refresh();
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [saveContent, refresh]);
 
-  if (mnemonics.length === 0) {
+  const exportable = items.filter(isExportable);
+
+  if (exportable.length === 0) {
     return (
       <div className="text-center py-4">
         <p className="text-xs text-muted">
@@ -67,28 +58,29 @@ export default function AnkiExport() {
   }
 
   const byType = {
-    mnemonic: mnemonics.filter((m) => m.type === "mnemonic").length,
-    poem: mnemonics.filter((m) => m.type === "poem").length,
-    explanation: mnemonics.filter((m) => m.type === "explanation").length,
+    mnemonic: exportable.filter((m) => m.content_type === "mnemonic").length,
+    poem: exportable.filter((m) => m.content_type === "poem").length,
+    explanation: exportable.filter((m) => m.content_type === "explanation").length,
   };
+
+  const parts: string[] = [];
+  if (byType.mnemonic > 0) parts.push(`${byType.mnemonic} мнемоник`);
+  if (byType.poem > 0) parts.push(`${byType.poem} стишков`);
+  if (byType.explanation > 0) parts.push(`${byType.explanation} объяснений`);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="text-xs text-foreground font-medium">
-            {mnemonics.length} карточек для Anki
+            {exportable.length} карточек для Anki
           </p>
-          <p className="text-[10px] text-muted mt-0.5">
-            {byType.mnemonic > 0 && `${byType.mnemonic} мнемоник`}
-            {byType.poem > 0 && ` / ${byType.poem} стишков`}
-            {byType.explanation > 0 && ` / ${byType.explanation} объяснений`}
-          </p>
+          <p className="text-[10px] text-muted mt-0.5">{parts.join(" / ")}</p>
         </div>
       </div>
 
       <button
-        onClick={() => exportToAnki(mnemonics)}
+        onClick={() => exportToAnki(exportable)}
         className="w-full py-2.5 rounded-xl border border-border text-xs font-medium text-foreground hover:border-primary/30 hover:text-primary transition-colors"
       >
         Экспорт в Anki (.txt)
@@ -99,4 +91,13 @@ export default function AnkiExport() {
       </p>
     </div>
   );
+}
+
+async function migrateLegacyMnemonicsReturning(
+  saveContent: Parameters<typeof migrateLegacyMnemonics>[0]
+): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  const hadLegacy = !!localStorage.getItem("sd-ai-mnemonics");
+  await migrateLegacyMnemonics(saveContent);
+  return hadLegacy;
 }
