@@ -40,9 +40,33 @@ export default function CardFeed({ cards }: Props) {
   const [showCelebration, setShowCelebration] = useState(false);
   const [answeredCardId, setAnsweredCardId] = useState<string | null>(null);
   const [wrongCardId, setWrongCardId] = useState<string | null>(null);
+  const [snapLocked, setSnapLocked] = useState(false);
   const [pendingAchievement, setPendingAchievement] =
     useState<AchievementDef | null>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  // После ответа snap временно выключен (data-snap-locked="true") — это
+  // нужно, чтобы появление блока с объяснением не триггерило автоматический
+  // переход к следующей карточке. Первое осмысленное взаимодействие
+  // (touch, pointer, колесо, клавиатура) возвращает snap — дальше TikTok
+  // свайпом работает как обычно.
+  useEffect(() => {
+    if (!snapLocked) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const unlock = () => setSnapLocked(false);
+    el.addEventListener("touchstart", unlock, { once: true, passive: true });
+    el.addEventListener("pointerdown", unlock, { once: true });
+    el.addEventListener("wheel", unlock, { once: true, passive: true });
+    window.addEventListener("keydown", unlock, { once: true });
+    return () => {
+      el.removeEventListener("touchstart", unlock);
+      el.removeEventListener("pointerdown", unlock);
+      el.removeEventListener("wheel", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, [snapLocked]);
 
   // Отслеживаем видимую карточку через IntersectionObserver
   useEffect(() => {
@@ -76,6 +100,7 @@ export default function CardFeed({ cards }: Props) {
       recordFatigue(isCorrect);
       setAnsweredCardId(card.id);
       setWrongCardId(isCorrect ? null : card.id);
+      setSnapLocked(true);
       const event = recordAnswerWithGamification(
         isCorrect,
         card.id,
@@ -95,7 +120,11 @@ export default function CardFeed({ cards }: Props) {
   );
 
   return (
-    <div className="feed-scroll h-full">
+    <div
+      ref={scrollRef}
+      className="feed-scroll h-full"
+      data-snap-locked={snapLocked}
+    >
       {fatigue.isFatigued && (
         <FatigueBanner message={fatigue.message} onDismiss={dismissFatigue} />
       )}
