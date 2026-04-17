@@ -116,7 +116,7 @@ export default function CardFeed({ cards }: Props) {
             className="feed-card px-3 py-3"
           >
             <div
-              className="w-full max-w-lg mx-auto h-full rounded-3xl card-protected surface-raised overflow-y-auto overscroll-contain"
+              className="w-full max-w-lg mx-auto flex-1 flex flex-col rounded-3xl card-protected surface-raised"
               onContextMenu={(e) => e.preventDefault()}
               onCopy={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
