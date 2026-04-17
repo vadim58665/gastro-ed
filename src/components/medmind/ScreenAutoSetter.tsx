@@ -44,24 +44,25 @@ function screenForPath(pathname: string): ScreenContext | null {
   return { kind: "other", label: humanRussianLabel(pathname) };
 }
 
-// Человеческие русские названия разделов. Показываются ассистентом
-// во вводной строке «Я вижу, вы на экране …», поэтому нужен именительный
-// падеж и с заглавной — без английских URL-слагов.
+// Человеческие русские названия разделов. Подставляются в шаблон
+// «Я вижу, вы в разделе «{label}»» — поэтому без кавычек, именительный
+// падеж, с заглавной буквы.
 function humanRussianLabel(pathname: string): string {
-  if (pathname === "/") return "главная";
+  if (pathname === "/") return "Главная";
   const route = pathname.split("/").filter(Boolean)[0] ?? "";
   const map: Record<string, string> = {
-    mistakes: "раздел «Работа над ошибками»",
-    review: "интервальное повторение",
-    cases: "клинические случаи",
-    consilium: "консилиум",
-    achievements: "достижения",
-    "morning-blitz": "утренний блиц",
-    stations: "станции",
-    companion: "персонаж-помощник",
-    subscription: "подписка",
-    welcome: "начальный экран",
-    auth: "вход",
+    mistakes: "Работа над ошибками",
+    review: "Интервальное повторение",
+    cases: "Клинические случаи",
+    consilium: "Консилиум",
+    achievements: "Достижения",
+    "morning-blitz": "Утренний блиц",
+    stations: "Станции",
+    companion: "Персонаж-помощник",
+    subscription: "Подписка",
+    welcome: "Главная",
+    auth: "Вход",
+    "daily-case": "Диагноз дня",
   };
-  return map[route] ?? "главная";
+  return map[route] ?? "Главная";
 }
