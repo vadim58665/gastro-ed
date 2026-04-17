@@ -106,7 +106,13 @@ export default function CompanionOverlay() {
 
   // Reset exam confirmation when leaving exam.
   useEffect(() => {
-    if (!(screen.kind === "accred_question" && screen.mode === "exam")) {
+    // Сбрасываем «Помогите сейчас» при уходе из любого строгого режима
+    // (exam / test / daily-case) — в обычной ленте предупреждение не нужно.
+    const strict =
+      (screen.kind === "accred_question" &&
+        (screen.mode === "exam" || screen.mode === "test")) ||
+      screen.kind === "daily_case_step";
+    if (!strict) {
       setExamConfirmed(false);
     }
   }, [screen]);
@@ -145,6 +151,12 @@ export default function CompanionOverlay() {
 
   const isExamMode =
     screen.kind === "accred_question" && screen.mode === "exam";
+  const isTestMode =
+    screen.kind === "accred_question" && screen.mode === "test";
+  // Режимы, где пользователю лучше сначала пройти тест самостоятельно,
+  // а потом уже разбирать ответы. Один раз за сессию показываем предупреждение,
+  // но не блокируем: «Помогите сейчас» — и помощь идёт сразу.
+  const isStrictMode = isExamMode || isTestMode || screen.kind === "daily_case_step";
 
   const getToken = async (): Promise<string> => {
     const { data: { session } } = await getSupabase().auth.getSession();
@@ -367,8 +379,9 @@ export default function CompanionOverlay() {
   };
 
   const handleAction = (action: QuickAction) => {
-    // Exam mode: warn once per session before doing anything.
-    if (isExamMode && !examConfirmed) {
+    // Strict mode (exam / блиц-тест / диагноз дня): один раз за сессию
+    // показываем вежливое предупреждение «лучше сначала пройдите сами».
+    if (isStrictMode && !examConfirmed) {
       setPendingAction(action);
       return;
     }
@@ -381,7 +394,7 @@ export default function CompanionOverlay() {
     const text = cardText
       ? `${input.trim()}\n\n(Контекст  - текущий вопрос: ${cardText})`
       : input.trim();
-    if (isExamMode && !examConfirmed) {
+    if (isStrictMode && !examConfirmed) {
       setPendingMessage(text);
       setPendingAction("free");
       setInput("");
@@ -493,14 +506,18 @@ export default function CompanionOverlay() {
               </button>
             </div>
 
-            {/* Exam warning modal */}
-            {pendingAction && isExamMode && !examConfirmed && (
+            {/* Strict-mode warning modal (exam / блиц-тест / диагноз дня) */}
+            {pendingAction && isStrictMode && !examConfirmed && (
               <div className="px-4 py-4 space-y-3">
                 <p className="text-sm text-foreground leading-relaxed">
-                  Сейчас идёт экзамен.
+                  {isExamMode
+                    ? "Сейчас идёт экзамен."
+                    : isTestMode
+                      ? "Сейчас идёт блиц-тест."
+                      : "Сейчас «Диагноз дня»."}
                 </p>
                 <p className="text-xs text-muted leading-relaxed">
-                  Эффективнее разобрать все вопросы подробно после завершения. Если хотите прямо сейчас — я готов помочь.
+                  Это проверка ваших знаний — эффективнее пройти самостоятельно, а потом разобрать все вопросы подробно. Если хотите прямо сейчас — я помогу.
                 </p>
                 <div className="flex gap-2">
                   <button
