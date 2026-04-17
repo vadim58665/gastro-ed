@@ -15,6 +15,7 @@
 import * as dotenv from "dotenv";
 import * as path from "path";
 import Anthropic from "@anthropic-ai/sdk";
+import type { Message } from "@anthropic-ai/sdk/resources/messages";
 import { createClient } from "@supabase/supabase-js";
 
 dotenv.config({ path: path.resolve(__dirname, "../.env.local"), override: true });
@@ -237,15 +238,15 @@ async function generateOne(
   const model = modelFor(contentType);
   const maxAttempts = 4;
   let lastErr: unknown;
-  let response: Awaited<ReturnType<typeof client.messages.create>> | undefined;
+  let response: Message | undefined;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      response = await client.messages.create({
+      response = (await client.messages.create({
         model,
         max_tokens: maxTokensFor(contentType),
         system: SYSTEM_PROMPTS[contentType],
         messages: [{ role: "user", content: entity.prompt }],
-      });
+      })) as Message;
       break;
     } catch (err: unknown) {
       lastErr = err;
@@ -265,8 +266,8 @@ async function generateOne(
   if (!response) throw lastErr as Error;
 
   const text = response.content
-    .filter((b) => b.type === "text")
-    .map((b) => (b as { text: string }).text)
+    .filter((b: { type: string }) => b.type === "text")
+    .map((b: { type: string }) => (b as unknown as { text: string }).text)
     .join("")
     .trim();
 
