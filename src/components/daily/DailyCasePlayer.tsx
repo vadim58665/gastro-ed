@@ -42,15 +42,26 @@ function shuffleIndices(length: number, seed: string): number[] {
   return indices;
 }
 
+function makeTimeoutResult(): StepResult {
+  return {
+    isCorrect: false,
+    selectedIndex: -1,
+    timeMs: STEP_TIME_LIMIT,
+    points: 0,
+    timedOut: true,
+  };
+}
+
 export default function DailyCasePlayer({
   dailyCase,
   dateStr,
   initialSession,
   onComplete,
 }: Props) {
-  // Восстановление состояния из localStorage: если пользователь покинул
-  // вкладку и вернулся — шаг и результаты те же, таймер — абсолютный
-  // (отсчитывается от `stepStartTime`, а не сбрасывается на STEP_TIME_LIMIT).
+  // Таймер абсолютный: отсчитывается от `stepStartTime.current`. Уход
+  // на другую вкладку не замораживает время — при возврате catch-up
+  // засчитывает пропущенные шаги как timeout, а если прошло больше
+  // суммарного времени теста, тест автоматически завершается.
   const [currentStep, setCurrentStep] = useState<number>(
     initialSession?.currentStep ?? 0
   );
@@ -60,20 +71,17 @@ export default function DailyCasePlayer({
   const [timeLeft, setTimeLeft] = useState(() => {
     if (!initialSession) return STEP_TIME_LIMIT;
     const elapsed = Date.now() - initialSession.stepStartTime;
-    return Math.max(0, STEP_TIME_LIMIT - elapsed);
+    return Math.max(0, STEP_TIME_LIMIT - (elapsed % STEP_TIME_LIMIT));
   });
   const stepStartTime = useRef<number>(
     initialSession?.stepStartTime ?? Date.now()
   );
   const lockedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  // Первый mount-run эффекта — не трогаем stepStartTime (используем
-  // восстановленный либо выставленный при init). Все последующие
-  // запуски (смена currentStep) — ресет таймера на новый шаг.
-  const mountedRef = useRef(false);
 
-  const step = dailyCase.steps[currentStep];
   const totalSteps = dailyCase.steps.length;
+  const stepIndex = Math.min(currentStep, totalSteps - 1);
+  const step = dailyCase.steps[stepIndex];
   const isLastStep = currentStep === totalSteps - 1;
 
   const shuffledIndices = useMemo(
@@ -87,6 +95,7 @@ export default function DailyCasePlayer({
       if (isLastStep) {
         onComplete(newResults);
       } else {
+        stepStartTime.current = Date.now();
         setStepResults(newResults);
         setCurrentStep((s) => s + 1);
       }
@@ -94,47 +103,72 @@ export default function DailyCasePlayer({
     [stepResults, isLastStep, onComplete]
   );
 
-  // Timer
-  useEffect(() => {
-    if (mountedRef.current) {
-      // Новый шаг после advance — ресет таймера.
-      stepStartTime.current = Date.now();
-      setTimeLeft(STEP_TIME_LIMIT);
-    } else {
-      mountedRef.current = true;
-      // Первый запуск: stepStartTime уже выставлен (initialSession либо Date.now()).
+  // Catch-up: пока пользователь был на другой вкладке, setInterval мог
+  // не тикать — вручную досчитываем пропущенные шаги как timeout.
+  // Если все оставшиеся шаги пропущены, завершаем тест.
+  const catchUp = useCallback(() => {
+    if (lockedRef.current) return;
+    const elapsed = Date.now() - stepStartTime.current;
+    if (elapsed < STEP_TIME_LIMIT) return;
+
+    const remainingSteps = totalSteps - currentStep;
+    if (remainingSteps <= 0) return;
+
+    const missed = Math.min(
+      Math.floor(elapsed / STEP_TIME_LIMIT),
+      remainingSteps
+    );
+    if (missed <= 0) return;
+
+    lockedRef.current = true;
+    const timeoutResults = Array.from({ length: missed }, makeTimeoutResult);
+    const newResults = [...stepResults, ...timeoutResults];
+
+    if (currentStep + missed >= totalSteps) {
+      onComplete(newResults);
+      return;
     }
+
+    // Сдвигаем старт следующего шага ровно на missed × LIMIT вперёд,
+    // чтобы дробная часть реально прошедшего времени корректно отразилась
+    // в таймере оставшегося шага.
+    stepStartTime.current += missed * STEP_TIME_LIMIT;
+    setStepResults(newResults);
+    setCurrentStep((s) => s + missed);
+  }, [stepResults, currentStep, totalSteps, onComplete]);
+
+  // Таймер текущего шага.
+  useEffect(() => {
     lockedRef.current = false;
 
-    timerRef.current = setInterval(() => {
+    const tick = () => {
       const elapsed = Date.now() - stepStartTime.current;
       const remaining = Math.max(0, STEP_TIME_LIMIT - elapsed);
       setTimeLeft(remaining);
+      if (remaining <= 0) catchUp();
+    };
 
-      if (remaining <= 0) {
-        if (timerRef.current) clearInterval(timerRef.current);
-        if (!lockedRef.current) {
-          lockedRef.current = true;
-          // Timeout  - 0 points, wrong
-          const timeoutResult: StepResult = {
-            isCorrect: false,
-            selectedIndex: -1,
-            timeMs: STEP_TIME_LIMIT,
-            points: 0,
-            timedOut: true,
-          };
-          // Small delay so UI shows 0:00
-          setTimeout(() => {
-            advanceStep(timeoutResult);
-          }, 300);
-        }
-      }
-    }, 50);
+    tick();
+    timerRef.current = setInterval(tick, 50);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [currentStep, advanceStep]);
+  }, [currentStep, catchUp]);
+
+  // Browser throttlит setInterval в скрытых вкладках — при возврате
+  // форсируем catch-up, чтобы пропущенное время сразу засчиталось.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") catchUp();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [catchUp]);
 
   // Persist session on each step / result change.
   useEffect(() => {
