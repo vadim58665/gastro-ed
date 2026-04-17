@@ -22,13 +22,24 @@ interface Props {
   cards: Card[];
 }
 
-function shuffleArray<T>(arr: T[]): T[] {
-  const shuffled = [...arr];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+// FNV-1a 32-bit → нормализованный [0, 1) float, детерминированный по seed.
+function hashToFloat(seed: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
   }
-  return shuffled;
+  return ((h >>> 0) % 1_000_000) / 1_000_000;
+}
+
+// Стабильный shuffle по id + session seed. Пока компонент смонтирован,
+// даже если `cards` prop пересоздаётся (progress обновился после ответа),
+// порядок карточек остаётся тем же — пользователь не теряет место в ленте.
+function stableShuffle<T extends { id: string }>(arr: T[], seed: string): T[] {
+  return arr
+    .map((c) => ({ c, s: hashToFloat(c.id + seed) }))
+    .sort((a, b) => a.s - b.s)
+    .map((x) => x.c);
 }
 
 export default function CardFeed({ cards }: Props) {
@@ -36,7 +47,13 @@ export default function CardFeed({ cards }: Props) {
   const { setCurrentCard } = useMedMind();
   const { onCorrectAnswer, onWrongAnswer } = useMedMindCompanion();
   const { fatigue, recordAnswer: recordFatigue, dismiss: dismissFatigue } = useFatigueDetection();
-  const shuffled = useMemo(() => shuffleArray(cards), [cards]);
+  // Session seed фиксируется на время mount — shuffle стабилен, пока
+  // пользователь остаётся в ленте.
+  const sessionSeedRef = useRef<string>(Math.random().toString(36).slice(2));
+  const shuffled = useMemo(
+    () => stableShuffle(cards, sessionSeedRef.current),
+    [cards]
+  );
   const [showCelebration, setShowCelebration] = useState(false);
   const [answeredCardId, setAnsweredCardId] = useState<string | null>(null);
   const [wrongCardId, setWrongCardId] = useState<string | null>(null);
@@ -50,16 +67,37 @@ export default function CardFeed({ cards }: Props) {
   // После ответа прокручиваем inner-контейнер карточки к низу, чтобы блок
   // «Верно/Неверно + объяснение» (animate-result) оказался в кадре. Без
   // этого на коротких экранах объяснение скрывалось за нижней границей
-  // viewport, и пользователь видел только саму кнопку ответа.
+  // viewport. AutoExplain подгружается асинхронно и увеличивает высоту
+  // позже — ResizeObserver держит scroll у низа, пока карточка активна.
   useEffect(() => {
     if (!answeredCardId) return;
     const inner = innerRefs.current.get(answeredCardId);
     if (!inner) return;
-    // Ждём один frame, чтобы React успел отрисовать блок с ответом.
-    const raf = requestAnimationFrame(() => {
-      inner.scrollTo({ top: inner.scrollHeight, behavior: "smooth" });
-    });
-    return () => cancelAnimationFrame(raf);
+
+    let rafId: number | null = null;
+    const scrollToBottom = (smooth: boolean) => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        inner.scrollTo({
+          top: inner.scrollHeight,
+          behavior: smooth ? "smooth" : "auto",
+        });
+        rafId = null;
+      });
+    };
+
+    scrollToBottom(true);
+
+    const observer = new ResizeObserver(() => scrollToBottom(false));
+    observer.observe(inner);
+    // Также следим за ростом прямого ребёнка (где animate-result).
+    const child = inner.firstElementChild;
+    if (child) observer.observe(child as Element);
+
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
   }, [answeredCardId]);
 
   // После ответа snap временно выключен (data-snap-locked="true") — это
@@ -164,11 +202,17 @@ export default function CardFeed({ cards }: Props) {
             key={card.id}
             data-card-id={card.id}
             data-answered={answeredCardId === card.id}
-            ref={(el) => { if (el) cardRefs.current.set(card.id, el); }}
+            ref={(el) => {
+              if (el) cardRefs.current.set(card.id, el);
+              else cardRefs.current.delete(card.id);
+            }}
             className="feed-card px-3 py-3"
           >
             <div
-              ref={(el) => { if (el) innerRefs.current.set(card.id, el); }}
+              ref={(el) => {
+                if (el) innerRefs.current.set(card.id, el);
+                else innerRefs.current.delete(card.id);
+              }}
               className="w-full max-w-lg mx-auto h-full rounded-3xl card-protected surface-raised overflow-y-auto"
               onContextMenu={(e) => e.preventDefault()}
               onCopy={(e) => e.preventDefault()}
