@@ -18,6 +18,29 @@ export default function DailyCasePage() {
   const { progress, saveProgress } = useProgress();
   const [dateStr] = useState(getTodayDateStr);
   const dailyCase = getDailyCase(dateStr);
+
+  // Одноразовый сброс по URL: /daily-case?reset=1 — удаляем локальный
+  // результат дня и незавершённую сессию, чтобы пройти заново.
+  // Сделано через window.location, чтобы не тянуть Suspense-требующий
+  // useSearchParams в Next 16.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("reset") !== "1") return;
+    clearSession();
+    const next = { ...progress };
+    if (next.dailyCaseHistory[dateStr]) {
+      const { [dateStr]: _drop, ...rest } = next.dailyCaseHistory;
+      next.dailyCaseHistory = rest;
+      saveProgress(next);
+    }
+    // Убираем ?reset из URL и полностью перезагружаем страницу,
+    // чтобы lazy-init хуков перечитал localStorage.
+    window.history.replaceState(null, "", "/daily-case");
+    window.location.reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const existing = progress.dailyCaseHistory[dateStr];
   // Lazy init: если кейс уже завершён сегодня — подхватим result,
   // иначе — восстановим незавершённую сессию из localStorage
