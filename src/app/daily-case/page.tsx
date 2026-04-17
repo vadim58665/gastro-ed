@@ -12,6 +12,7 @@ import {
   loadSession,
   type StoredSession,
 } from "@/lib/dailyCaseSession";
+import { useMedMind } from "@/contexts/MedMindContext";
 import type { StepResult } from "@/types/dailyCase";
 
 export default function DailyCasePage() {
@@ -64,6 +65,16 @@ export default function DailyCasePage() {
       setStarted(true);
     }
   }, [existing]);
+
+  // Пока плеер не смонтирован (лендинг «Начать» или экран итогов),
+  // ассистент должен видеть раздел. DailyCasePlayer перекроет этот
+  // screen на `daily_case_step` как только пользователь нажмёт «Начать».
+  const { setScreen } = useMedMind();
+  useEffect(() => {
+    if (!started || stepResults) {
+      setScreen({ kind: "other", label: "Диагноз дня" });
+    }
+  }, [started, stepResults, setScreen]);
 
   const handleComplete = useCallback(
     (results: StepResult[]) => {
