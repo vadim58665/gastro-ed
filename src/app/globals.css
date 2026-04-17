@@ -56,7 +56,7 @@ body {
 }
 
 .feed-scroll {
-  scroll-snap-type: y mandatory;
+  scroll-snap-type: y proximity;
   overflow-y: auto;
   scroll-behavior: smooth;
   overscroll-behavior: contain;
@@ -67,10 +67,6 @@ body {
 .feed-card {
   scroll-snap-align: start;
   height: 100%;
-}
-
-.feed-card[data-answered="true"] {
-  scroll-snap-align: none;
 }
 
 /* Elegant card shadow — layered depth with inner top highlight */
