@@ -3,9 +3,12 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import type { DailyCase, DailyCaseStep, StepResult } from "@/types/dailyCase";
 import { calculateStepPoints, STEP_TIME_LIMIT } from "@/types/dailyCase";
+import { saveSession, type StoredSession } from "@/lib/dailyCaseSession";
 
 interface Props {
   dailyCase: DailyCase;
+  dateStr: string;
+  initialSession?: StoredSession | null;
   onComplete: (stepResults: StepResult[]) => void;
 }
 
@@ -38,13 +41,35 @@ function shuffleIndices(length: number, seed: string): number[] {
   return indices;
 }
 
-export default function DailyCasePlayer({ dailyCase, onComplete }: Props) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [stepResults, setStepResults] = useState<StepResult[]>([]);
-  const [timeLeft, setTimeLeft] = useState(STEP_TIME_LIMIT);
-  const stepStartTime = useRef(Date.now());
+export default function DailyCasePlayer({
+  dailyCase,
+  dateStr,
+  initialSession,
+  onComplete,
+}: Props) {
+  // Восстановление состояния из localStorage: если пользователь покинул
+  // вкладку и вернулся — шаг и результаты те же, таймер — абсолютный
+  // (отсчитывается от `stepStartTime`, а не сбрасывается на STEP_TIME_LIMIT).
+  const [currentStep, setCurrentStep] = useState<number>(
+    initialSession?.currentStep ?? 0
+  );
+  const [stepResults, setStepResults] = useState<StepResult[]>(
+    initialSession?.stepResults ?? []
+  );
+  const [timeLeft, setTimeLeft] = useState(() => {
+    if (!initialSession) return STEP_TIME_LIMIT;
+    const elapsed = Date.now() - initialSession.stepStartTime;
+    return Math.max(0, STEP_TIME_LIMIT - elapsed);
+  });
+  const stepStartTime = useRef<number>(
+    initialSession?.stepStartTime ?? Date.now()
+  );
   const lockedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Первый mount-run эффекта — не трогаем stepStartTime (используем
+  // восстановленный либо выставленный при init). Все последующие
+  // запуски (смена currentStep) — ресет таймера на новый шаг.
+  const mountedRef = useRef(false);
 
   const step = dailyCase.steps[currentStep];
   const totalSteps = dailyCase.steps.length;
@@ -70,9 +95,15 @@ export default function DailyCasePlayer({ dailyCase, onComplete }: Props) {
 
   // Timer
   useEffect(() => {
-    stepStartTime.current = Date.now();
+    if (mountedRef.current) {
+      // Новый шаг после advance — ресет таймера.
+      stepStartTime.current = Date.now();
+      setTimeLeft(STEP_TIME_LIMIT);
+    } else {
+      mountedRef.current = true;
+      // Первый запуск: stepStartTime уже выставлен (initialSession либо Date.now()).
+    }
     lockedRef.current = false;
-    setTimeLeft(STEP_TIME_LIMIT);
 
     timerRef.current = setInterval(() => {
       const elapsed = Date.now() - stepStartTime.current;
@@ -103,6 +134,18 @@ export default function DailyCasePlayer({ dailyCase, onComplete }: Props) {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [currentStep, advanceStep]);
+
+  // Persist session on each step / result change.
+  useEffect(() => {
+    if (stepResults.length >= totalSteps) return; // финал — очистка в page.tsx
+    saveSession({
+      dateStr,
+      caseId: dailyCase.id,
+      currentStep,
+      stepStartTime: stepStartTime.current,
+      stepResults,
+    });
+  }, [currentStep, stepResults, dateStr, dailyCase.id, totalSteps]);
 
   const handleSelect = (optionIndex: number) => {
     if (lockedRef.current) return;

@@ -7,6 +7,11 @@ import DailyCaseResult from "@/components/daily/DailyCaseResult";
 import { getDailyCase, getTodayDateStr } from "@/data/dailyCases";
 import { useProgress } from "@/hooks/useProgress";
 import { getSupabase } from "@/lib/supabase/client";
+import {
+  clearSession,
+  loadSession,
+  type StoredSession,
+} from "@/lib/dailyCaseSession";
 import type { StepResult } from "@/types/dailyCase";
 
 export default function DailyCasePage() {
@@ -14,8 +19,21 @@ export default function DailyCasePage() {
   const [dateStr] = useState(getTodayDateStr);
   const dailyCase = getDailyCase(dateStr);
   const existing = progress.dailyCaseHistory[dateStr];
-  const [stepResults, setStepResults] = useState<StepResult[] | null>(null);
-  const [started, setStarted] = useState(false);
+  // Lazy init: если кейс уже завершён сегодня — подхватим result,
+  // иначе — восстановим незавершённую сессию из localStorage
+  // (таймер продолжится с того же `stepStartTime`, переходы между вкладками
+  // больше не сбрасывают состояние).
+  const [initialSession] = useState<StoredSession | null>(() => {
+    if (typeof window === "undefined") return null;
+    if (existing) return null;
+    return loadSession(dateStr, dailyCase.id);
+  });
+  const [stepResults, setStepResults] = useState<StepResult[] | null>(
+    existing ? existing.steps : null
+  );
+  const [started, setStarted] = useState<boolean>(
+    !!existing || !!initialSession
+  );
 
   useEffect(() => {
     if (existing) {
@@ -26,6 +44,8 @@ export default function DailyCasePage() {
 
   const handleComplete = useCallback(
     (results: StepResult[]) => {
+      // Сессия окончена — сбрасываем persistence, чтобы завтра не подхватывать.
+      clearSession();
       setStepResults(results);
       const totalPoints = results.reduce((s, r) => s + r.points, 0);
       const maxPoints = dailyCase.steps.length * 500;
@@ -144,6 +164,8 @@ export default function DailyCasePage() {
           ) : (
             <DailyCasePlayer
               dailyCase={dailyCase}
+              dateStr={dateStr}
+              initialSession={initialSession}
               onComplete={handleComplete}
             />
           )}
