@@ -15,6 +15,8 @@ import type { AchievementDef } from "@/types/gamification";
 import { useFatigueDetection } from "@/hooks/useFatigueDetection";
 import FatigueBanner from "@/components/ui/FatigueBanner";
 import PostAnswerActions, { type PostAction } from "@/components/medmind/PostAnswerActions";
+import HintButton from "./HintButton";
+import AutoExplain from "./AutoExplain";
 
 interface Props {
   cards: Card[];
@@ -37,6 +39,7 @@ export default function CardFeed({ cards }: Props) {
   const shuffled = useMemo(() => shuffleArray(cards), [cards]);
   const [showCelebration, setShowCelebration] = useState(false);
   const [answeredCardId, setAnsweredCardId] = useState<string | null>(null);
+  const [wrongCardId, setWrongCardId] = useState<string | null>(null);
   const [pendingAchievement, setPendingAchievement] =
     useState<AchievementDef | null>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -66,6 +69,7 @@ export default function CardFeed({ cards }: Props) {
       isCorrect ? onCorrectAnswer() : onWrongAnswer();
       recordFatigue(isCorrect);
       setAnsweredCardId(card.id);
+      setWrongCardId(isCorrect ? null : card.id);
       const event = recordAnswerWithGamification(
         isCorrect,
         card.id,
@@ -133,6 +137,20 @@ export default function CardFeed({ cards }: Props) {
                 <KeyFactBanner keyFact={card.keyFact} />
               )}
               <CardRenderer card={card} onAnswer={(isCorrect) => handleAnswer(card, isCorrect)} cardHistory={history} />
+              {answeredCardId !== card.id && (
+                <div className="px-6 pb-2">
+                  <HintButton entityId={card.id} entityType="card" />
+                </div>
+              )}
+              {wrongCardId === card.id && (
+                <div className="px-6 pb-2">
+                  <AutoExplain
+                    entityId={card.id}
+                    entityType="card"
+                    trigger={true}
+                  />
+                </div>
+              )}
               {answeredCardId === card.id && (
                 <div className="px-6 pb-4">
                   <PostAnswerActions

@@ -36,9 +36,11 @@ export async function getAppContentIndex(): Promise<AppContentIndex> {
   // Dynamic imports to avoid bundling large data files in all routes
   const { demoCards } = await import("@/data/cards");
   const { accreditationCategories } = await import("@/data/specialties");
-  const { getQuestionsForSpecialty, getBlockCount } = await import(
-    "@/data/accreditation"
-  );
+  const {
+    getQuestionsForSpecialty,
+    getBlockCount,
+    ACCREDITATION_SPECIALTY_IDS,
+  } = await import("@/data/accreditation");
 
   const topicsBySpecialty = new Map<string, string[]>();
   const cardsByTopic = new Map<
@@ -76,17 +78,9 @@ export async function getAppContentIndex(): Promise<AppContentIndex> {
     string,
     { blockCount: number; questionCount: number }
   >();
-  const accreditationSpecialtyIds = [
-    "gastroenterologiya",
-    "kardiologiya",
-    "nevrologiya",
-    "hirurgiya",
-    "lechebnoe-delo",
-    "pediatriya",
-  ];
   let totalAccreditationQuestions = 0;
 
-  for (const specId of accreditationSpecialtyIds) {
+  for (const specId of ACCREDITATION_SPECIALTY_IDS) {
     const questions = getQuestionsForSpecialty(specId);
     const blocks = getBlockCount(specId);
     if (questions.length > 0) {
@@ -114,9 +108,8 @@ export async function getAppContentIndex(): Promise<AppContentIndex> {
     id: name.toLowerCase().replace(/\s+/g, "-"),
     name,
     cardCount: specialtyCardCounts.get(name) ?? 0,
-    hasAccreditation: accreditationSpecialtyIds.some(
-      (id) =>
-        name.toLowerCase().includes(id.replace(/-/g, " ").replace("iya", ""))
+    hasAccreditation: ACCREDITATION_SPECIALTY_IDS.some((id: string) =>
+      name.toLowerCase().includes(id.replace(/-/g, " ").replace("iya", ""))
     ),
   }));
 
@@ -130,6 +123,106 @@ export async function getAppContentIndex(): Promise<AppContentIndex> {
   };
 
   return cachedIndex;
+}
+
+export interface AppMatch {
+  id: string;
+  type: "card" | "accreditation_question";
+  topic?: string;
+  specialty: string;
+  text: string;
+  score: number;
+}
+
+/**
+ * Lightweight keyword search over cards + accreditation questions. Used by the
+ * chat route to enrich RAG context with items the user actually sees in the UI.
+ * No embedding / vector DB — just token overlap scored by topic, specialty,
+ * and question body.
+ */
+export async function searchAppContent(
+  query: string,
+  opts: {
+    limit?: number;
+    preferType?: "card" | "accreditation_question";
+  } = {}
+): Promise<string> {
+  const limit = opts.limit ?? 3;
+  if (!query || query.trim().length < 2) return "";
+  // Защита от O(|q|×corpus) амплификации при мусорном/очень длинном сообщении.
+  const clamped = query.length > 2048 ? query.slice(0, 2048) : query;
+
+  const { demoCards } = await import("@/data/cards");
+  const accredMod = await import("@/data/accreditation");
+
+  const q = clamped.toLowerCase();
+  const tokens = q
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((t) => t.length >= 3);
+  if (tokens.length === 0) return "";
+
+  const matches: AppMatch[] = [];
+
+  for (const card of demoCards) {
+    const body = extractQuestion(card).toLowerCase();
+    const topic = (card.topic ?? "").toLowerCase();
+    const specialty = (card.specialty ?? "").toLowerCase();
+
+    let score = 0;
+    if (topic && q.includes(topic)) score += 3;
+    if (specialty && q.includes(specialty)) score += 2;
+    for (const t of tokens) {
+      if (body.includes(t)) score += 1;
+      if (topic.includes(t)) score += 0.5;
+    }
+    if (score > 0) {
+      matches.push({
+        id: card.id,
+        type: "card",
+        topic: card.topic,
+        specialty: card.specialty,
+        text: extractQuestion(card).slice(0, 240),
+        score: score + (opts.preferType === "card" ? 0.5 : 0),
+      });
+    }
+  }
+
+  for (const specId of accredMod.ACCREDITATION_SPECIALTY_IDS) {
+    const questions = accredMod.getQuestionsForSpecialty(specId);
+    for (const qst of questions) {
+      const body = qst.question.toLowerCase();
+      const specialty = qst.specialty.toLowerCase();
+      let score = 0;
+      if (specialty && q.includes(specialty)) score += 2;
+      for (const t of tokens) {
+        if (body.includes(t)) score += 1;
+      }
+      if (score > 0) {
+        matches.push({
+          id: qst.id,
+          type: "accreditation_question",
+          specialty: qst.specialty,
+          text: qst.question.slice(0, 240),
+          score:
+            score +
+            (opts.preferType === "accreditation_question" ? 0.5 : 0),
+        });
+      }
+    }
+  }
+
+  matches.sort((a, b) => b.score - a.score);
+  const top = matches.slice(0, limit);
+  if (top.length === 0) return "";
+
+  const lines = ["<app_matches>"];
+  for (const m of top) {
+    const label = m.type === "card" ? "Карточка" : "Вопрос аккредитации";
+    const topicPart = m.topic ? ` · ${m.topic}` : "";
+    lines.push(`${label} [${m.id}] ${m.specialty}${topicPart}: ${m.text}`);
+  }
+  lines.push("</app_matches>");
+  return lines.join("\n");
 }
 
 /**

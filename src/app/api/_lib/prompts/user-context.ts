@@ -5,8 +5,12 @@
 import type { SubscriptionTier } from "@/types/medmind";
 import type { DifficultyLevel } from "@/types/card";
 
+export type ProfileMode = "feed" | "accreditation";
+
 export interface UserLearningProfile {
   specialty: string;
+  /** Which channel this profile was built from: feed cards or accreditation questions */
+  mode?: ProfileMode;
   accreditationCategory?: string;
   weakTopics: { topic: string; errorRate: number; specialty: string }[];
   strongTopics: { topic: string; masteryScore: number }[];
@@ -21,6 +25,7 @@ export interface UserLearningProfile {
     blocksCompleted: number;
     blocksTotal: number;
     averageScore: number;
+    weakBlocks?: { blockNumber: number; errorRate: number }[];
   };
 }
 
@@ -35,6 +40,17 @@ const DIFFICULTY_LABELS: Record<number, string> = {
 export function serializeUserContext(profile: UserLearningProfile): string {
   const lines: string[] = ["<user_profile>"];
 
+  // Explicit channel header so the model doesn't mix up feed stats with accreditation stats.
+  if (profile.mode === "accreditation") {
+    lines.push(
+      "Пользователь сейчас в режиме ПОДГОТОВКИ К АККРЕДИТАЦИИ. Слабые/сильные темы ниже относятся к вопросам аккредитации, а не к карточкам ленты."
+    );
+  } else if (profile.mode === "feed") {
+    lines.push(
+      "Пользователь сейчас в режиме ЛЕНТЫ КАРТОЧЕК. Статистика ниже — только по карточкам ленты, не по аккредитационным тестам."
+    );
+  }
+
   lines.push(`Специальность: ${profile.specialty}`);
 
   if (profile.preferredDifficulty) {
@@ -42,7 +58,8 @@ export function serializeUserContext(profile: UserLearningProfile): string {
   }
 
   const pct = Math.round(profile.overallAccuracy * 100);
-  lines.push(`Точность: ${pct}% (${profile.totalAttempts} ответов)`);
+  const scope = profile.mode === "accreditation" ? "по вопросам аккредитации" : "по карточкам";
+  lines.push(`Точность ${scope}: ${pct}% (${profile.totalAttempts} ответов)`);
 
   if (profile.weakTopics.length > 0) {
     const weak = profile.weakTopics
@@ -77,6 +94,13 @@ export function serializeUserContext(profile: UserLearningProfile): string {
     lines.push(
       `Аккредитация: ${ap.blocksCompleted}/${ap.blocksTotal} блоков, средний балл ${Math.round(ap.averageScore)}%`
     );
+    if (ap.weakBlocks && ap.weakBlocks.length > 0) {
+      const wb = ap.weakBlocks
+        .slice(0, 3)
+        .map((b) => `блок ${b.blockNumber} (${Math.round(b.errorRate * 100)}% ошибок)`)
+        .join(", ");
+      lines.push(`Слабые блоки: ${wb}`);
+    }
   }
 
   lines.push("</user_profile>");

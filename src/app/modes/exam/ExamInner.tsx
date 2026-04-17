@@ -220,6 +220,7 @@ export default function ExamInner() {
               key={current.id}
               question={current}
               mode={mode}
+              specialtyId={specialtyId}
               onAnswer={handleAnswer}
               onNext={handleNext}
             />

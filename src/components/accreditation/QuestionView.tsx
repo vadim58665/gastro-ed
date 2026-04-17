@@ -2,10 +2,14 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { TestQuestion } from "@/types/accreditation";
+import HintButton from "@/components/feed/HintButton";
+import AutoExplain from "@/components/feed/AutoExplain";
+import { useMedMind } from "@/contexts/MedMindContext";
 
 interface Props {
   question: TestQuestion;
   mode: "learn" | "test" | "exam";
+  specialtyId?: string;
   onAnswer?: (isCorrect: boolean, selectedIndex: number) => void;
   onNext?: () => void;
   onPrevious?: () => void;
@@ -16,6 +20,7 @@ interface Props {
 export default function QuestionView({
   question,
   mode,
+  specialtyId,
   onAnswer,
   onNext,
   onPrevious,
@@ -26,6 +31,20 @@ export default function QuestionView({
   const [selected, setSelected] = useState<number | null>(hasExisting ? existingSelectedIndex! : null);
   const [showResult, setShowResult] = useState(mode === "learn" || hasExisting);
   const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { setScreen } = useMedMind();
+
+  // Publish current screen context to MedMind so the AI assistant knows
+  // which question is open, in which mode, and whether it's been answered.
+  useEffect(() => {
+    setScreen({
+      kind: "accred_question",
+      question,
+      specialtyId: specialtyId ?? question.specialty,
+      mode,
+      isAnswered: selected !== null,
+      selectedIndex: selected ?? undefined,
+    });
+  }, [question, mode, specialtyId, selected, setScreen]);
 
   const handleNext = () => {
     if (autoAdvanceRef.current) {
@@ -109,6 +128,10 @@ export default function QuestionView({
         })}
       </div>
 
+      {mode !== "exam" && selected === null && !hasExisting && (
+        <HintButton entityId={question.id} entityType="accreditation_question" />
+      )}
+
       {showResult && question.explanation && selected !== null && (
         <div className="mt-4 px-4 py-3 bg-surface rounded-xl animate-result">
           <p className="text-xs text-muted leading-relaxed">
@@ -116,6 +139,18 @@ export default function QuestionView({
           </p>
         </div>
       )}
+
+      {/* Auto-explain for subscribers after a WRONG answer (not in exam mode). */}
+      {mode !== "exam" &&
+        showResult &&
+        selected !== null &&
+        selected !== question.correctIndex && (
+          <AutoExplain
+            entityId={question.id}
+            entityType="accreditation_question"
+            trigger={true}
+          />
+        )}
 
       <div className="flex items-center gap-2 mt-5">
         <button

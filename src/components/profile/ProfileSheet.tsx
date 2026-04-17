@@ -43,6 +43,12 @@ const themes: Array<{
     description: "Глубокий серый",
     swatches: ["#17181c", "#3a3d46", "#8792a3"],
   },
+  {
+    id: "bordeaux",
+    name: "Бордо",
+    description: "Благородное вино",
+    swatches: ["#faf5f5", "#9b1b30", "#d4536a"],
+  },
 ];
 
 const languages: Array<{

@@ -121,6 +121,7 @@ export async function fetchUserLearningProfile(
 
   const result: UserLearningProfile = {
     specialty: profile.specialty ?? "Лечебное дело",
+    mode: "feed",
     accreditationCategory: profile.accreditation_category,
     weakTopics: (weakRes.data ?? []).map(
       (t: { topic: string; error_rate: number; specialty: string }) => ({
