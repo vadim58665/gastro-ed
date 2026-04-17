@@ -54,6 +54,43 @@ function getCardText(card: unknown): string {
   return "";
 }
 
+// Контекстно-осмысленная вводная для разных экранов без entity.
+// Ассистент «узнаёт» раздел по-русски и сразу предлагает формат работы.
+function screenIntroTitle(
+  screen: { kind: string },
+  screenLabel: string
+): string {
+  switch (screen.kind) {
+    case "tests_list":
+      return "Я вижу, вы в разделе подготовки к аккредитации.";
+    case "topics":
+      return "Я вижу, вы выбираете тему.";
+    case "profile":
+      return "Я вижу, вы в профиле.";
+    case "other":
+      return `Я вижу, вы в разделе «${screenLabel}».`;
+    default:
+      return `Я вижу, вы на экране «${screenLabel}».`;
+  }
+}
+
+function screenIntroBody(screen: { kind: string; label?: string }): string {
+  if (screen.kind === "tests_list") {
+    return "Можем пройти тест вместе — я буду подсказывать по ходу. Или пройдите сами, а после разберём ошибки: я дам подробный разбор по каждому пропущенному вопросу.";
+  }
+  if (screen.kind === "topics") {
+    return "Откройте тему — помогу с карточками и вопросами. Или просто спросите что-то прямо сейчас.";
+  }
+  if (
+    screen.kind === "other" &&
+    screen.label &&
+    screen.label.toLowerCase().includes("ошибк")
+  ) {
+    return "Можем разобрать каждую ошибку подробно — патогенез, почему правильный ответ именно такой, как запомнить. Нажмите на карточку из списка или задайте свой вопрос.";
+  }
+  return "Откройте карточку или аккредитационный вопрос — я помогу с конкретным содержанием. Или задайте свой вопрос сейчас.";
+}
+
 export default function CompanionOverlay() {
   const pathname = usePathname();
   const router = useRouter();
@@ -571,10 +608,10 @@ export default function CompanionOverlay() {
                 !hasEntity && !isDailyCase ? (
                   <div className="px-4 py-4 space-y-3">
                     <p className="text-sm text-foreground">
-                      Я вижу, вы на экране «{screenLabel}».
+                      {screenIntroTitle(screen, screenLabel)}
                     </p>
                     <p className="text-xs text-muted leading-relaxed">
-                      Откройте карточку или аккредитационный вопрос — я помогу с конкретным содержанием. Или задайте свой вопрос сейчас.
+                      {screenIntroBody(screen)}
                     </p>
                     <button
                       onClick={() => handleAction("free")}

@@ -41,5 +41,27 @@ function screenForPath(pathname: string): ScreenContext | null {
     return { kind: "tests_list" };
   }
 
-  return { kind: "other", label: pathname.replace(/^\//, "") || "главная" };
+  return { kind: "other", label: humanRussianLabel(pathname) };
+}
+
+// Человеческие русские названия разделов. Показываются ассистентом
+// во вводной строке «Я вижу, вы на экране …», поэтому нужен именительный
+// падеж и с заглавной — без английских URL-слагов.
+function humanRussianLabel(pathname: string): string {
+  if (pathname === "/") return "главная";
+  const route = pathname.split("/").filter(Boolean)[0] ?? "";
+  const map: Record<string, string> = {
+    mistakes: "раздел «Работа над ошибками»",
+    review: "интервальное повторение",
+    cases: "клинические случаи",
+    consilium: "консилиум",
+    achievements: "достижения",
+    "morning-blitz": "утренний блиц",
+    stations: "станции",
+    companion: "персонаж-помощник",
+    subscription: "подписка",
+    welcome: "начальный экран",
+    auth: "вход",
+  };
+  return map[route] ?? "главная";
 }
