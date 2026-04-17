@@ -16,12 +16,10 @@ dotenv.config({ path: path.resolve(__dirname, "../.env.local"), override: true }
 import { demoCards } from "../src/data/cards";
 import type { Card } from "../src/types/card";
 import type { TestQuestion } from "../src/types/accreditation";
-import { gastroenterologiyaQuestions } from "../src/data/accreditation/gastroenterologiya";
-import { kardiologiyaQuestions } from "../src/data/accreditation/kardiologiya";
-import { nevrologiyaQuestions } from "../src/data/accreditation/nevrologiya";
-import { hirurgiyaQuestions } from "../src/data/accreditation/hirurgiya";
-import { lechebnoeDeloQuestions } from "../src/data/accreditation/lechebnoe-delo";
-import { pediatriyaQuestions } from "../src/data/accreditation/pediatriya";
+import {
+  ACCREDITATION_SPECIALTY_IDS,
+  getQuestionsForSpecialty,
+} from "../src/data/accreditation";
 
 type ContentType = "hint" | "explain_short" | "explain_long";
 type EntityType = "card" | "accreditation_question";
@@ -92,15 +90,8 @@ function loadAllEntities(): Entity[] {
     });
   }
 
-  const accredMap: Record<string, TestQuestion[]> = {
-    gastroenterologiya: gastroenterologiyaQuestions,
-    kardiologiya: kardiologiyaQuestions,
-    nevrologiya: nevrologiyaQuestions,
-    hirurgiya: hirurgiyaQuestions,
-    "lechebnoe-delo": lechebnoeDeloQuestions,
-    pediatriya: pediatriyaQuestions,
-  };
-  for (const questions of Object.values(accredMap)) {
+  for (const specId of ACCREDITATION_SPECIALTY_IDS) {
+    const questions = getQuestionsForSpecialty(specId);
     for (const q of questions) {
       entities.push({
         entity_type: "accreditation_question",

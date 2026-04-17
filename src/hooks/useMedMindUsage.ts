@@ -42,9 +42,19 @@ export function useMedMindUsage(openKey: boolean) {
         setData(null);
         return;
       }
-      const res = await fetch("/api/medmind/usage", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const tz = (() => {
+        try {
+          return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        } catch {
+          return "UTC";
+        }
+      })();
+      const res = await fetch(
+        `/api/medmind/usage?tz=${encodeURIComponent(tz)}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (res.ok) {
         setData((await res.json()) as UsageData);
       } else {

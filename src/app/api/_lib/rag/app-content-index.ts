@@ -36,9 +36,11 @@ export async function getAppContentIndex(): Promise<AppContentIndex> {
   // Dynamic imports to avoid bundling large data files in all routes
   const { demoCards } = await import("@/data/cards");
   const { accreditationCategories } = await import("@/data/specialties");
-  const { getQuestionsForSpecialty, getBlockCount } = await import(
-    "@/data/accreditation"
-  );
+  const {
+    getQuestionsForSpecialty,
+    getBlockCount,
+    ACCREDITATION_SPECIALTY_IDS,
+  } = await import("@/data/accreditation");
 
   const topicsBySpecialty = new Map<string, string[]>();
   const cardsByTopic = new Map<
@@ -76,17 +78,9 @@ export async function getAppContentIndex(): Promise<AppContentIndex> {
     string,
     { blockCount: number; questionCount: number }
   >();
-  const accreditationSpecialtyIds = [
-    "gastroenterologiya",
-    "kardiologiya",
-    "nevrologiya",
-    "hirurgiya",
-    "lechebnoe-delo",
-    "pediatriya",
-  ];
   let totalAccreditationQuestions = 0;
 
-  for (const specId of accreditationSpecialtyIds) {
+  for (const specId of ACCREDITATION_SPECIALTY_IDS) {
     const questions = getQuestionsForSpecialty(specId);
     const blocks = getBlockCount(specId);
     if (questions.length > 0) {
@@ -114,9 +108,8 @@ export async function getAppContentIndex(): Promise<AppContentIndex> {
     id: name.toLowerCase().replace(/\s+/g, "-"),
     name,
     cardCount: specialtyCardCounts.get(name) ?? 0,
-    hasAccreditation: accreditationSpecialtyIds.some(
-      (id) =>
-        name.toLowerCase().includes(id.replace(/-/g, " ").replace("iya", ""))
+    hasAccreditation: ACCREDITATION_SPECIALTY_IDS.some((id: string) =>
+      name.toLowerCase().includes(id.replace(/-/g, " ").replace("iya", ""))
     ),
   }));
 
@@ -194,15 +187,7 @@ export async function searchAppContent(
     }
   }
 
-  const accreditationSpecialtyIds = [
-    "gastroenterologiya",
-    "kardiologiya",
-    "nevrologiya",
-    "hirurgiya",
-    "lechebnoe-delo",
-    "pediatriya",
-  ];
-  for (const specId of accreditationSpecialtyIds) {
+  for (const specId of accredMod.ACCREDITATION_SPECIALTY_IDS) {
     const questions = accredMod.getQuestionsForSpecialty(specId);
     for (const qst of questions) {
       const body = qst.question.toLowerCase();

@@ -15,6 +15,13 @@ const questionsBySpecialty: Record<string, TestQuestion[]> = {
   pediatriya: pediatriyaQuestions,
 };
 
+// Канонический источник специальностей аккредитации.
+// RAG, prebuild-пайплайн и export-пайплайн должны брать список отсюда,
+// иначе новая специальность молча выпадет из поиска/генерации контента.
+export const ACCREDITATION_SPECIALTY_IDS = Object.keys(
+  questionsBySpecialty
+);
+
 export function getQuestionsForSpecialty(specialtyId: string): TestQuestion[] {
   return questionsBySpecialty[specialtyId] || [];
 }

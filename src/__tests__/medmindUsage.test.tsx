@@ -46,7 +46,7 @@ describe("useMedMindUsage", () => {
       expect(result.current.data?.usage.chat.used).toBe(3);
     });
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/medmind/usage",
+      expect.stringMatching(/^\/api\/medmind\/usage\?tz=/),
       expect.objectContaining({ headers: { Authorization: "Bearer tok" } })
     );
   });
