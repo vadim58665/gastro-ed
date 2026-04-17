@@ -23,24 +23,36 @@ import { buildAccreditationSnapshot } from "@/lib/accreditationSnapshot";
 import MarkdownResponse from "./MarkdownResponse";
 import { getSupabase } from "@/lib/supabase/client";
 
-type PrebuiltAction = "hint_prebuilt" | "explain_short" | "explain_long";
-type ChatAction =
-  | "explain"
+type PrebuiltAction =
+  | "hint_prebuilt"
+  | "explain_short"
+  | "explain_long"
   | "mnemonic"
   | "poem"
-  | "hint"
-  | "free"
-  | "explain_friend"
-  | "why_chain"
+  | "explain"
   | "plan";
+type ChatAction = "hint" | "free" | "explain_friend" | "why_chain";
 type QuickAction = PrebuiltAction | ChatAction;
 
 const HIDDEN_PATHS = ["/welcome", "/auth", "/subscription"];
 
-const PREBUILT_TYPE: Record<PrebuiltAction, "hint" | "explain_short" | "explain_long"> = {
+type PrebuiltContentType =
+  | "hint"
+  | "explain_short"
+  | "explain_long"
+  | "mnemonic"
+  | "poem"
+  | "explanation"
+  | "learning_plan";
+
+const PREBUILT_TYPE: Record<PrebuiltAction, PrebuiltContentType> = {
   hint_prebuilt: "hint",
   explain_short: "explain_short",
   explain_long: "explain_long",
+  mnemonic: "mnemonic",
+  poem: "poem",
+  explain: "explanation",
+  plan: "learning_plan",
 };
 
 function getCardText(card: unknown): string {
@@ -307,7 +319,7 @@ export default function CompanionOverlay() {
 
         if (
           action &&
-          ["mnemonic", "poem", "explain", "explain_long"].includes(action) &&
+          ["mnemonic", "poem", "explain", "explain_long", "plan"].includes(action) &&
           fullResponse
         ) {
           const contentType =
@@ -315,7 +327,12 @@ export default function CompanionOverlay() {
               ? "poem"
               : action === "mnemonic"
                 ? "mnemonic"
-                : "explanation";
+                : action === "plan"
+                  ? "learning_plan"
+                  : "explanation";
+          // Сохраняем в личную коллекцию юзера + upsert в общий кэш
+          // prebuilt_content (если есть entityId/entityType) — следующий
+          // пользователь по той же карточке получит готовое без токенов.
           fetch("/api/medmind/content", {
             method: "POST",
             headers: {
@@ -327,6 +344,8 @@ export default function CompanionOverlay() {
               topic: cardTopic || "Общее",
               questionContext: cardText.slice(0, 200),
               contentRu: fullResponse,
+              entityType: entityType ?? undefined,
+              entityId: entityId ?? undefined,
             }),
           }).catch(() => {
             /* silent: saving is best-effort */
@@ -379,32 +398,19 @@ export default function CompanionOverlay() {
       return;
     }
 
-    // Prebuilt actions: look up DB first, fall back to chat if missing.
-    if (action === "hint_prebuilt") {
-      const prompt = cardText
+    // Prebuilt actions: сначала смотрим в общий кэш (prebuilt_content) —
+    // если кто-то уже генерировал это для той же карточки, отдаём без
+    // токенов. Если нет — streamChat + save обратно в кэш на будущее.
+    const prebuiltPrompts: Record<PrebuiltAction, string> = {
+      hint_prebuilt: cardText
         ? `Дай подсказку (не ответ!) к этому вопросу:\n\n${cardText}`
-        : "Дай подсказку к текущему вопросу";
-      runPrebuiltWithFallback("hint_prebuilt", prompt);
-      return;
-    }
-    if (action === "explain_short") {
-      const prompt = cardText
+        : "Дай подсказку к текущему вопросу",
+      explain_short: cardText
         ? `Объясни кратко этот вопрос (2–4 предложения):\n\n${cardText}`
-        : "Объясни кратко текущий вопрос";
-      runPrebuiltWithFallback("explain_short", prompt);
-      return;
-    }
-    if (action === "explain_long") {
-      const prompt = cardText
+        : "Объясни кратко текущий вопрос",
+      explain_long: cardText
         ? `Дай подробный разбор этого вопроса — патогенез, клиника, почему остальные варианты неверны:\n\n${cardText}`
-        : "Дай подробный разбор текущего вопроса";
-      runPrebuiltWithFallback("explain_long", prompt);
-      return;
-    }
-
-    // Chat actions: direct streaming runtime call.
-    const prompts: Record<ChatAction, string> = {
-      free: "",
+        : "Дай подробный разбор текущего вопроса",
       explain: cardText
         ? `Объясни подробно этот вопрос:\n\n${cardText}`
         : "Объясни последний вопрос подробно",
@@ -414,6 +420,20 @@ export default function CompanionOverlay() {
       poem: cardText
         ? `Придумай короткий стишок для запоминания:\n\n${cardText}`
         : "Придумай стишок для запоминания последней темы",
+      plan: cardTopic
+        ? `Составь учебный план по теме: ${cardTopic}`
+        : "Составь учебный план по последней теме",
+    };
+
+    if (action in prebuiltPrompts) {
+      runPrebuiltWithFallback(action as PrebuiltAction, prebuiltPrompts[action as PrebuiltAction]);
+      return;
+    }
+
+    // Chat actions: direct streaming runtime call (без кэша — зависят от
+    // контекста юзера или персонального ответа).
+    const chatPrompts: Record<ChatAction, string> = {
+      free: "",
       hint: cardText
         ? `Дай подсказку (не ответ!) к этому вопросу:\n\n${cardText}`
         : "Дай подсказку к последнему вопросу",
@@ -423,11 +443,8 @@ export default function CompanionOverlay() {
       why_chain: cardText
         ? `Я ответил на этот вопрос. Спроси меня "Почему ты выбрал этот ответ?" и разбери ход моих рассуждений:\n\n${cardText}`
         : "Спроси меня, почему я ответил именно так на последний вопрос",
-      plan: cardTopic
-        ? `Составь учебный план по теме: ${cardTopic}`
-        : "Составь учебный план по последней теме",
     };
-    streamChatRequest(prompts[action as ChatAction], action);
+    streamChatRequest(chatPrompts[action as ChatAction], action);
   };
 
   const handleAction = (action: QuickAction) => {

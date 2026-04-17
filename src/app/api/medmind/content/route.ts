@@ -35,6 +35,17 @@ export async function GET(req: Request) {
   }
 }
 
+// Допустимые типы для общего кэша prebuilt_content — mirror миграции 010.
+const PREBUILT_CONTENT_TYPES = new Set([
+  "hint",
+  "explain_short",
+  "explain_long",
+  "mnemonic",
+  "poem",
+  "explanation",
+  "learning_plan",
+]);
+
 export async function POST(req: Request) {
   try {
     const { userId } = await authenticateRequest(req);
@@ -48,6 +59,9 @@ export async function POST(req: Request) {
       contentRu,
       imageUrl,
       metadata,
+      entityType,
+      entityId,
+      modelUsed,
     } = body as {
       contentType: string;
       specialty?: string;
@@ -56,6 +70,9 @@ export async function POST(req: Request) {
       contentRu: string;
       imageUrl?: string;
       metadata?: Record<string, unknown>;
+      entityType?: "card" | "accreditation_question";
+      entityId?: string;
+      modelUsed?: string;
     };
 
     if (!contentType || !topic || !contentRu) {
@@ -82,6 +99,37 @@ export async function POST(req: Request) {
       .single();
 
     if (error) throw error;
+
+    // Best-effort upsert в общий кэш prebuilt_content. Если кто-то уже
+    // просил то же действие на ту же сущность, ответ останется прежним —
+    // ON CONFLICT do nothing, экономим токены всем следующим.
+    // Image-контент не кэшируем (image_url хранит ссылку на файл пользователя).
+    if (
+      entityType &&
+      entityId &&
+      contentType !== "image" &&
+      PREBUILT_CONTENT_TYPES.has(contentType)
+    ) {
+      await supabase
+        .from("prebuilt_content")
+        .upsert(
+          {
+            entity_type: entityType,
+            entity_id: entityId,
+            content_type: contentType,
+            content_ru: contentRu,
+            model_used: modelUsed ?? "runtime",
+            tokens_used: 0,
+            cost_usd: 0,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "entity_type,entity_id,content_type", ignoreDuplicates: true }
+        )
+        .then(
+          () => undefined,
+          () => undefined // silent: миграция 010 могла быть ещё не применена
+        );
+    }
 
     return Response.json({ id: data?.id, saved: true });
   } catch (err) {

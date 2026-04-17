@@ -16,7 +16,6 @@ import { useSubscription } from "@/hooks/useSubscription";
 import SubscriptionBadge from "@/components/subscription/SubscriptionBadge";
 import EngagementPicker from "@/components/subscription/EngagementPicker";
 import ExamReadiness from "@/components/analytics/ExamReadiness";
-import AnkiExport from "@/components/medmind/AnkiExport";
 import SavedContentLibrary from "@/components/medmind/SavedContentLibrary";
 
 export default function FeedProfile() {
@@ -157,13 +156,6 @@ export default function FeedProfile() {
             <SavedContentLibrary />
           </>
         )}
-
-        {/* Anki Export */}
-        <div className="w-full divider-soft my-8" />
-        <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-4">
-          Экспорт
-        </p>
-        <AnkiExport />
 
         {/* Consilium */}
         <div className="w-full divider-soft my-8" />
