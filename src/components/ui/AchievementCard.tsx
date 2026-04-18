@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import type { AchievementDef } from "@/types/gamification";
 
 interface Props {
@@ -8,11 +9,11 @@ interface Props {
   unlockedAt: string | null;
 }
 
-const rarityBorders: Record<string, string> = {
-  common: "border-border",
-  rare: "border-primary/30",
-  epic: "border-warning/30",
-  legendary: "border-danger/30",
+const rarityStyle: Record<string, React.CSSProperties> = {
+  common: {},
+  rare: { borderColor: "var(--aurora-indigo-border)" },
+  epic: { borderColor: "var(--aurora-violet-border)" },
+  legendary: { borderColor: "var(--aurora-pink-border)" },
 };
 
 const rarityLabels: Record<string, string> = {
@@ -29,9 +30,10 @@ export default function AchievementCard({
 }: Props) {
   return (
     <div
-      className={`rounded-lg border p-4 transition-opacity ${
-        rarityBorders[achievement.rarity] || "border-border"
-      } ${unlocked ? "opacity-100" : "opacity-40"}`}
+      className={`rounded-lg border border-border p-4 transition-opacity ${
+        unlocked ? "opacity-100" : "opacity-40"
+      }`}
+      style={rarityStyle[achievement.rarity]}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <p className="text-sm font-medium text-foreground">
