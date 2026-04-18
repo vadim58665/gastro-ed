@@ -18,9 +18,36 @@
 - Нет emoji на страницах, только SVG stroke-иконки
 - Все страницы `"use client"`
 - Русские UI-тексты, английский код
-- Цвета: только aurora (`#6366F1`, `#A855F7`, `#EC4899`, `#1A1A2E`)
+- **ВСЕ цвета через theme-aware CSS vars (НЕ hardcoded hex)** - в ветку подтянут theme-foundation commit `2dd06d3`, где определены переменные для default/mocha/graphite тем
 - Zero autonomous motion (никаких `animation: ... infinite`). Pulse в таймере = быстрый scale при `<20%` time-left, но реализуется через CSS transition на discrete state change, не через бесконечный keyframe.
 - Respect `prefers-reduced-motion`
+
+### Aurora CSS vars (используй их во всех новых стилях)
+
+Значения автоматически переключаются для темы default / mocha / graphite.
+
+| Назначение | CSS var |
+|---|---|
+| Главный акцент (был `#6366F1`) | `var(--color-aurora-indigo)` |
+| Второй акцент (был `#A855F7`) | `var(--color-aurora-violet)` |
+| Третий акцент (был `#EC4899`) | `var(--color-aurora-pink)` |
+| Ink-тон (был `#1A1A2E`) | `var(--color-ink)` |
+| Soft-фон акцента 1 | `var(--aurora-indigo-soft)` |
+| Border акцента 1 | `var(--aurora-indigo-border)` |
+| Soft-фон акцента 2 | `var(--aurora-violet-soft)` |
+| Border акцента 2 | `var(--aurora-violet-border)` |
+| Soft-фон акцента 3 | `var(--aurora-pink-soft)` |
+| Border акцента 3 | `var(--aurora-pink-border)` |
+| 3-цветный градиент | `var(--aurora-gradient-primary)` |
+| Text-clip градиент | `var(--aurora-gradient-text)` |
+| Premium dark (CTA/tier) | `var(--aurora-gradient-premium)` |
+| **Shell-фон** `/daily-case` | `var(--aurora-gradient-dark-bg)` |
+
+**SVG `<stop stopColor={...}>`** - CSS vars работают: `stopColor="var(--color-aurora-indigo)"`.
+
+**Inline `style={{}}`** - через CSS vars: `style={{ color: "var(--color-aurora-violet)" }}`, не хардкод `#A855F7`.
+
+**Hex значения в сниппетах ниже** - reference для понимания, какой цвет ожидается. В коде использовать vars.
 
 ---
 
@@ -36,18 +63,19 @@
 ```css
 /* ===========================================================
    Aurora daily-case utilities (Phase 4, 2026-04-18)
-   Флагман: полноэкранный premium-dark + aurora-акценты
+   Флагман: полноэкранный premium-dark + aurora-акценты.
+   Все цвета через CSS vars для theme-adaptability.
    =========================================================== */
 
 /* Полноэкранный premium-dark фон - оборачивает всю страницу /daily-case */
 .daily-case-shell {
   min-height: 100vh;
-  background-color: #1A1A2E;
+  background-color: var(--color-ink);
   background-image:
-    radial-gradient(1200px 800px at 50% -10%, rgba(99, 102, 241, 0.22), transparent 60%),
-    radial-gradient(800px 600px at 100% 30%, rgba(168, 85, 247, 0.18), transparent 55%),
-    radial-gradient(1000px 700px at 0% 100%, rgba(236, 72, 153, 0.14), transparent 55%),
-    linear-gradient(135deg, #1A1A2E 0%, #312E81 50%, #1A1A2E 100%);
+    radial-gradient(1200px 800px at 50% -10%, color-mix(in srgb, var(--color-aurora-indigo) 22%, transparent), transparent 60%),
+    radial-gradient(800px 600px at 100% 30%, color-mix(in srgb, var(--color-aurora-violet) 18%, transparent), transparent 55%),
+    radial-gradient(1000px 700px at 0% 100%, color-mix(in srgb, var(--color-aurora-pink) 14%, transparent), transparent 55%),
+    var(--aurora-gradient-dark-bg);
   color: #ffffff;
 }
 
@@ -63,9 +91,9 @@
   padding: 1.2px;
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.55) 0%,
-    rgba(168, 85, 247, 0.45) 50%,
-    rgba(236, 72, 153, 0.35) 100%
+    color-mix(in srgb, var(--color-aurora-indigo) 55%, transparent) 0%,
+    color-mix(in srgb, var(--color-aurora-violet) 45%, transparent) 50%,
+    color-mix(in srgb, var(--color-aurora-pink) 35%, transparent) 100%
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -82,7 +110,7 @@
 /* Translucent glass surface на тёмном */
 .aurora-surface-dark {
   background: rgba(255, 255, 255, 0.06);
-  border: 1.5px solid rgba(99, 102, 241, 0.18);
+  border: 1.5px solid var(--aurora-indigo-border);
 }
 
 /* Опция ответа на тёмном (pill-button) */
@@ -95,20 +123,20 @@
   font-size: 14px;
   font-weight: 500;
   background: rgba(255, 255, 255, 0.06);
-  border: 1.5px solid rgba(99, 102, 241, 0.22);
+  border: 1.5px solid var(--aurora-indigo-border);
   color: rgba(255, 255, 255, 0.92);
   transition: all 0.15s ease;
 }
 .aurora-opt-dark:hover:not(:disabled) {
-  background: rgba(99, 102, 241, 0.14);
-  border-color: rgba(168, 85, 247, 0.45);
+  background: color-mix(in srgb, var(--color-aurora-indigo) 14%, transparent);
+  border-color: color-mix(in srgb, var(--color-aurora-violet) 45%, transparent);
   transform: translateY(-1px);
 }
 .aurora-opt-dark:active:not(:disabled) {
   transform: scale(0.985);
 }
 .aurora-opt-dark-idx {
-  color: #A855F7;
+  color: var(--color-aurora-violet);
   font-weight: 600;
   margin-right: 8px;
   font-variant-numeric: tabular-nums;
@@ -122,13 +150,13 @@
   transition: all 0.2s ease;
 }
 .aurora-stage-dot--past {
-  background: linear-gradient(135deg, #6366F1, #A855F7);
+  background: linear-gradient(135deg, var(--color-aurora-indigo), var(--color-aurora-violet));
 }
 .aurora-stage-dot--active {
-  background: linear-gradient(135deg, #6366F1, #A855F7, #EC4899);
+  background: var(--aurora-gradient-primary);
   box-shadow:
-    0 0 0 3px rgba(168, 85, 247, 0.2),
-    0 0 16px rgba(168, 85, 247, 0.55);
+    0 0 0 3px color-mix(in srgb, var(--color-aurora-violet) 20%, transparent),
+    0 0 16px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent);
 }
 .aurora-stage-dot--future {
   background: transparent;
@@ -141,7 +169,7 @@
   border-radius: 9999px;
 }
 .aurora-stage-line--past {
-  background: linear-gradient(90deg, #6366F1, #A855F7);
+  background: linear-gradient(90deg, var(--color-aurora-indigo), var(--color-aurora-violet));
 }
 .aurora-stage-line--future {
   background: rgba(255, 255, 255, 0.1);
@@ -154,13 +182,11 @@
   margin-top: 6px;
   transition: color 0.2s ease;
 }
-.aurora-stage-label--past { color: rgba(168, 85, 247, 0.7); }
-.aurora-stage-label--active { color: #A855F7; }
+.aurora-stage-label--past { color: color-mix(in srgb, var(--color-aurora-violet) 70%, transparent); }
+.aurora-stage-label--active { color: var(--color-aurora-violet); }
 .aurora-stage-label--future { color: rgba(255, 255, 255, 0.35); }
 
-/* Aurora timer bar - 3 phase states (normal/warning/danger).
-   Pulse на danger-фазе реализуется через короткий CSS transition
-   на opacity точки-indicator при каждом tick (делаем в React через key). */
+/* Aurora timer bar - 3 phase states (normal/warning/danger) */
 .aurora-timer-track {
   position: relative;
   height: 4px;
@@ -176,15 +202,15 @@
   transition: width 0.12s linear, background 0.3s ease, box-shadow 0.3s ease;
 }
 .aurora-timer-fill--normal {
-  background: linear-gradient(90deg, #6366F1, #A855F7);
+  background: linear-gradient(90deg, var(--color-aurora-indigo), var(--color-aurora-violet));
 }
 .aurora-timer-fill--warning {
-  background: linear-gradient(90deg, #A855F7, #EC4899);
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+  background: linear-gradient(90deg, var(--color-aurora-violet), var(--color-aurora-pink));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-aurora-violet) 50%, transparent);
 }
 .aurora-timer-fill--danger {
-  background: linear-gradient(90deg, #EC4899, #A855F7);
-  box-shadow: 0 0 16px rgba(236, 72, 153, 0.65);
+  background: linear-gradient(90deg, var(--color-aurora-pink), var(--color-aurora-violet));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--color-aurora-pink) 65%, transparent);
 }
 .aurora-timer-pulse {
   position: absolute;
@@ -197,9 +223,18 @@
   transition: box-shadow 0.3s ease, background 0.3s ease;
   pointer-events: none;
 }
-.aurora-timer-pulse--normal { background: #A855F7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.6); }
-.aurora-timer-pulse--warning { background: #EC4899; box-shadow: 0 0 14px rgba(236, 72, 153, 0.7); }
-.aurora-timer-pulse--danger { background: #EC4899; box-shadow: 0 0 18px rgba(236, 72, 153, 0.85); }
+.aurora-timer-pulse--normal {
+  background: var(--color-aurora-violet);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-aurora-violet) 60%, transparent);
+}
+.aurora-timer-pulse--warning {
+  background: var(--color-aurora-pink);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--color-aurora-pink) 70%, transparent);
+}
+.aurora-timer-pulse--danger {
+  background: var(--color-aurora-pink);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--color-aurora-pink) 85%, transparent);
+}
 
 /* Difficulty dot (aurora-mapped: easy=indigo, medium=violet, hard=pink) */
 .daily-difficulty-dot {
@@ -208,15 +243,24 @@
   border-radius: 50%;
   display: inline-block;
 }
-.daily-difficulty-dot--easy { background: #6366F1; box-shadow: 0 0 6px rgba(99, 102, 241, 0.7); }
-.daily-difficulty-dot--medium { background: #A855F7; box-shadow: 0 0 6px rgba(168, 85, 247, 0.7); }
-.daily-difficulty-dot--hard { background: #EC4899; box-shadow: 0 0 6px rgba(236, 72, 153, 0.7); }
+.daily-difficulty-dot--easy {
+  background: var(--color-aurora-indigo);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-aurora-indigo) 70%, transparent);
+}
+.daily-difficulty-dot--medium {
+  background: var(--color-aurora-violet);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-aurora-violet) 70%, transparent);
+}
+.daily-difficulty-dot--hard {
+  background: var(--color-aurora-pink);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-aurora-pink) 70%, transparent);
+}
 
 /* Step ring (result-страница) - aurora gradient на dark */
 .aurora-step-ring-track { stroke: rgba(255, 255, 255, 0.12); }
 .aurora-step-ring-fill {
   stroke: url(#aurora-step-gradient);
-  filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.55));
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent));
 }
 .aurora-step-ring-fill--empty { stroke: rgba(255, 255, 255, 0.2); }
 
@@ -226,9 +270,9 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(99, 102, 241, 0.35) 30%,
-    rgba(168, 85, 247, 0.4) 50%,
-    rgba(236, 72, 153, 0.3) 70%,
+    color-mix(in srgb, var(--color-aurora-indigo) 35%, transparent) 30%,
+    color-mix(in srgb, var(--color-aurora-violet) 40%, transparent) 50%,
+    color-mix(in srgb, var(--color-aurora-pink) 30%, transparent) 70%,
     transparent 100%
   );
 }
