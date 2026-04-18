@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { BlitzTestCard } from "@/types/card";
+import ExplanationPanel from "@/components/ui/ExplanationPanel";
 
 interface Props {
   card: BlitzTestCard;
@@ -74,9 +75,7 @@ export default function BlitzTest({ card, onAnswer }: Props) {
   return (
     <div className="flex flex-col gap-4 p-6">
       <div className="flex items-center justify-between">
-        <div className="text-xs font-bold text-muted uppercase tracking-widest">
-          Блиц-тест
-        </div>
+        <div className="aurora-card-type">Блиц-тест</div>
         <div
           className={`text-sm font-mono font-bold px-3 py-1 rounded-full ${
             timeLeft <= 10 && started
@@ -97,14 +96,14 @@ export default function BlitzTest({ card, onAnswer }: Props) {
             className={`w-3 h-3 rounded-full transition-colors ${
               finished
                 ? answers[i] === card.questions[i].correctAnswer
-                  ? "bg-success"
+                  ? "bg-violet-400"
                   : answers[i] !== null
-                  ? "bg-danger"
+                  ? "bg-pink-400"
                   : "bg-border"
                 : i === currentQ
-                ? "bg-foreground"
+                ? "bg-indigo-500"
                 : answers[i] !== null
-                ? "bg-foreground/30"
+                ? "bg-indigo-300"
                 : "bg-border"
             }`}
           />
@@ -139,42 +138,61 @@ export default function BlitzTest({ card, onAnswer }: Props) {
           <div className="flex gap-4">
             <button
               onClick={() => handleAnswer(true)}
-              className="btn-press flex-1 py-5 rounded-full bg-success-light border-2 border-success/30 text-success font-bold text-lg hover:opacity-90 transition-all"
+              className="btn-press flex-1 py-5 rounded-full border-2 font-bold text-lg hover:opacity-90 transition-all"
+              style={{ background: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.35)", color: "#6366F1" }}
             >
               ДА
             </button>
             <button
               onClick={() => handleAnswer(false)}
-              className="btn-press flex-1 py-5 rounded-full bg-danger-light border-2 border-danger/30 text-danger font-bold text-lg hover:opacity-90 transition-all"
+              className="btn-press flex-1 py-5 rounded-full border-2 font-bold text-lg hover:opacity-90 transition-all"
+              style={{ background: "rgba(236,72,153,0.08)", borderColor: "rgba(236,72,153,0.3)", color: "#EC4899" }}
             >
               НЕТ
             </button>
           </div>
         </>
       ) : (
-        <div className="animate-result flex flex-col gap-3">
+        <div className="flex flex-col gap-3">
           <div className="text-center text-3xl font-bold text-foreground">
             {correctCount}/{total}{" "}
             {correctCount === total ? "Отлично!" : correctCount >= 3 ? "Хорошо" : "Попробуйте ещё"}
           </div>
-          <div className="flex flex-col gap-2">
-            {card.questions.map((question, i) => (
-              <div
-                key={i}
-                className={`p-3 rounded-xl text-xs ${
-                  answers[i] === question.correctAnswer
-                    ? "bg-success-light text-emerald-800"
-                    : "bg-danger-light text-rose-800"
-                }`}
-              >
-                <span className="font-semibold">{question.question}</span>
-                <span className="text-foreground/50">
-                  {" "}
-                  -- {question.explanation}
-                </span>
-              </div>
-            ))}
-          </div>
+          <ExplanationPanel
+            correct={correctCount >= Math.ceil(total / 2)}
+            title={
+              correctCount === total
+                ? "Отлично!"
+                : correctCount >= Math.ceil(total / 2)
+                ? "Хорошо"
+                : "Попробуйте ещё"
+            }
+          >
+            <div className="flex flex-col gap-2 mt-2">
+              {card.questions.map((question, i) => (
+                <div
+                  key={i}
+                  className="flex gap-2 text-xs"
+                >
+                  <span
+                    className="shrink-0 font-bold"
+                    style={{
+                      color:
+                        answers[i] === question.correctAnswer
+                          ? "#7C3AED"
+                          : "#DB2777",
+                    }}
+                  >
+                    {answers[i] === question.correctAnswer ? "+" : "-"}
+                  </span>
+                  <span>
+                    <span className="font-semibold">{question.question}</span>
+                    <span className="opacity-70"> - {question.explanation}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </ExplanationPanel>
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { PriorityRankCard } from "@/types/card";
+import ExplanationPanel from "@/components/ui/ExplanationPanel";
 
 interface Props {
   card: PriorityRankCard;
@@ -55,13 +56,9 @@ export default function PriorityRank({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-5 p-6">
-      <div className="text-xs font-bold text-muted uppercase tracking-widest">
-        Шкала приоритетов
-      </div>
+      <div className="aurora-card-type">Шкала приоритетов</div>
 
-      <div className="bg-surface rounded-2xl p-4">
-        <p className="text-sm text-muted leading-relaxed">{card.context}</p>
-      </div>
+      <div className="aurora-scenario">{card.context}</div>
 
       <p className="text-sm font-medium text-foreground">{card.question}</p>
 
@@ -73,16 +70,28 @@ export default function PriorityRank({ card, onAnswer }: Props) {
         {order.map((itemIdx, position) => {
           const item = card.items[itemIdx];
           const isSwapSource = swapFrom === position;
-          let bg = "bg-surface border-border";
+          const isCorrectPos = submitted && card.correctOrder.indexOf(itemIdx) === position;
+          const isWrongPos = submitted && card.correctOrder.indexOf(itemIdx) !== position;
+
+          let styleOverride: React.CSSProperties = {};
+          let extraClass = "bg-surface border-border";
 
           if (submitted) {
-            const correctPos = card.correctOrder.indexOf(itemIdx);
-            bg =
-              correctPos === position
-                ? "bg-success-light border-success/30"
-                : "bg-danger-light border-danger/30";
+            if (isCorrectPos) {
+              extraClass = "";
+              styleOverride = {
+                background: "rgba(99,102,241,0.1)",
+                borderColor: "rgba(99,102,241,0.35)",
+              };
+            } else if (isWrongPos) {
+              extraClass = "";
+              styleOverride = {
+                background: "rgba(236,72,153,0.08)",
+                borderColor: "rgba(236,72,153,0.3)",
+              };
+            }
           } else if (isSwapSource) {
-            bg = "bg-surface border-foreground/40";
+            extraClass = "bg-surface border-foreground/40";
           }
 
           return (
@@ -90,9 +99,19 @@ export default function PriorityRank({ card, onAnswer }: Props) {
               key={itemIdx}
               onClick={() => handleTap(position)}
               disabled={submitted}
-              className={`w-full flex items-center gap-3 text-left px-4 py-3 rounded-xl border transition-colors ${bg}`}
+              style={styleOverride}
+              className={`w-full flex items-center gap-3 text-left px-4 py-3 rounded-xl border transition-colors ${extraClass}`}
             >
-              <span className="shrink-0 w-7 h-7 rounded-full bg-surface text-foreground flex items-center justify-center text-xs font-bold border border-border">
+              <span
+                className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border"
+                style={
+                  submitted && isCorrectPos
+                    ? { background: "rgba(99,102,241,0.15)", borderColor: "rgba(99,102,241,0.4)", color: "#6366F1" }
+                    : submitted && isWrongPos
+                    ? { background: "rgba(236,72,153,0.1)", borderColor: "rgba(236,72,153,0.35)", color: "#EC4899" }
+                    : {}
+                }
+              >
                 {position + 1}
               </span>
               <span className="text-sm text-foreground leading-snug">
@@ -120,19 +139,15 @@ export default function PriorityRank({ card, onAnswer }: Props) {
       )}
 
       {submitted && (
-        <div
-          className={`animate-result p-5 rounded-2xl text-sm leading-relaxed ${
+        <ExplanationPanel
+          correct={correctCount === card.items.length}
+          title={
             correctCount === card.items.length
-              ? "bg-success-light border border-success/30 text-emerald-800"
-              : "bg-danger-light border border-danger/30 text-rose-800"
-          }`}
-        >
-          <div className="font-bold mb-2">
-            {correctCount === card.items.length
               ? "Идеальный порядок!"
-              : `${correctCount} из ${card.items.length} на своём месте`}
-          </div>
-          <div className="space-y-1.5">
+              : `${correctCount} из ${card.items.length} на своём месте`
+          }
+        >
+          <div className="space-y-1.5 mt-1">
             {card.correctOrder.map((itemIdx, pos) => (
               <p key={pos} className="text-xs">
                 <span className="font-medium">{pos + 1}. {card.items[itemIdx].text}</span>{" "}
@@ -140,7 +155,7 @@ export default function PriorityRank({ card, onAnswer }: Props) {
               </p>
             ))}
           </div>
-        </div>
+        </ExplanationPanel>
       )}
     </div>
   );
