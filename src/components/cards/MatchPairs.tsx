@@ -87,29 +87,29 @@ export default function MatchPairs({ card, onAnswer }: Props) {
               if (correctMap.get(item) === right) {
                 extraClass = "";
                 styleOverride = {
-                  background: "rgba(99,102,241,0.1)",
-                  borderColor: "rgba(99,102,241,0.35)",
-                  color: "#6366F1",
+                  background: "color-mix(in srgb, var(--color-aurora-indigo) 10%, transparent)",
+                  borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 35%, transparent)",
+                  color: "var(--color-aurora-indigo)",
                 };
               } else {
                 extraClass = "";
                 styleOverride = {
-                  background: "rgba(236,72,153,0.08)",
-                  borderColor: "rgba(236,72,153,0.3)",
-                  color: "#EC4899",
+                  background: "var(--aurora-pink-soft)",
+                  borderColor: "color-mix(in srgb, var(--color-aurora-pink) 30%, transparent)",
+                  color: "var(--color-aurora-pink)",
                 };
               }
             } else if (isSelected) {
               extraClass = "";
               styleOverride = {
-                background: "rgba(99,102,241,0.12)",
-                borderColor: "rgba(99,102,241,0.5)",
+                background: "color-mix(in srgb, var(--color-aurora-indigo) 12%, transparent)",
+                borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 50%, transparent)",
               };
             } else if (isMatched) {
               extraClass = "";
               styleOverride = {
-                background: "rgba(99,102,241,0.06)",
-                borderColor: "rgba(99,102,241,0.2)",
+                background: "color-mix(in srgb, var(--color-aurora-indigo) 6%, transparent)",
+                borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 20%, transparent)",
               };
             }
 
@@ -141,23 +141,23 @@ export default function MatchPairs({ card, onAnswer }: Props) {
               if (correctMap.get(pairedLeft) === item) {
                 extraClass = "";
                 styleOverride = {
-                  background: "rgba(99,102,241,0.1)",
-                  borderColor: "rgba(99,102,241,0.35)",
-                  color: "#6366F1",
+                  background: "color-mix(in srgb, var(--color-aurora-indigo) 10%, transparent)",
+                  borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 35%, transparent)",
+                  color: "var(--color-aurora-indigo)",
                 };
               } else {
                 extraClass = "";
                 styleOverride = {
-                  background: "rgba(236,72,153,0.08)",
-                  borderColor: "rgba(236,72,153,0.3)",
-                  color: "#EC4899",
+                  background: "var(--aurora-pink-soft)",
+                  borderColor: "color-mix(in srgb, var(--color-aurora-pink) 30%, transparent)",
+                  color: "var(--color-aurora-pink)",
                 };
               }
             } else if (isPaired) {
               extraClass = "";
               styleOverride = {
-                background: "rgba(99,102,241,0.06)",
-                borderColor: "rgba(99,102,241,0.2)",
+                background: "color-mix(in srgb, var(--color-aurora-indigo) 6%, transparent)",
+                borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 20%, transparent)",
               };
             }
 

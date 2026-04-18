@@ -80,14 +80,14 @@ export default function PriorityRank({ card, onAnswer }: Props) {
             if (isCorrectPos) {
               extraClass = "";
               styleOverride = {
-                background: "rgba(99,102,241,0.1)",
-                borderColor: "rgba(99,102,241,0.35)",
+                background: "color-mix(in srgb, var(--color-aurora-indigo) 10%, transparent)",
+                borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 35%, transparent)",
               };
             } else if (isWrongPos) {
               extraClass = "";
               styleOverride = {
-                background: "rgba(236,72,153,0.08)",
-                borderColor: "rgba(236,72,153,0.3)",
+                background: "var(--aurora-pink-soft)",
+                borderColor: "color-mix(in srgb, var(--color-aurora-pink) 30%, transparent)",
               };
             }
           } else if (isSwapSource) {
@@ -106,9 +106,9 @@ export default function PriorityRank({ card, onAnswer }: Props) {
                 className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border"
                 style={
                   submitted && isCorrectPos
-                    ? { background: "rgba(99,102,241,0.15)", borderColor: "rgba(99,102,241,0.4)", color: "#6366F1" }
+                    ? { background: "color-mix(in srgb, var(--color-aurora-indigo) 15%, transparent)", borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent)", color: "var(--color-aurora-indigo)" }
                     : submitted && isWrongPos
-                    ? { background: "rgba(236,72,153,0.1)", borderColor: "rgba(236,72,153,0.35)", color: "#EC4899" }
+                    ? { background: "color-mix(in srgb, var(--color-aurora-pink) 10%, transparent)", borderColor: "color-mix(in srgb, var(--color-aurora-pink) 35%, transparent)", color: "var(--color-aurora-pink)" }
                     : {}
                 }
               >

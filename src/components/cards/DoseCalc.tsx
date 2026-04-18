@@ -57,8 +57,15 @@ export default function DoseCalc({ card, onAnswer }: Props) {
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor =
+                "color-mix(in srgb, var(--color-aurora-indigo) 60%, transparent)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "";
+            }}
             placeholder="0"
-            className="flex-1 px-5 py-4 rounded-full bg-card border-2 border-border text-foreground placeholder-muted focus:border-[#6366F1]/60 focus:outline-none transition-colors text-sm text-right"
+            className="flex-1 px-5 py-4 rounded-full bg-card border-2 border-border text-foreground placeholder-muted focus:outline-none transition-colors text-sm text-right"
           />
           <span className="text-sm text-muted shrink-0">{card.unit}</span>
           <button

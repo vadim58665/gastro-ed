@@ -72,8 +72,14 @@ export default function AutoExplain({ entityId, entityType = "card", trigger }: 
   if (!text) return null;
 
   return (
-    <div className="mt-3 border-l-2 border-primary/30 pl-3">
-      <p className="text-[10px] uppercase tracking-[0.15em] text-primary mb-1">
+    <div
+      className="mt-3 pl-3"
+      style={{ borderLeft: "2px solid var(--aurora-violet-border)" }}
+    >
+      <p
+        className="text-[10px] uppercase tracking-[0.15em] mb-1"
+        style={{ color: "var(--color-aurora-violet)" }}
+      >
         Разбор
       </p>
       <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">

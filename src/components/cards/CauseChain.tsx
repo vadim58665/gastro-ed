@@ -79,7 +79,7 @@ export default function CauseChain({ card, onAnswer }: Props) {
           return (
             <div key={i} className="flex flex-col items-center w-full">
               {i > 0 && (
-                <svg width="12" height="20" viewBox="0 0 12 20" className="my-1" style={{ color: "rgba(99,102,241,0.4)" }}>
+                <svg width="12" height="20" viewBox="0 0 12 20" className="my-1" style={{ color: "color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent)" }}>
                   <path d="M6 0v14M2 10l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               )}
@@ -91,10 +91,10 @@ export default function CauseChain({ card, onAnswer }: Props) {
                   style={
                     submitted
                       ? isCorrect
-                        ? { background: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.4)", color: "#6366F1" }
-                        : { background: "rgba(236,72,153,0.08)", borderColor: "rgba(236,72,153,0.35)", color: "#EC4899" }
+                        ? { background: "color-mix(in srgb, var(--color-aurora-indigo) 10%, transparent)", borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent)", color: "var(--color-aurora-indigo)" }
+                        : { background: "var(--aurora-pink-soft)", borderColor: "color-mix(in srgb, var(--color-aurora-pink) 35%, transparent)", color: "var(--color-aurora-pink)" }
                       : filledValue
-                      ? { background: "rgba(99,102,241,0.08)", borderColor: "rgba(99,102,241,0.3)" }
+                      ? { background: "var(--aurora-indigo-soft)", borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 30%, transparent)" }
                       : {}
                   }
                   className={`w-full px-4 py-3 rounded-xl border-2 text-sm text-center transition-colors ${

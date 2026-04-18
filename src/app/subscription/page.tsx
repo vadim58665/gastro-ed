@@ -68,11 +68,17 @@ export default function SubscriptionPage() {
         <TopBar showBack />
         <main className="flex-1 pt-24 pb-20 overflow-y-auto">
           <div className="max-w-lg mx-auto px-6 py-12">
-            <p className="text-[10px] uppercase tracking-[0.15em] text-muted mb-2">
+            <p
+              className="text-[10px] uppercase tracking-[0.15em] font-semibold mb-2"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
               ПОДПИСКА АКТИВНА
             </p>
             <p className="text-4xl font-extralight text-foreground">{currentConfig.name}</p>
-            <p className="text-lg font-extralight text-primary mt-1">
+            <p
+              className="text-lg font-extralight mt-1"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
               {formatPrice(currentConfig.priceRub)} /мес
             </p>
             <div className="w-12 h-px bg-border my-6" />

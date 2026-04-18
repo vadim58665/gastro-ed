@@ -79,38 +79,60 @@ export default function BuildScheme({ card, onAnswer }: Props) {
   const currentCount = isOrdering ? orderedSelection.length : selected.size;
   const canSubmit = currentCount > 0;
 
-  /** Compute aurora-style className for each component button. */
+  /** Compute aurora-style className + inline style for each component button.
+   *  Inline styles are used for aurora colors so CSS vars stay theme-adaptive. */
   function getButtonStyle(
     comp: { isCorrect: boolean },
     i: number,
     isSelected: boolean,
     orderPos: number,
     correctPos: number
-  ): string {
+  ): { className: string; style: React.CSSProperties } {
+    const indigoFull: React.CSSProperties = {
+      borderColor: "var(--color-aurora-indigo)",
+      background: "color-mix(in srgb, var(--color-aurora-indigo) 10%, transparent)",
+      color: "var(--color-aurora-indigo)",
+    };
+    const indigoDim: React.CSSProperties = {
+      borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent)",
+      background: "color-mix(in srgb, var(--color-aurora-indigo) 5%, transparent)",
+      color: "color-mix(in srgb, var(--color-aurora-indigo) 60%, transparent)",
+    };
+    const violetFull: React.CSSProperties = {
+      borderColor: "var(--color-aurora-violet)",
+      background: "color-mix(in srgb, var(--color-aurora-violet) 10%, transparent)",
+      color: "var(--color-aurora-violet)",
+    };
+    const pinkFull: React.CSSProperties = {
+      borderColor: "var(--color-aurora-pink)",
+      background: "color-mix(in srgb, var(--color-aurora-pink) 10%, transparent)",
+      color: "var(--color-aurora-pink)",
+    };
+
     if (!submitted) {
       return isSelected
-        ? "border-[#6366F1] bg-[#6366F1]/10 text-[#6366F1]"
-        : "border-border bg-card text-foreground/70";
+        ? { className: "", style: indigoFull }
+        : { className: "border-border bg-card text-foreground/70", style: {} };
     }
 
     if (isOrdering) {
       if (correctPos >= 0 && orderPos >= 0 && orderPos === correctPos)
-        return "border-[#6366F1] bg-[#6366F1]/10 text-[#6366F1]";
+        return { className: "", style: indigoFull };
       if (correctPos >= 0 && orderPos >= 0 && orderPos !== correctPos)
-        return "border-[#A855F7] bg-[#A855F7]/10 text-[#A855F7]";
+        return { className: "", style: violetFull };
       if (correctPos >= 0 && orderPos < 0)
-        return "border-[#6366F1]/40 bg-[#6366F1]/5 text-[#6366F1]/60";
+        return { className: "", style: indigoDim };
       if (correctPos < 0 && orderPos >= 0)
-        return "border-[#EC4899] bg-[#EC4899]/10 text-[#EC4899]";
-      return "border-border bg-card opacity-30";
+        return { className: "", style: pinkFull };
+      return { className: "border-border bg-card opacity-30", style: {} };
     } else {
       if (comp.isCorrect && isSelected)
-        return "border-[#6366F1] bg-[#6366F1]/10 text-[#6366F1]";
+        return { className: "", style: indigoFull };
       if (comp.isCorrect && !isSelected)
-        return "border-[#6366F1]/40 bg-[#6366F1]/5 text-[#6366F1]/60";
+        return { className: "", style: indigoDim };
       if (!comp.isCorrect && isSelected)
-        return "border-[#EC4899] bg-[#EC4899]/10 text-[#EC4899]";
-      return "border-border bg-card opacity-30";
+        return { className: "", style: pinkFull };
+      return { className: "border-border bg-card opacity-30", style: {} };
     }
   }
 
@@ -137,25 +159,39 @@ export default function BuildScheme({ card, onAnswer }: Props) {
             ? card.correctOrder!.indexOf(i)
             : -1;
 
-          const style = getButtonStyle(comp, i, isSelected, orderPos, correctPos);
+          const { className: styleClass, style: styleObj } = getButtonStyle(
+            comp,
+            i,
+            isSelected,
+            orderPos,
+            correctPos
+          );
 
           return (
             <button
               key={i}
               onClick={() => toggleComponent(i)}
+              style={styleObj}
               className={`btn-press ${
                 isOrdering
                   ? "flex items-center gap-3 text-left px-5 py-4 rounded-2xl"
                   : "px-5 py-3 rounded-full"
-              } border-2 text-sm font-semibold transition-all ${style}`}
+              } border-2 text-sm font-semibold transition-all ${styleClass}`}
             >
               {isOrdering && (
                 <span
+                  style={
+                    !submitted || correctPos < 0
+                      ? isSelected
+                        ? { background: "var(--color-aurora-indigo)", color: "#ffffff" }
+                        : undefined
+                      : undefined
+                  }
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                     submitted && correctPos >= 0
                       ? "bg-current/10 border-2 border-current"
                       : isSelected
-                        ? "bg-[#6366F1] text-white"
+                        ? ""
                         : "border-2 border-border text-foreground/30"
                   }`}
                 >

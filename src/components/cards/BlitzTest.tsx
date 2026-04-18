@@ -143,14 +143,14 @@ export default function BlitzTest({ card, onAnswer }: Props) {
             <button
               onClick={() => handleAnswer(true)}
               className="btn-press flex-1 py-5 rounded-full border-2 font-bold text-lg hover:opacity-90 transition-all"
-              style={{ background: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.35)", color: "#6366F1" }}
+              style={{ background: "color-mix(in srgb, var(--color-aurora-indigo) 10%, transparent)", borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 35%, transparent)", color: "var(--color-aurora-indigo)" }}
             >
               ДА
             </button>
             <button
               onClick={() => handleAnswer(false)}
               className="btn-press flex-1 py-5 rounded-full border-2 font-bold text-lg hover:opacity-90 transition-all"
-              style={{ background: "rgba(236,72,153,0.08)", borderColor: "rgba(236,72,153,0.3)", color: "#EC4899" }}
+              style={{ background: "var(--aurora-pink-soft)", borderColor: "color-mix(in srgb, var(--color-aurora-pink) 30%, transparent)", color: "var(--color-aurora-pink)" }}
             >
               НЕТ
             </button>
@@ -183,8 +183,8 @@ export default function BlitzTest({ card, onAnswer }: Props) {
                     style={{
                       color:
                         answers[i] === question.correctAnswer
-                          ? "#7C3AED"
-                          : "#DB2777",
+                          ? "var(--color-aurora-violet)"
+                          : "var(--color-aurora-pink)",
                     }}
                   >
                     {answers[i] === question.correctAnswer ? "+" : "-"}
