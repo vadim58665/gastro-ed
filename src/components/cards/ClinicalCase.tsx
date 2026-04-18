@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from "react";
 import type { ClinicalCaseCard } from "@/types/card";
+import AnswerOption from "@/components/ui/AnswerOption";
+import ExplanationPanel from "@/components/ui/ExplanationPanel";
 
 interface Props {
   card: ClinicalCaseCard;
@@ -29,49 +31,33 @@ export default function ClinicalCase({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <div className="text-xs font-bold text-muted uppercase tracking-widest">
+      <div className="aurora-card-type">
         Клиническая задачка
       </div>
-      <div className="bg-surface rounded-2xl p-4 text-sm leading-relaxed text-foreground/80">
+      <div className="aurora-scenario">
         {card.scenario}
       </div>
       <div className="text-base font-bold text-foreground">{card.question}</div>
       <div className="flex flex-col gap-3">
         {shuffledIndices.map((i) => {
           const opt = card.options[i];
-          let style =
-            "border-border bg-card hover:bg-surface text-foreground";
+          let state: "neutral" | "correct" | "wrong" | "dim" = "neutral";
           if (answered) {
-            if (opt.isCorrect)
-              style = "border-success bg-success/10 text-success";
-            else if (i === selected)
-              style = "border-danger bg-danger/10 text-danger";
-            else style = "border-border bg-card opacity-40 text-foreground";
+            if (opt.isCorrect) state = "correct";
+            else if (i === selected) state = "wrong";
+            else state = "dim";
           }
           return (
-            <button
-              key={i}
-              onClick={() => handleSelect(i)}
-              className={`btn-press text-left px-6 py-5 rounded-full border-2 transition-all text-sm font-medium ${style}${answered && opt.isCorrect ? ' animate-correct' : ''}${answered && i === selected && !opt.isCorrect ? ' animate-wrong' : ''}`}
-            >
+            <AnswerOption key={i} state={state} onClick={() => handleSelect(i)}>
               {opt.text}
-            </button>
+            </AnswerOption>
           );
         })}
       </div>
       {answered && (
-        <div
-          className={`animate-result mt-1 p-4 rounded-2xl text-sm leading-relaxed ${
-            card.options[selected].isCorrect
-              ? "bg-success/10 border border-success/30 text-success"
-              : "bg-danger/10 border border-danger/30 text-danger"
-          }`}
-        >
-          <div className="font-bold mb-1">
-            {card.options[selected].isCorrect ? "Верно!" : "Неверно"}
-          </div>
+        <ExplanationPanel correct={card.options[selected].isCorrect}>
           {card.options[selected].explanation}
-        </div>
+        </ExplanationPanel>
       )}
     </div>
   );

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import type { MythOrFactCard } from "@/types/card";
+import AnswerOption from "@/components/ui/AnswerOption";
+import ExplanationPanel from "@/components/ui/ExplanationPanel";
 
 interface Props {
   card: MythOrFactCard;
@@ -19,9 +21,18 @@ export default function MythOrFact({ card, onAnswer }: Props) {
     onAnswer((choice === "myth") === card.isMyth);
   };
 
+  const correctChoice = card.isMyth ? "myth" : "fact";
+
+  function optState(choice: "myth" | "fact"): "neutral" | "correct" | "wrong" | "dim" {
+    if (!answered) return "neutral";
+    if (choice === correctChoice) return "correct";
+    if (choice === answer) return "wrong";
+    return "dim";
+  }
+
   return (
     <div className="flex flex-col gap-5 p-6">
-      <div className="text-xs font-bold text-muted uppercase tracking-widest">
+      <div className="aurora-card-type">
         Миф или Факт?
       </div>
       <div className="bg-surface rounded-2xl p-6 text-center">
@@ -30,35 +41,30 @@ export default function MythOrFact({ card, onAnswer }: Props) {
         </div>
       </div>
 
-      {!answered ? (
-        <div className="flex gap-4">
-          <button
-            onClick={() => handleAnswer("myth")}
-            className="btn-press flex-1 py-5 rounded-full bg-danger-light border-2 border-danger/30 text-danger font-bold text-lg hover:opacity-90 transition-all"
-          >
-            Миф
-          </button>
-          <button
-            onClick={() => handleAnswer("fact")}
-            className="btn-press flex-1 py-5 rounded-full bg-success-light border-2 border-success/30 text-success font-bold text-lg hover:opacity-90 transition-all"
-          >
-            Факт
-          </button>
-        </div>
-      ) : (
-        <div
-          className={`animate-result p-5 rounded-2xl text-sm leading-relaxed ${
-            isCorrect
-              ? "bg-success-light border border-success/30 text-emerald-800"
-              : "bg-danger-light border border-danger/30 text-rose-800"
-          }`}
+      <div className="flex gap-4">
+        <AnswerOption
+          state={optState("myth")}
+          onClick={() => handleAnswer("myth")}
+          className="flex-1 text-center"
         >
-          <div className="font-bold mb-1.5 text-base">
-            {isCorrect ? "Верно!" : "Неверно!"} Это{" "}
-            {card.isMyth ? "МИФ" : "ФАКТ"}.
-          </div>
+          Миф
+        </AnswerOption>
+        <AnswerOption
+          state={optState("fact")}
+          onClick={() => handleAnswer("fact")}
+          className="flex-1 text-center"
+        >
+          Факт
+        </AnswerOption>
+      </div>
+
+      {answered && (
+        <ExplanationPanel
+          correct={isCorrect}
+          title={`${isCorrect ? "Верно!" : "Неверно!"} Это ${card.isMyth ? "МИФ" : "ФАКТ"}.`}
+        >
           {card.explanation}
-        </div>
+        </ExplanationPanel>
       )}
     </div>
   );
