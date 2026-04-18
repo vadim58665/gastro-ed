@@ -776,6 +776,231 @@ body {
 }
 
 /* ===========================================================
+   Aurora daily-case utilities (Phase 4, 2026-04-18)
+   Флагман: полноэкранный premium-dark + aurora-акценты.
+   Все цвета через CSS vars для theme-adaptability.
+   =========================================================== */
+
+/* Полноэкранный premium-dark фон - оборачивает всю страницу /daily-case */
+.daily-case-shell {
+  min-height: 100vh;
+  background-color: var(--color-ink);
+  background-image:
+    radial-gradient(1200px 800px at 50% -10%, color-mix(in srgb, var(--color-aurora-indigo) 22%, transparent), transparent 60%),
+    radial-gradient(800px 600px at 100% 30%, color-mix(in srgb, var(--color-aurora-violet) 18%, transparent), transparent 55%),
+    radial-gradient(1000px 700px at 0% 100%, color-mix(in srgb, var(--color-aurora-pink) 14%, transparent), transparent 55%),
+    var(--aurora-gradient-dark-bg);
+  color: #ffffff;
+}
+
+/* Aurora hairline border на тёмном фоне - ярче чем обычный aurora-hairline */
+.aurora-hairline-dark {
+  position: relative;
+}
+.aurora-hairline-dark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.2px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-aurora-indigo) 55%, transparent) 0%,
+    color-mix(in srgb, var(--color-aurora-violet) 45%, transparent) 50%,
+    color-mix(in srgb, var(--color-aurora-pink) 35%, transparent) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Translucent glass surface на тёмном */
+.aurora-surface-dark {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid var(--aurora-indigo-border);
+}
+
+/* Опция ответа на тёмном (pill-button) */
+.aurora-opt-dark {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid var(--aurora-indigo-border);
+  color: rgba(255, 255, 255, 0.92);
+  transition: all 0.15s ease;
+}
+.aurora-opt-dark:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-aurora-indigo) 14%, transparent);
+  border-color: color-mix(in srgb, var(--color-aurora-violet) 45%, transparent);
+  transform: translateY(-1px);
+}
+.aurora-opt-dark:active:not(:disabled) {
+  transform: scale(0.985);
+}
+.aurora-opt-dark-idx {
+  color: var(--color-aurora-violet);
+  font-weight: 600;
+  margin-right: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Aurora progress stages - точки и линии между этапами */
+.aurora-stage-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+.aurora-stage-dot--past {
+  background: linear-gradient(135deg, var(--color-aurora-indigo), var(--color-aurora-violet));
+}
+.aurora-stage-dot--active {
+  background: var(--aurora-gradient-primary);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-aurora-violet) 20%, transparent),
+    0 0 16px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent);
+}
+.aurora-stage-dot--future {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+}
+.aurora-stage-line {
+  flex: 1;
+  height: 1.5px;
+  min-width: 8px;
+  border-radius: 9999px;
+}
+.aurora-stage-line--past {
+  background: linear-gradient(90deg, var(--color-aurora-indigo), var(--color-aurora-violet));
+}
+.aurora-stage-line--future {
+  background: rgba(255, 255, 255, 0.1);
+}
+.aurora-stage-label {
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-top: 6px;
+  transition: color 0.2s ease;
+}
+.aurora-stage-label--past { color: color-mix(in srgb, var(--color-aurora-violet) 70%, transparent); }
+.aurora-stage-label--active { color: var(--color-aurora-violet); }
+.aurora-stage-label--future { color: rgba(255, 255, 255, 0.35); }
+
+/* Aurora timer bar - 3 phase states (normal/warning/danger) */
+.aurora-timer-track {
+  position: relative;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: visible;
+}
+.aurora-timer-fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  border-radius: 9999px;
+  transition: width 0.12s linear, background 0.3s ease, box-shadow 0.3s ease;
+}
+.aurora-timer-fill--normal {
+  background: linear-gradient(90deg, var(--color-aurora-indigo), var(--color-aurora-violet));
+}
+.aurora-timer-fill--warning {
+  background: linear-gradient(90deg, var(--color-aurora-violet), var(--color-aurora-pink));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-aurora-violet) 50%, transparent);
+}
+.aurora-timer-fill--danger {
+  background: linear-gradient(90deg, var(--color-aurora-pink), var(--color-aurora-violet));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--color-aurora-pink) 65%, transparent);
+}
+.aurora-timer-pulse {
+  position: absolute;
+  top: 50%;
+  transform: translate(50%, -50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+  pointer-events: none;
+}
+.aurora-timer-pulse--normal {
+  background: var(--color-aurora-violet);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-aurora-violet) 60%, transparent);
+}
+.aurora-timer-pulse--warning {
+  background: var(--color-aurora-pink);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--color-aurora-pink) 70%, transparent);
+}
+.aurora-timer-pulse--danger {
+  background: var(--color-aurora-pink);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--color-aurora-pink) 85%, transparent);
+}
+
+/* Difficulty dot (aurora-mapped: easy=indigo, medium=violet, hard=pink) */
+.daily-difficulty-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.daily-difficulty-dot--easy {
+  background: var(--color-aurora-indigo);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-aurora-indigo) 70%, transparent);
+}
+.daily-difficulty-dot--medium {
+  background: var(--color-aurora-violet);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-aurora-violet) 70%, transparent);
+}
+.daily-difficulty-dot--hard {
+  background: var(--color-aurora-pink);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-aurora-pink) 70%, transparent);
+}
+
+/* Step ring (result-страница) - aurora gradient на dark */
+.aurora-step-ring-track { stroke: rgba(255, 255, 255, 0.12); }
+.aurora-step-ring-fill {
+  stroke: url(#aurora-step-gradient);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent));
+}
+.aurora-step-ring-fill--empty { stroke: rgba(255, 255, 255, 0.2); }
+
+/* Aurora divider на тёмном */
+.aurora-divider-dark {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-aurora-indigo) 35%, transparent) 30%,
+    color-mix(in srgb, var(--color-aurora-violet) 40%, transparent) 50%,
+    color-mix(in srgb, var(--color-aurora-pink) 30%, transparent) 70%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-opt-dark,
+  .aurora-stage-dot,
+  .aurora-timer-fill,
+  .aurora-timer-pulse {
+    transition: none;
+  }
+}
+
+/* ===========================================================
    Theme: Mocha (warm coffee & cream)
    =========================================================== */
 html[data-theme="mocha"] {
