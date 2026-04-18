@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { BuildSchemeCard } from "@/types/card";
+import ExplanationPanel from "@/components/ui/ExplanationPanel";
 
 interface Props {
   card: BuildSchemeCard;
@@ -78,9 +79,44 @@ export default function BuildScheme({ card, onAnswer }: Props) {
   const currentCount = isOrdering ? orderedSelection.length : selected.size;
   const canSubmit = currentCount > 0;
 
+  /** Compute aurora-style className for each component button. */
+  function getButtonStyle(
+    comp: { isCorrect: boolean },
+    i: number,
+    isSelected: boolean,
+    orderPos: number,
+    correctPos: number
+  ): string {
+    if (!submitted) {
+      return isSelected
+        ? "border-[#6366F1] bg-[#6366F1]/10 text-[#6366F1]"
+        : "border-border bg-card text-foreground/70";
+    }
+
+    if (isOrdering) {
+      if (correctPos >= 0 && orderPos >= 0 && orderPos === correctPos)
+        return "border-[#6366F1] bg-[#6366F1]/10 text-[#6366F1]";
+      if (correctPos >= 0 && orderPos >= 0 && orderPos !== correctPos)
+        return "border-[#A855F7] bg-[#A855F7]/10 text-[#A855F7]";
+      if (correctPos >= 0 && orderPos < 0)
+        return "border-[#6366F1]/40 bg-[#6366F1]/5 text-[#6366F1]/60";
+      if (correctPos < 0 && orderPos >= 0)
+        return "border-[#EC4899] bg-[#EC4899]/10 text-[#EC4899]";
+      return "border-border bg-card opacity-30";
+    } else {
+      if (comp.isCorrect && isSelected)
+        return "border-[#6366F1] bg-[#6366F1]/10 text-[#6366F1]";
+      if (comp.isCorrect && !isSelected)
+        return "border-[#6366F1]/40 bg-[#6366F1]/5 text-[#6366F1]/60";
+      if (!comp.isCorrect && isSelected)
+        return "border-[#EC4899] bg-[#EC4899]/10 text-[#EC4899]";
+      return "border-border bg-card opacity-30";
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4 p-6">
-      <div className="text-xs font-bold text-muted uppercase tracking-widest">
+      <div className="aurora-card-type">
         {isOrdering ? "Расставь по порядку" : "Собери схему"}
       </div>
       <div className="text-base font-bold text-foreground">{card.title}</div>
@@ -101,32 +137,7 @@ export default function BuildScheme({ card, onAnswer }: Props) {
             ? card.correctOrder!.indexOf(i)
             : -1;
 
-          let style = isSelected
-            ? "border-primary bg-primary-light text-primary"
-            : "border-border bg-card text-foreground/70";
-
-          if (submitted) {
-            if (isOrdering) {
-              if (correctPos >= 0 && orderPos >= 0 && orderPos === correctPos)
-                style = "border-success bg-success-light text-emerald-700";
-              else if (correctPos >= 0 && orderPos >= 0 && orderPos !== correctPos)
-                style = "border-warning bg-warning-light text-amber-700";
-              else if (correctPos >= 0 && orderPos < 0)
-                style = "border-success/50 bg-success-light/50 text-emerald-600";
-              else if (correctPos < 0 && orderPos >= 0)
-                style = "border-danger bg-danger-light text-rose-700";
-              else
-                style = "border-border bg-card opacity-30";
-            } else {
-              if (comp.isCorrect && isSelected)
-                style = "border-success bg-success-light text-emerald-700";
-              else if (comp.isCorrect && !isSelected)
-                style = "border-success/50 bg-success-light/50 text-emerald-600";
-              else if (!comp.isCorrect && isSelected)
-                style = "border-danger bg-danger-light text-rose-700";
-              else style = "border-border bg-card opacity-30";
-            }
-          }
+          const style = getButtonStyle(comp, i, isSelected, orderPos, correctPos);
 
           return (
             <button
@@ -144,7 +155,7 @@ export default function BuildScheme({ card, onAnswer }: Props) {
                     submitted && correctPos >= 0
                       ? "bg-current/10 border-2 border-current"
                       : isSelected
-                        ? "bg-primary text-white"
+                        ? "bg-[#6366F1] text-white"
                         : "border-2 border-border text-foreground/30"
                   }`}
                 >
@@ -165,20 +176,16 @@ export default function BuildScheme({ card, onAnswer }: Props) {
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="btn-press mt-2 py-4 rounded-full bg-primary text-white font-bold text-base disabled:opacity-30 disabled:cursor-not-allowed transition-opacity shadow-lg shadow-primary/20"
+          className="btn-premium-dark mt-2 py-4 rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
         >
           {isOrdering
             ? `Проверить (${currentCount}/${correctCount} шагов)`
             : `Проверить (${currentCount}/${correctCount})`}
         </button>
       ) : (
-        <div className={`animate-result mt-1 p-5 rounded-2xl text-sm font-medium ${
-          wasCorrect
-            ? "bg-success-light border border-success/30 text-emerald-800"
-            : "bg-danger-light border border-danger/30 text-rose-800"
-        }`}>
+        <ExplanationPanel correct={wasCorrect}>
           {wasCorrect ? card.successMessage : `Неверно. ${card.successMessage}`}
-        </div>
+        </ExplanationPanel>
       )}
     </div>
   );

@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from "react";
 import type { VisualQuizCard } from "@/types/card";
+import AnswerOption from "@/components/ui/AnswerOption";
+import ExplanationPanel from "@/components/ui/ExplanationPanel";
 
 interface Props {
   card: VisualQuizCard;
@@ -30,11 +32,9 @@ export default function VisualQuiz({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-4 p-6">
-      <div className="text-xs font-bold text-muted uppercase tracking-widest">
-        Что на снимке?
-      </div>
+      <div className="aurora-card-type">Что на снимке?</div>
 
-      <div className="rounded-2xl overflow-hidden bg-surface">
+      <div className="aurora-hairline rounded-2xl overflow-hidden bg-surface">
         {imgError || card.imageUrl.includes("placeholder") ? (
           <div className="w-full h-48 flex items-center justify-center bg-surface border border-border/50 rounded-2xl">
             <div className="text-center">
@@ -62,36 +62,29 @@ export default function VisualQuiz({ card, onAnswer }: Props) {
       <div className="grid grid-cols-2 gap-3">
         {shuffledIndices.map((i) => {
           const opt = card.options[i];
-          let style = "border-border bg-card text-foreground/70";
+          let state: "neutral" | "correct" | "wrong" | "dim" = "neutral";
           if (answered) {
-            if (opt.isCorrect)
-              style = "border-success bg-success-light text-emerald-800";
-            else if (i === selected)
-              style = "border-danger bg-danger-light text-rose-800";
-            else style = "border-border bg-card opacity-40";
+            if (opt.isCorrect) state = "correct";
+            else if (i === selected) state = "wrong";
+            else state = "dim";
           }
           return (
-            <button
+            <AnswerOption
               key={i}
+              state={state}
               onClick={() => handleSelect(i)}
-              className={`btn-press py-5 px-4 rounded-full border-2 text-sm text-center font-medium transition-all ${style}`}
+              className="py-5 px-4 rounded-full text-sm text-center"
             >
               {opt.text}
-            </button>
+            </AnswerOption>
           );
         })}
       </div>
 
       {answered && (
-        <div
-          className={`animate-result p-4 rounded-2xl text-sm leading-relaxed ${
-            card.options[selected].isCorrect
-              ? "bg-success-light border border-success/30 text-emerald-800"
-              : "bg-danger-light border border-danger/30 text-rose-800"
-          }`}
-        >
+        <ExplanationPanel correct={card.options[selected].isCorrect}>
           {card.explanation}
-        </div>
+        </ExplanationPanel>
       )}
     </div>
   );
