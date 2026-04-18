@@ -7,6 +7,8 @@ import BottomNav from "@/components/ui/BottomNav";
 import { demoCards } from "@/data/cards";
 import type { Card, ClinicalCaseCard } from "@/types/card";
 import { useGamification } from "@/hooks/useGamification";
+import AnswerOption from "@/components/ui/AnswerOption";
+import ExplanationPanel from "@/components/ui/ExplanationPanel";
 
 const BLITZ_COUNT = 5;
 const STORAGE_KEY = "sd-blitz-date";
@@ -74,14 +76,26 @@ export default function MorningBlitzPage() {
         <TopBar showBack />
         <main className="flex-1 pt-24 flex items-center justify-center px-6">
           <div className="text-center">
-            <div className="text-5xl font-extralight text-foreground tracking-tight leading-none mb-4">
-              ✓
-            </div>
+            <svg
+              width="56"
+              height="56"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mb-4 mx-auto"
+              style={{ color: "var(--color-aurora-violet)" }}
+              aria-hidden="true"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
             <p className="text-sm text-foreground mb-2">Блиц пройден сегодня</p>
             <p className="text-xs text-muted mb-6">Приходите завтра утром</p>
             <button
               onClick={() => router.push("/topics")}
-              className="px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-medium"
+              className="btn-premium-dark px-6 py-2.5 rounded-xl text-sm font-medium"
             >
               К учёбе
             </button>
@@ -99,7 +113,7 @@ export default function MorningBlitzPage() {
         <TopBar showBack />
         <main className="flex-1 pt-24 flex items-center justify-center px-6">
           <div className="text-center">
-            <div className="text-5xl font-extralight text-foreground tracking-tight leading-none mb-2">
+            <div className="text-5xl font-extralight tracking-tight leading-none mb-2 aurora-text tabular-nums">
               {correct}/{BLITZ_COUNT}
             </div>
             <p className="text-xs uppercase tracking-[0.2em] text-muted mt-2 font-medium mb-8">
@@ -110,11 +124,7 @@ export default function MorningBlitzPage() {
               {results.map((r, i) => (
                 <div
                   key={i}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                    r
-                      ? "bg-success/10 text-success"
-                      : "bg-danger/10 text-danger"
-                  }`}
+                  className={`aurora-blitz-dot ${r ? "aurora-blitz-dot--correct" : "aurora-blitz-dot--wrong"}`}
                 >
                   {i + 1}
                 </div>
@@ -123,7 +133,7 @@ export default function MorningBlitzPage() {
 
             <button
               onClick={() => router.push("/topics")}
-              className="px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-medium"
+              className="btn-premium-dark px-6 py-2.5 rounded-xl text-sm font-medium"
             >
               К учёбе
             </button>
@@ -141,7 +151,10 @@ export default function MorningBlitzPage() {
         <div className="px-6 pt-8">
           {/* Progress */}
           <div className="flex items-center justify-between mb-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium">
+            <p
+              className="text-xs uppercase tracking-[0.2em] font-medium"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
               Утренний блиц
             </p>
             <p className="text-xs text-muted">
@@ -153,14 +166,10 @@ export default function MorningBlitzPage() {
             {Array.from({ length: BLITZ_COUNT }).map((_, i) => (
               <div
                 key={i}
-                className={`flex-1 h-1 rounded-full ${
+                className={`aurora-blitz-seg ${
                   i < current
-                    ? results[i]
-                      ? "bg-success"
-                      : "bg-danger"
-                    : i === current
-                    ? "bg-primary"
-                    : "bg-border"
+                    ? results[i] ? "aurora-blitz-seg--correct" : "aurora-blitz-seg--wrong"
+                    : i === current ? "aurora-blitz-seg--current" : "aurora-blitz-seg--future"
                 }`}
               />
             ))}
@@ -170,9 +179,7 @@ export default function MorningBlitzPage() {
           {q && (
             <div>
               {q.scenario && (
-                <p className="text-sm text-muted mb-4 leading-relaxed">
-                  {q.scenario}
-                </p>
+                <div className="aurora-scenario mb-4">{q.scenario}</div>
               )}
               <p className="text-sm text-foreground font-medium mb-6 leading-relaxed">
                 {q.question}
@@ -182,19 +189,16 @@ export default function MorningBlitzPage() {
                 {q.options.map((opt, idx) => {
                   const isSelected = selected === idx;
                   const showResult = selected !== null;
-                  let bg = "bg-surface border-border";
-                  if (showResult && opt.isCorrect) bg = "bg-success/10 border-success/30";
-                  else if (isSelected && !opt.isCorrect) bg = "bg-danger/10 border-danger/30";
-
+                  let state: "neutral" | "correct" | "wrong" | "dim" = "neutral";
+                  if (showResult) {
+                    if (opt.isCorrect) state = "correct";
+                    else if (isSelected) state = "wrong";
+                    else state = "dim";
+                  }
                   return (
-                    <button
-                      key={idx}
-                      onClick={() => handleSelect(idx)}
-                      disabled={selected !== null}
-                      className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-colors ${bg}`}
-                    >
+                    <AnswerOption key={idx} state={state} onClick={() => handleSelect(idx)}>
                       {opt.text}
-                    </button>
+                    </AnswerOption>
                   );
                 })}
               </div>
@@ -202,12 +206,12 @@ export default function MorningBlitzPage() {
               {/* Explanation after answer */}
               {selected !== null && (
                 <div className="mb-6">
-                  <p className="text-xs text-muted leading-relaxed mb-4">
+                  <ExplanationPanel correct={q.options[selected].isCorrect}>
                     {q.options.find((o) => o.isCorrect)?.explanation}
-                  </p>
+                  </ExplanationPanel>
                   <button
                     onClick={handleNext}
-                    className="w-full py-2.5 rounded-xl bg-primary text-white text-sm font-medium"
+                    className="btn-premium-dark w-full py-2.5 rounded-xl text-sm font-medium mt-4"
                   >
                     {current + 1 < BLITZ_COUNT ? "Дальше" : "Результаты"}
                   </button>
