@@ -705,12 +705,14 @@ export default function CompanionOverlay() {
                       aria-label={isListening ? "Остановить запись" : "Голосовой ввод"}
                       className={`absolute right-2 top-2 p-1.5 rounded-lg transition-colors ${
                         isListening
-                          ? "text-danger bg-danger/10"
+                          ? ""
                           : "text-muted hover:text-primary"
                       }`}
                       style={
                         isListening
                           ? {
+                              color: "var(--color-aurora-pink)",
+                              background: "var(--aurora-pink-soft)",
                               transform: `scale(${1 + voiceLevel * 0.25})`,
                               boxShadow: `0 0 ${Math.round(voiceLevel * 14)}px rgba(239, 68, 68, 0.45)`,
                               transition: "transform 80ms linear, box-shadow 80ms linear",
@@ -728,7 +730,7 @@ export default function CompanionOverlay() {
                   )}
                 </div>
                 {voiceError && (
-                  <p className="mt-1 text-[10px] text-danger">{voiceError}</p>
+                  <p className="mt-1 text-[10px]" style={{ color: "var(--color-aurora-pink)" }}>{voiceError}</p>
                 )}
                 <button
                   type="submit"

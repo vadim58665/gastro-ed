@@ -173,7 +173,7 @@ export default function ConsiliumPage() {
         <TopBar />
         <main className="flex-1 pt-24 pb-20 flex items-center justify-center px-6">
           <div className="text-center max-w-xs">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-6">
+            <p className="text-xs uppercase tracking-[0.2em] font-medium mb-6" style={{ color: "var(--color-aurora-violet)" }}>
               Консилиум
             </p>
             <p className="text-sm text-foreground mb-2">

@@ -232,7 +232,7 @@ export default function CompanionChat({
 
         {error && (
           <div className="text-center">
-            <p className="text-xs text-danger">{error}</p>
+            <p className="text-xs" style={{ color: "var(--color-aurora-pink)" }}>{error}</p>
             <button
               onClick={() => setError(null)}
               className="text-[10px] uppercase tracking-widest text-muted mt-1"

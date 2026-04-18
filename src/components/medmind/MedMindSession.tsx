@@ -93,7 +93,7 @@ export default function MedMindSession() {
 
       <div className="grid grid-cols-3 gap-3 text-center">
         <div>
-          <p className="text-xl font-extralight text-danger">
+          <p className="text-xl font-extralight" style={{ color: "var(--color-aurora-pink)" }}>
             {session.weakCards.length}
           </p>
           <p className="text-[9px] uppercase tracking-[0.15em] text-muted">
@@ -101,7 +101,7 @@ export default function MedMindSession() {
           </p>
         </div>
         <div>
-          <p className="text-xl font-extralight text-warning">
+          <p className="text-xl font-extralight" style={{ color: "var(--color-aurora-violet)" }}>
             {session.reviewCards.length}
           </p>
           <p className="text-[9px] uppercase tracking-[0.15em] text-muted">
@@ -109,7 +109,7 @@ export default function MedMindSession() {
           </p>
         </div>
         <div>
-          <p className="text-xl font-extralight text-success">
+          <p className="text-xl font-extralight" style={{ color: "var(--color-aurora-indigo)" }}>
             {session.newCards.length}
           </p>
           <p className="text-[9px] uppercase tracking-[0.15em] text-muted">

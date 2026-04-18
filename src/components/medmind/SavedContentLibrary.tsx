@@ -165,7 +165,7 @@ function SavedContentCard({
             </button>
             <button
               onClick={onDelete}
-              className="text-[10px] uppercase tracking-widest text-muted hover:text-danger transition-colors"
+              className="text-[10px] uppercase tracking-widest text-muted aurora-hover-pink"
             >
               Удалить
             </button>

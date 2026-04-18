@@ -484,8 +484,8 @@ function DoctorBody({ size, state }: { size: number; state: CharacterState }) {
           strokeWidth="1"
         />
         {/* Red cross */}
-        <rect x="36" y="10" width="8" height="18" rx="1" fill="#ef4444" />
-        <rect x="31" y="15" width="18" height="8" rx="1" fill="#ef4444" />
+        <rect x="36" y="10" width="8" height="18" rx="1" fill="var(--color-aurora-pink)" />
+        <rect x="31" y="15" width="18" height="8" rx="1" fill="var(--color-aurora-pink)" />
         {/* Cap shadow on forehead */}
         <rect x="8" y="30" width="64" height="3" fill="rgba(0,0,0,0.12)" />
       </svg>
@@ -711,7 +711,7 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
               style={{
                 width: size * 0.34,
                 height: size * 0.34,
-                background: "radial-gradient(circle at 35% 35%, #fef3c7, #fcd34d 70%, #f59e0b 100%)",
+                background: "radial-gradient(circle at 35% 35%, var(--aurora-pink-soft), color-mix(in srgb, var(--color-aurora-violet) 70%, transparent) 70%, var(--color-aurora-violet) 100%)",
                 boxShadow: "inset 0 2px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2)",
               }}
             >

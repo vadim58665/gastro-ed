@@ -1077,6 +1077,11 @@ body {
   }
 }
 
+/* Aurora hover utility (Phase 10) */
+.aurora-hover-pink { transition: color 0.15s ease; }
+.aurora-hover-pink:hover { color: var(--color-aurora-pink); }
+@media (prefers-reduced-motion: reduce) { .aurora-hover-pink { transition: none; } }
+
 /* ===========================================================
    Theme: Mocha (warm coffee & cream)
    =========================================================== */
