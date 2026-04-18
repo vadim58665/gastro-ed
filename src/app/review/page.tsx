@@ -65,8 +65,8 @@ function formatRelativeTime(date: Date): string {
 }
 
 function getDifficultyLabel(difficulty: number): { text: string; color: string } | null {
-  if (difficulty > 7) return { text: "высокая", color: "text-danger" };
-  if (difficulty > 4) return { text: "средняя", color: "text-warning" };
+  if (difficulty > 7) return { text: "высокая", color: "var(--color-aurora-pink)" };
+  if (difficulty > 4) return { text: "средняя", color: "var(--color-aurora-violet)" };
   return null;
 }
 
@@ -211,7 +211,7 @@ export default function ReviewPage() {
                     </div>
                   </div>
                   {fails >= 3 ? (
-                    <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full text-danger bg-danger/10">
+                    <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full" style={{ color: "var(--color-aurora-pink)", background: "var(--aurora-pink-soft)" }}>
                       {fails}x
                     </span>
                   ) : isDue ? (
@@ -256,7 +256,10 @@ export default function ReviewPage() {
               <p className="text-[10px] uppercase tracking-[0.25em] text-muted font-semibold mb-1">
                 Точность
               </p>
-              <div className={`text-7xl font-extralight tracking-tight leading-none ${isGood ? "text-success" : "text-danger"}`}>
+              <div
+                className="text-7xl font-extralight tracking-tight leading-none"
+                style={{ color: isGood ? "var(--color-aurora-indigo)" : "var(--color-aurora-pink)" }}
+              >
                 {accuracy}%
               </div>
               <p className="text-[11px] text-muted mt-2">
@@ -268,11 +271,11 @@ export default function ReviewPage() {
 
             <div className="flex justify-center gap-8 mb-6">
               <div className="text-center">
-                <div className="text-2xl font-extralight text-success">{correct}</div>
+                <div className="text-2xl font-extralight" style={{ color: "var(--color-aurora-indigo)" }}>{correct}</div>
                 <div className="text-[9px] uppercase tracking-[0.15em] text-muted font-semibold">верно</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-extralight text-danger">{wrong}</div>
+                <div className="text-2xl font-extralight" style={{ color: "var(--color-aurora-pink)" }}>{wrong}</div>
                 <div className="text-[9px] uppercase tracking-[0.15em] text-muted font-semibold">ошибки</div>
               </div>
               <div className="text-center">
@@ -288,9 +291,9 @@ export default function ReviewPage() {
                 </p>
                 <div className="flex flex-col gap-1.5">
                   {wrongCards.map((c) => (
-                    <div key={c.id} className="flex justify-between items-center px-4 py-3 bg-danger/8 rounded-xl">
+                    <div key={c.id} className="flex justify-between items-center px-4 py-3 rounded-xl" style={{ background: "var(--aurora-pink-soft)" }}>
                       <span className="text-xs text-foreground">{c.topic}</span>
-                      <span className="text-[10px] text-danger font-semibold">{c.fails} {pluralize(c.fails, "ошибка", "ошибки", "ошибок")}</span>
+                      <span className="text-[10px] font-semibold" style={{ color: "var(--color-aurora-pink)" }}>{c.fails} {pluralize(c.fails, "ошибка", "ошибки", "ошибок")}</span>
                     </div>
                   ))}
                 </div>
@@ -404,11 +407,11 @@ export default function ReviewPage() {
                 <div className="text-[9px] uppercase tracking-[0.15em] text-muted font-semibold">всего</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-extralight text-success">{cardStats.mastered}</div>
+                <div className="text-2xl font-extralight" style={{ color: "var(--color-aurora-indigo)" }}>{cardStats.mastered}</div>
                 <div className="text-[9px] uppercase tracking-[0.15em] text-muted font-semibold">выучено</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-extralight text-danger">{problemCount}</div>
+                <div className="text-2xl font-extralight" style={{ color: "var(--color-aurora-pink)" }}>{problemCount}</div>
                 <div className="text-[9px] uppercase tracking-[0.15em] text-muted font-semibold">сложные</div>
               </div>
             </div>
@@ -528,11 +531,11 @@ export default function ReviewPage() {
                 <div className="text-[9px] uppercase tracking-[0.15em] text-muted font-semibold">всего</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-extralight text-success">{cardStats.mastered}</div>
+                <div className="text-2xl font-extralight" style={{ color: "var(--color-aurora-indigo)" }}>{cardStats.mastered}</div>
                 <div className="text-[9px] uppercase tracking-[0.15em] text-muted font-semibold">выучено</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-extralight text-danger">{problemCount}</div>
+                <div className="text-2xl font-extralight" style={{ color: "var(--color-aurora-pink)" }}>{problemCount}</div>
                 <div className="text-[9px] uppercase tracking-[0.15em] text-muted font-semibold">сложные</div>
               </div>
             </div>
@@ -598,7 +601,7 @@ export default function ReviewPage() {
                 {currentCard.topic}
               </span>
               {consecutiveFails >= 3 && (
-                <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-danger/12 text-danger">
+                <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold" style={{ color: "var(--color-aurora-pink)", background: "var(--aurora-pink-soft)" }}>
                   {consecutiveFails} ошибок подряд
                 </span>
               )}
@@ -613,7 +616,7 @@ export default function ReviewPage() {
             <span className="text-[10px] text-muted">Повтор #{reps}</span>
           )}
           {diffLabel && (
-            <span className={`text-[10px] ${diffLabel.color}`}>Сложность: {diffLabel.text}</span>
+            <span className="text-[10px]" style={{ color: diffLabel.color }}>Сложность: {diffLabel.text}</span>
           )}
         </div>
 
@@ -623,11 +626,16 @@ export default function ReviewPage() {
             <button
               ref={nextRef}
               onClick={handleNext}
-              className={`w-full py-3.5 rounded-2xl text-sm font-medium transition-colors ${
-                lastCorrect
-                  ? "bg-success/15 text-success border border-success/25"
-                  : "bg-danger/15 text-danger border border-danger/25"
-              }`}
+              className="w-full py-3.5 rounded-2xl text-sm font-medium transition-colors border"
+              style={lastCorrect ? {
+                background: "var(--aurora-indigo-soft)",
+                color: "var(--color-aurora-indigo)",
+                borderColor: "var(--aurora-indigo-border)",
+              } : {
+                background: "var(--aurora-pink-soft)",
+                color: "var(--color-aurora-pink)",
+                borderColor: "var(--aurora-pink-border)",
+              }}
             >
               {lastCorrect ? "Далее" : "Повторить позже"}
             </button>
