@@ -117,7 +117,10 @@ export default function TestModeSelector({ onSelect, mistakeCount = 0 }: TestMod
   return (
     <div className="px-6 py-4">
       <div className="text-center mb-8">
-        <p className="text-[10px] uppercase tracking-[0.28em] text-muted font-semibold mb-3">
+        <p
+          className="text-[10px] uppercase tracking-[0.28em] font-semibold mb-3"
+          style={{ color: "var(--color-aurora-violet)" }}
+        >
           Выберите режим
         </p>
         <h2 className="text-3xl font-extralight text-foreground tracking-tight">

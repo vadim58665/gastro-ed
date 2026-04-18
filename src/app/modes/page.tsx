@@ -95,7 +95,7 @@ export default function ModesPage() {
                 <Link
                   key={mode.title}
                   href={mode.href}
-                  className="block w-full text-left bg-card rounded-2xl border border-border px-5 py-4 hover:bg-surface transition-colors btn-press"
+                  className="block w-full text-left bg-card rounded-2xl aurora-hairline px-5 py-4 hover:bg-surface transition-colors btn-press"
                 >
                   <span className="text-base font-light text-foreground">
                     {mode.title}
@@ -128,7 +128,7 @@ export default function ModesPage() {
                 <Link
                   key={mode.title}
                   href={mode.href}
-                  className="block w-full text-left bg-card rounded-2xl border border-border px-5 py-4 hover:bg-surface transition-colors btn-press"
+                  className="block w-full text-left bg-card rounded-2xl aurora-hairline px-5 py-4 hover:bg-surface transition-colors btn-press"
                 >
                   <span className="text-base font-light text-foreground">
                     {mode.title}

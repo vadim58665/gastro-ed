@@ -66,7 +66,8 @@ export default function BlockPage() {
           <p className="text-sm text-muted">Вопросы не найдены</p>
           <button
             onClick={() => router.push("/tests")}
-            className="mt-4 text-xs uppercase tracking-[0.15em] font-semibold text-primary"
+            className="mt-4 text-xs uppercase tracking-[0.15em] font-semibold"
+            style={{ color: "var(--color-aurora-violet)" }}
           >
             Назад к блокам
           </button>
@@ -83,7 +84,10 @@ export default function BlockPage() {
         <TopBar showBack />
         <main className="flex-1 pt-20 pb-20 overflow-y-auto">
           <div className="text-center mb-2 px-6 pt-4">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-muted font-semibold">
+            <p
+              className="text-[10px] uppercase tracking-[0.28em] font-semibold"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
               Блок
             </p>
             <p className="text-5xl font-extralight text-foreground tracking-tight leading-none mt-2 tabular-nums">
@@ -165,9 +169,10 @@ export default function BlockPage() {
         <div className="px-6 mb-4">
           <div className="w-full h-1 bg-border rounded-full overflow-hidden">
             <div
-              className="h-full bg-primary rounded-full transition-all"
+              className="h-full rounded-full transition-all"
               style={{
                 width: `${Math.round(((testMode.currentIndex + 1) / testMode.questions.length) * 100)}%`,
+                background: "var(--aurora-gradient-primary)",
               }}
             />
           </div>
@@ -175,7 +180,7 @@ export default function BlockPage() {
 
         {/* Question */}
         <div className="px-3">
-          <div className="w-full max-w-lg mx-auto bg-card rounded-3xl border border-border card-shadow">
+          <div className="w-full max-w-lg mx-auto bg-card rounded-3xl aurora-hairline">
             <QuestionView
               key={`${current.id}-${testMode.mode}-${testMode.currentIndex}`}
               question={current}

@@ -74,7 +74,10 @@ export default function CasesPage() {
                 Изучено 0 из 0 задач
               </p>
               <div className="w-full h-1 bg-border rounded-full overflow-hidden mt-2 max-w-xs mx-auto">
-                <div className="h-full bg-primary rounded-full" style={{ width: "0%" }} />
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: "0%", background: "var(--aurora-gradient-primary)" }}
+                />
               </div>
             </div>
 
