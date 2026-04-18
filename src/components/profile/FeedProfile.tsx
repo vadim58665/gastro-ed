@@ -305,6 +305,11 @@ export default function FeedProfile() {
           title="Моя библиотека"
           sub="Сохранённые AI-объяснения"
           chip={{ label: "2", variant: "indigo" }}
+          onClick={() =>
+            document
+              .getElementById("saved-library")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
         />
         <ToolRow
           accent="pink-violet"
@@ -343,7 +348,7 @@ export default function FeedProfile() {
       )}
 
       {user && (
-        <div className="px-6 mb-5">
+        <div id="saved-library" className="px-6 mb-5 scroll-mt-24">
           <SavedContentLibrary />
         </div>
       )}

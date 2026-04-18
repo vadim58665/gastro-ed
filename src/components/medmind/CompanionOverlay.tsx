@@ -602,7 +602,7 @@ export default function CompanionOverlay() {
                         executeAction(a);
                       }
                     }}
-                    className="flex-1 py-2 rounded-xl bg-primary text-white text-[10px] uppercase tracking-[0.15em] font-semibold btn-press"
+                    className="flex-1 py-2 rounded-xl btn-premium-dark text-[10px] uppercase tracking-[0.15em] font-semibold btn-press"
                   >
                     Помогите сейчас
                   </button>
@@ -647,7 +647,7 @@ export default function CompanionOverlay() {
                     </p>
                     <button
                       onClick={() => handleAction("free")}
-                      className="w-full py-2.5 rounded-full bg-primary text-white text-xs font-medium uppercase tracking-widest btn-press"
+                      className="w-full py-2.5 rounded-full btn-premium-dark text-xs font-medium uppercase tracking-widest btn-press"
                     >
                       Задать вопрос
                     </button>
@@ -658,11 +658,15 @@ export default function CompanionOverlay() {
                       <button
                         key={a.key}
                         onClick={() => handleAction(a.key)}
-                        className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium transition-colors border border-transparent ${
-                          a.prebuilt
-                            ? "text-foreground bg-primary/5 hover:bg-primary/10 hover:border-primary/20"
-                            : "text-foreground hover:bg-primary/5 hover:text-primary hover:border-primary/20"
-                        }`}
+                        className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium transition-colors border text-foreground"
+                        style={{
+                          background: a.prebuilt
+                            ? "var(--aurora-violet-soft)"
+                            : "transparent",
+                          borderColor: a.prebuilt
+                            ? "var(--aurora-violet-border)"
+                            : "transparent",
+                        }}
                       >
                         {a.label}
                       </button>
@@ -677,7 +681,7 @@ export default function CompanionOverlay() {
                   </p>
                   <button
                     onClick={() => { handleClose(); router.push("/subscription"); }}
-                    className="w-full py-2.5 rounded-full bg-primary text-white text-xs font-medium uppercase tracking-widest btn-press"
+                    className="w-full py-2.5 rounded-full btn-premium-dark text-xs font-medium uppercase tracking-widest btn-press"
                   >
                     Подключить
                   </button>
@@ -735,7 +739,7 @@ export default function CompanionOverlay() {
                 <button
                   type="submit"
                   disabled={!input.trim()}
-                  className="mt-2 w-full py-2 rounded-xl bg-primary text-white text-xs font-medium uppercase tracking-widest disabled:opacity-30 transition-opacity"
+                  className="mt-2 w-full py-2 rounded-xl btn-premium-dark text-xs font-medium uppercase tracking-widest disabled:opacity-30 transition-opacity"
                 >
                   Отправить
                 </button>
@@ -760,7 +764,8 @@ export default function CompanionOverlay() {
                     setShowInput(true);
                     setTimeout(() => inputRef.current?.focus(), 100);
                   }}
-                  className="flex-1 py-2 rounded-lg text-[10px] uppercase tracking-widest text-primary hover:bg-primary/5 transition-colors"
+                  className="flex-1 py-2 rounded-lg text-[10px] uppercase tracking-widest transition-colors hover:bg-[var(--aurora-violet-soft)]"
+                  style={{ color: "var(--color-aurora-violet)" }}
                 >
                   Ещё вопрос
                 </button>

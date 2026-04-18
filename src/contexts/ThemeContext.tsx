@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 
-export type ThemeId = "default" | "mocha" | "graphite" | "bordeaux";
+export type ThemeId = "default" | "mocha" | "graphite";
 export type LanguageId = "ru" | "en" | "uz" | "kk" | "tk" | "zh" | "hi" | "ar" | "fa" | "tg" | "fr";
 export type CompanionKind = "orb" | "doctor" | "mouse" | "owl";
 export type CompanionVisibility = "visible" | "half" | "hidden";
@@ -57,9 +57,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Load persisted values after hydration to avoid SSR mismatch
   useEffect(() => {
     try {
-      const storedTheme = localStorage.getItem(THEME_KEY) as ThemeId | null;
-      if (storedTheme === "mocha" || storedTheme === "graphite" || storedTheme === "bordeaux" || storedTheme === "default") {
-        setThemeState(storedTheme);
+      const storedRaw = localStorage.getItem(THEME_KEY);
+      // Legacy users могли сохранить "bordeaux" - fallback на "mocha".
+      if (storedRaw === "bordeaux") {
+        setThemeState("mocha");
+        try { localStorage.setItem(THEME_KEY, "mocha"); } catch {}
+      } else if (
+        storedRaw === "mocha" ||
+        storedRaw === "graphite" ||
+        storedRaw === "default"
+      ) {
+        setThemeState(storedRaw);
       }
       const storedLang = localStorage.getItem(LANG_KEY) as LanguageId | null;
       if (storedLang === "ru" || storedLang === "en" || storedLang === "uz" || storedLang === "kk" || storedLang === "tk" || storedLang === "zh" || storedLang === "hi" || storedLang === "ar" || storedLang === "fa" || storedLang === "tg" || storedLang === "fr") {
