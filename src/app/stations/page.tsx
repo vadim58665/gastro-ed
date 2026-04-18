@@ -18,7 +18,7 @@ export default function StationsPage() {
       <TopBar />
       <main className="flex-1 pt-24 pb-16 overflow-y-auto">
         <div className="max-w-lg mx-auto px-5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted mb-1">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] mb-1" style={{ color: "var(--color-aurora-violet)" }}>
             Подготовка
           </p>
           <h1 className="text-2xl font-extralight text-foreground tracking-tight mb-6">
