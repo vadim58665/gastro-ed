@@ -12,6 +12,8 @@ interface TopBarProps {
   showSettings?: boolean;
   /** Handler клика на settings-btn. */
   onSettingsClick?: () => void;
+  /** На странице /feed - полупрозрачный фон для TikTok-вайба. */
+  transparent?: boolean;
 }
 
 export default function TopBar({
@@ -19,6 +21,7 @@ export default function TopBar({
   premium = false,
   showSettings = false,
   onSettingsClick,
+  transparent = false,
 }: TopBarProps) {
   const router = useRouter();
 
@@ -27,7 +30,7 @@ export default function TopBar({
       <header
         className="fixed top-0 left-0 right-0 z-50 overflow-hidden"
         style={{
-          background: "rgba(255,255,255,0.82)",
+          background: transparent ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.82)",
           borderBottom: "1px solid rgba(99,102,241,0.08)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",

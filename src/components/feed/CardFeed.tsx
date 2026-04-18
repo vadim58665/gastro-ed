@@ -213,7 +213,7 @@ export default function CardFeed({ cards }: Props) {
                 if (el) innerRefs.current.set(card.id, el);
                 else innerRefs.current.delete(card.id);
               }}
-              className="w-full max-w-lg mx-auto h-full rounded-3xl card-protected surface-raised overflow-y-auto"
+              className="w-full max-w-lg mx-auto h-full rounded-3xl card-protected aurora-hairline bg-white overflow-y-auto"
               onContextMenu={(e) => e.preventDefault()}
               onCopy={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
