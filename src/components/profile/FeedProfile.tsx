@@ -145,14 +145,13 @@ export default function FeedProfile() {
       </div>
 
       <div className="px-6 pt-2 pb-4 flex flex-col items-center">
-        <div className="text-[10px] tracking-[0.25em] uppercase text-muted font-medium mb-4">
+        <div className="text-[10px] tracking-[0.25em] uppercase text-muted font-medium mb-8">
           С возвращением
         </div>
         <AvatarStack
           initial={avatarLetter}
           size={128}
           verified={isPro}
-          activityLabel={pageData.cardsToday > 0 ? `${pageData.cardsToday} сегодня` : undefined}
           activityPercent={todayActivityPercent}
         />
         <div className="text-[22px] font-light tracking-tight text-foreground mt-5">
@@ -161,6 +160,14 @@ export default function FeedProfile() {
         <div className="text-[10px] text-muted mt-1 tracking-wide">
           {user?.email}
         </div>
+        {pageData.cardsToday > 0 && (
+          <div
+            className="mt-2 text-[9px] tracking-[0.22em] uppercase font-semibold"
+            style={{ color: "#6366F1" }}
+          >
+            {pageData.cardsToday} сегодня
+          </div>
+        )}
         <div className="flex gap-1.5 mt-3.5 flex-wrap justify-center">
           {isPro && (
             <span
