@@ -19,10 +19,13 @@ export default function AuroraStages({ stages, currentIndex, className = "" }: A
           const state: "past" | "active" | "future" =
             i < currentIndex ? "past" : i === currentIndex ? "active" : "future";
           return (
-            <div key={i} className="flex items-center flex-1 last:flex-none">
-              <div className="flex flex-col items-center">
+            <div key={i} className="flex items-center flex-1 last:flex-none min-w-0">
+              <div className="flex flex-col items-center min-w-0 max-w-full">
                 <div className={`aurora-stage-dot aurora-stage-dot--${state}`} />
-                <div className={`aurora-stage-label aurora-stage-label--${state}`}>
+                <div
+                  className={`aurora-stage-label aurora-stage-label--${state} max-w-full truncate`}
+                  title={label}
+                >
                   {label.toUpperCase()}
                 </div>
               </div>

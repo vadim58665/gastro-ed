@@ -234,19 +234,10 @@ export default function DailyCasePlayer({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Aurora timer (replaces old 3px bar) */}
-      <AuroraTimer timeLeftMs={timeLeft} totalMs={STEP_TIME_LIMIT} />
-
-      {/* Header row: stages + score */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <AuroraStages
-            stages={dailyCase.steps.map((s) => stepLabels[s.type])}
-            currentIndex={currentStep}
-          />
-        </div>
+      {/* Timer row + optional points (prevents overlap with stages labels below) */}
+      <div className="flex items-center gap-4">
         {currentPoints > 0 && (
-          <div className="text-right shrink-0">
+          <div className="shrink-0">
             <div className="text-[9px] uppercase tracking-[0.22em] text-white/50 font-semibold">
               очки
             </div>
@@ -255,7 +246,16 @@ export default function DailyCasePlayer({
             </div>
           </div>
         )}
+        <div className="flex-1 min-w-0">
+          <AuroraTimer timeLeftMs={timeLeft} totalMs={STEP_TIME_LIMIT} />
+        </div>
       </div>
+
+      {/* Stages (full width, no competing right-aligned content) */}
+      <AuroraStages
+        stages={dailyCase.steps.map((s) => stepLabels[s.type])}
+        currentIndex={currentStep}
+      />
 
       {/* Step content */}
       <div key={currentStep} className="animate-result flex flex-col gap-4">
