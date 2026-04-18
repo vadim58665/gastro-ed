@@ -1059,6 +1059,25 @@ body {
 }
 
 /* ===========================================================
+   Aurora welcome / OTP utilities (Phase 6, 2026-04-18)
+   =========================================================== */
+
+.aurora-otp-cell {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.aurora-otp-cell:focus {
+  outline: none;
+  border-color: var(--color-aurora-indigo);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-aurora-indigo) 30%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-otp-cell {
+    transition: none;
+  }
+}
+
+/* ===========================================================
    Theme: Mocha (warm coffee & cream)
    =========================================================== */
 html[data-theme="mocha"] {
