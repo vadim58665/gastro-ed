@@ -179,7 +179,7 @@ export function useProfilePageData(): ProfilePageData {
         const uniqueTopicsCount = new Set(allCardIds.map((r) => r.card_id)).size;
 
         // Days in product - user.created_at is a standard Supabase User field (string)
-        const createdAt = user.created_at
+        const createdAt = user?.created_at
           ? new Date(user.created_at)
           : today;
         const daysInProduct = Math.max(1, daysBetween(createdAt, today));
