@@ -1001,6 +1001,64 @@ body {
 }
 
 /* ===========================================================
+   Aurora morning-blitz utilities (Phase 5, 2026-04-18)
+   =========================================================== */
+
+/* Segment of progress-bar (5 segments) */
+.aurora-blitz-seg {
+  flex: 1;
+  height: 3px;
+  border-radius: 9999px;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.aurora-blitz-seg--correct {
+  background: linear-gradient(90deg, var(--color-aurora-indigo), var(--color-aurora-violet));
+}
+.aurora-blitz-seg--wrong {
+  background: var(--color-aurora-pink);
+}
+.aurora-blitz-seg--current {
+  background: var(--aurora-gradient-primary);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent);
+}
+.aurora-blitz-seg--future {
+  background: var(--aurora-indigo-soft);
+}
+
+/* Result dot (on done-screen, 5 circles) */
+.aurora-blitz-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: all 0.2s ease;
+}
+.aurora-blitz-dot--correct {
+  background: var(--aurora-gradient-primary);
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 4px 12px -4px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent);
+}
+.aurora-blitz-dot--wrong {
+  background: color-mix(in srgb, var(--color-aurora-pink) 14%, transparent);
+  border: 1.5px solid var(--color-aurora-pink);
+  color: var(--color-aurora-pink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-blitz-seg,
+  .aurora-blitz-dot {
+    transition: none;
+  }
+}
+
+/* ===========================================================
    Theme: Mocha (warm coffee & cream)
    =========================================================== */
 html[data-theme="mocha"] {
