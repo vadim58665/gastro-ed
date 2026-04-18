@@ -69,6 +69,30 @@ const ALL_SVG = (
     <path d="M20 7v13a1 1 0 0 1-1 1h-2" />
   </svg>
 );
+const STETHOSCOPE_SVG = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 4v6a5 5 0 0 0 10 0V4" />
+    <path d="M4 4h3" />
+    <path d="M11 4h3" />
+    <circle cx="19" cy="14" r="2" />
+    <path d="M9 15v2a4 4 0 0 0 8 0v-1" />
+  </svg>
+);
+const SPARKLE_CHAT_SVG = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 12a8 8 0 1 1 3.3 6.5L3 20l1.5-4.2A7.95 7.95 0 0 1 4 12z" />
+    <path d="M12 9v2" />
+    <path d="M10 10h4" />
+    <path d="M11 14h2" />
+  </svg>
+);
+const SPARK_BOOK_SVG = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5V5.5z" />
+    <path d="M4 20.5V18h15" />
+    <path d="M16 7l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" />
+  </svg>
+);
 
 export default function TopicsPage() {
   const { reviewCards } = useReview();
@@ -291,6 +315,32 @@ export default function TopicsPage() {
                 sub="Все карточки вперемешку"
                 chip={{ label: totalCards, variant: "indigo" }}
                 onClick={handleAllClick}
+              />
+            </div>
+
+            <SectionHead title="AI-помощник" />
+            <div className="px-6 flex flex-col gap-1.5 mb-5">
+              <ToolRow
+                accent="indigo-violet"
+                icon={STETHOSCOPE_SVG}
+                title="Консилиум"
+                sub="AI-пациент для приёма"
+                chip={{ label: "Pro", variant: "dark" }}
+                href="/consilium"
+              />
+              <ToolRow
+                accent="violet-pink"
+                icon={SPARKLE_CHAT_SVG}
+                title="Ассистент"
+                sub="Спроси по учёбе"
+                href="/companion"
+              />
+              <ToolRow
+                accent="pink-violet"
+                icon={SPARK_BOOK_SVG}
+                title="Объяснения и мнемоники"
+                sub="AI разберёт сложную тему"
+                href="/companion?action=explain"
               />
             </div>
 
