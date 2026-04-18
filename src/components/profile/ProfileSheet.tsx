@@ -452,7 +452,7 @@ function MenuRow({
   return (
     <button
       onClick={onClick}
-      className="btn-press w-full flex items-center gap-4 p-4 rounded-2xl border border-border bg-card hover:border-foreground/20 transition-all text-left"
+      className="btn-press aurora-hairline w-full flex items-center gap-4 p-4 rounded-2xl bg-card hover:shadow-[var(--shadow-aurora-sm)] transition-all text-left"
     >
       <div className="shrink-0 w-12 h-12 rounded-2xl bg-surface border border-border flex items-center justify-center text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
         {icon}

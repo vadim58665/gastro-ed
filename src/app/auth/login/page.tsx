@@ -90,33 +90,47 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="bg-white/90 backdrop-blur-lg border-b border-border px-4 py-3">
+      <header className="bg-card/85 backdrop-blur-lg border-b border-border px-4 py-3">
         <div className="max-w-lg mx-auto">
-          <span className="text-sm font-medium tracking-wide text-foreground">
+          <span
+            className="text-sm font-semibold tracking-wide aurora-text"
+          >
             УмныйВрач
           </span>
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-4">
+      <div className="aurora-welcome-band" />
+
+      <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-sm">
-          <h1 className="text-4xl font-extralight text-foreground mb-2">
-            Вход
-          </h1>
-          <p className="text-sm text-muted mb-8">
-            Сохраните прогресс между устройствами
-          </p>
+          <div className="text-center mb-8">
+            <p className="text-[10px] uppercase tracking-[0.28em] font-semibold mb-3" style={{ color: "var(--color-aurora-violet)" }}>
+              Вход
+            </p>
+            <h1 className="text-4xl font-extralight text-foreground tracking-tight mb-2">
+              <span className="aurora-text">Добро пожаловать</span>
+            </h1>
+            <p className="text-sm text-muted">
+              Сохраните прогресс между устройствами
+            </p>
+          </div>
+
+          <div className="relative rounded-3xl aurora-hairline bg-card p-6 sm:p-7 shadow-[var(--shadow-aurora-md)]">
 
           {sent ? (
             <div className="space-y-6">
-              <div className="bg-surface rounded-xl p-6 border border-border">
-                <p className="text-sm text-foreground leading-relaxed mb-1">
-                  Введите 8-значный код, отправленный на
+              <div className="rounded-2xl bg-surface border border-border p-5">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-muted font-semibold mb-1.5">
+                  8-значный код
                 </p>
-                <p className="text-sm font-medium text-foreground">{email}</p>
+                <p className="text-sm text-foreground leading-relaxed">
+                  Отправлен на
+                </p>
+                <p className="text-sm font-semibold text-foreground truncate">{email}</p>
               </div>
 
-              <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
+              <div className="flex justify-center gap-1.5" onPaste={handleOtpPaste}>
                 {otp.map((digit, i) => (
                   <input
                     key={i}
@@ -128,7 +142,8 @@ export default function LoginPage() {
                     onChange={(e) => handleOtpChange(i, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(i, e)}
                     disabled={loading}
-                    className="w-11 h-14 rounded-xl border border-border bg-card text-center text-xl font-light text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all disabled:opacity-50"
+                    className="aurora-otp-cell w-10 h-13 sm:w-11 sm:h-14 rounded-xl border border-border bg-card text-center text-xl font-light text-foreground disabled:opacity-50"
+                    style={{ height: "3.25rem" }}
                   />
                 ))}
               </div>
@@ -139,31 +154,34 @@ export default function LoginPage() {
 
               {loading && (
                 <div className="flex justify-center">
-                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <div
+                    className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+                    style={{ borderColor: "var(--color-aurora-indigo)", borderTopColor: "transparent" }}
+                  />
                 </div>
               )}
 
-              <div className="flex items-center justify-center gap-4">
+              <div className="flex items-center justify-center gap-3">
                 <button
                   onClick={handleResend}
                   disabled={loading}
-                  className="text-xs text-muted hover:text-primary transition-colors uppercase tracking-wider font-medium disabled:opacity-50"
+                  className="text-[10px] text-muted uppercase tracking-[0.22em] font-semibold disabled:opacity-50 aurora-hover-pink transition-colors"
                 >
                   Отправить снова
                 </button>
                 <span className="text-border">|</span>
                 <button
                   onClick={() => { setSent(false); setEmail(""); setOtp(["", "", "", "", "", "", "", ""]); setError(null); }}
-                  className="text-xs text-muted hover:text-primary transition-colors uppercase tracking-wider font-medium"
+                  className="text-[10px] text-muted uppercase tracking-[0.22em] font-semibold aurora-hover-pink transition-colors"
                 >
                   Другой email
                 </button>
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-xs uppercase tracking-[0.2em] text-muted font-medium mb-2">
+                <label className="block text-[10px] uppercase tracking-[0.24em] text-muted font-semibold mb-2">
                   Электронная почта
                 </label>
                 <input
@@ -172,7 +190,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="doctor@example.com"
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                  className="input-refined w-full px-4 py-3 rounded-xl text-foreground text-sm focus:outline-none"
                 />
               </div>
 
@@ -183,17 +201,19 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 rounded-xl bg-primary text-white text-sm font-medium btn-press transition-colors disabled:opacity-50"
+                className="btn-press btn-premium-dark w-full py-3 rounded-xl text-xs font-semibold uppercase tracking-[0.22em] disabled:opacity-50"
               >
                 {loading ? "Отправка..." : "Получить код"}
               </button>
             </form>
           )}
 
+          </div>
+
           <div className="mt-6 text-center">
             <Link
               href="/feed"
-              className="text-sm text-muted hover:text-foreground transition-colors"
+              className="text-xs text-muted uppercase tracking-[0.22em] font-semibold aurora-hover-pink transition-colors"
             >
               Продолжить без входа
             </Link>

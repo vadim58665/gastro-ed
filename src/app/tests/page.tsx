@@ -252,8 +252,8 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
                 className="h-full rounded-full transition-all duration-700"
                 style={{
                   width: `${Math.round((totalLearned / questions.length) * 100)}%`,
-                  background: "linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)",
-                  boxShadow: "0 0 12px rgba(168, 85, 247, 0.5)",
+                  background: "var(--aurora-gradient-primary)",
+                  boxShadow: "0 0 12px color-mix(in srgb, var(--color-aurora-violet) 50%, transparent)",
                 }}
               />
             </div>

@@ -65,6 +65,17 @@
   --aurora-gradient-text: linear-gradient(135deg, #1A1A2E 0%, #6366F1 55%, #A855F7 100%);
   --aurora-gradient-premium: linear-gradient(135deg, #1A1A2E 0%, #312E81 50%, #6366F1 100%);
   --aurora-gradient-dark-bg: linear-gradient(135deg, #0F0F1A 0%, #1E1B4B 40%, #312E81 70%, #6366F1 100%);
+
+  /* Companion body tokens (Phase 17) - theme-aware skin/fur for doctor/mouse/owl */
+  --companion-doctor-skin-light: #fde1c6;
+  --companion-doctor-skin-mid: #f4c79f;
+  --companion-doctor-skin-deep: #e6a775;
+  --companion-mouse-fur-light: #e5e7eb;
+  --companion-mouse-fur-mid: #cbd5e1;
+  --companion-mouse-fur-deep: #6b7280;
+  --companion-owl-body-light: #d1b894;
+  --companion-owl-body-mid: #9d7d56;
+  --companion-owl-body-deep: #5a4428;
 }
 
 html, body {
@@ -1144,6 +1155,17 @@ html[data-theme="mocha"] {
     inset 0 1px 0 rgba(255, 248, 233, 0.8),
     0 2px 6px rgba(75, 50, 25, 0.35),
     0 18px 40px -12px rgba(139, 94, 60, 0.55);
+
+  /* Companion body tokens for Mocha - warm caramel palette */
+  --companion-doctor-skin-light: #f4d5a8;
+  --companion-doctor-skin-mid: #d9a566;
+  --companion-doctor-skin-deep: #8b5e3c;
+  --companion-mouse-fur-light: #e8dcc2;
+  --companion-mouse-fur-mid: #c7ab82;
+  --companion-mouse-fur-deep: #5a3d24;
+  --companion-owl-body-light: #e8c388;
+  --companion-owl-body-mid: #b4863e;
+  --companion-owl-body-deep: #5a3d24;
 }
 html[data-theme="mocha"] body {
   background-image:
@@ -1328,6 +1350,17 @@ html[data-theme="graphite"] {
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     0 2px 6px rgba(0, 0, 0, 0.5),
     0 18px 40px -12px rgba(0, 0, 0, 0.65);
+
+  /* Companion body tokens for Graphite - silver/stone palette */
+  --companion-doctor-skin-light: #c4cad4;
+  --companion-doctor-skin-mid: #8792a3;
+  --companion-doctor-skin-deep: #3a3d46;
+  --companion-mouse-fur-light: #3a3d46;
+  --companion-mouse-fur-mid: #2b2e36;
+  --companion-mouse-fur-deep: #0f1014;
+  --companion-owl-body-light: #a4adbc;
+  --companion-owl-body-mid: #6b7280;
+  --companion-owl-body-deep: #2b2e36;
 }
 html[data-theme="graphite"] body {
   background-color: var(--color-background);

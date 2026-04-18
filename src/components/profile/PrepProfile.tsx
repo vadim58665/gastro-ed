@@ -128,6 +128,9 @@ export default function PrepProfile() {
 
   return (
     <>
+      {/* Aurora welcome band (visible-premium polish) */}
+      <div className="aurora-welcome-band" />
+
       {/* Settings gear */}
       <div className="px-6 pt-4 flex items-center justify-end">
         <SettingsButton onClick={() => setSheetKind("settings")} />
@@ -140,7 +143,7 @@ export default function PrepProfile() {
         </p>
         <button
           onClick={() => setShowSpecPicker(!showSpecPicker)}
-          className="w-full flex items-center justify-between px-5 py-3.5 rounded-2xl bg-surface border border-border btn-press"
+          className="w-full flex items-center justify-between px-5 py-3.5 rounded-2xl bg-card aurora-hairline btn-press"
         >
           <span className="text-sm font-semibold text-foreground truncate">
             {activeSpecialty ? activeSpecialty.name : "Выберите специальность"}
@@ -205,10 +208,10 @@ export default function PrepProfile() {
           {/* Readiness overview */}
           <div className="px-6 mb-6">
             <MagicCard
-              className="rounded-3xl"
-              gradientFrom="#6366f1"
-              gradientTo="var(--color-aurora-indigo)"
-              spotlightColor="rgba(16, 185, 129, 0.14)"
+              className="rounded-3xl aurora-hairline"
+              gradientFrom="var(--color-aurora-indigo)"
+              gradientTo="var(--color-aurora-violet)"
+              spotlightColor="color-mix(in srgb, var(--color-aurora-violet) 14%, transparent)"
             >
               <div className="px-6 py-8">
                 <div className="flex items-center justify-center gap-8">
@@ -501,7 +504,7 @@ function SettingsButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="btn-press w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center text-muted hover:text-foreground transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]"
+      className="btn-press aurora-hairline w-10 h-10 rounded-full bg-card flex items-center justify-center text-muted hover:text-foreground transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]"
       aria-label="Настройки"
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

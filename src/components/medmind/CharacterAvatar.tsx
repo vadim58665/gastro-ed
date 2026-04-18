@@ -23,10 +23,10 @@ export const STORAGE_KEY = "medmind-avatar-position";
 const PADDING_PX = 8;
 
 const GLOW_COLORS: Record<CompanionKind, string> = {
-  orb: "radial-gradient(circle at 30% 30%, rgba(168, 85, 247, 0.55), rgba(99, 102, 241, 0.3) 50%, transparent 75%)",
-  doctor: "radial-gradient(circle at 30% 30%, rgba(96, 165, 250, 0.5), rgba(255, 255, 255, 0.3) 50%, transparent 75%)",
-  mouse: "radial-gradient(circle at 30% 30%, rgba(244, 114, 182, 0.4), rgba(156, 163, 175, 0.3) 50%, transparent 75%)",
-  owl: "radial-gradient(circle at 30% 30%, rgba(245, 158, 11, 0.5), rgba(180, 83, 9, 0.3) 50%, transparent 75%)",
+  orb: "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-aurora-violet) 55%, transparent), color-mix(in srgb, var(--color-aurora-indigo) 30%, transparent) 50%, transparent 75%)",
+  doctor: "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-aurora-indigo) 45%, transparent), color-mix(in srgb, var(--color-aurora-violet) 25%, transparent) 50%, transparent 75%)",
+  mouse: "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-aurora-pink) 45%, transparent), color-mix(in srgb, var(--companion-mouse-fur-mid) 40%, transparent) 50%, transparent 75%)",
+  owl: "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-aurora-pink) 45%, transparent), color-mix(in srgb, var(--color-aurora-violet) 30%, transparent) 50%, transparent 75%)",
 };
 
 /**
@@ -380,9 +380,10 @@ function OrbBody({ size, state }: { size: number; state: CharacterState }) {
       <div
         className="character-body absolute inset-0 rounded-full overflow-hidden"
         style={{
-          background: "linear-gradient(155deg, #a5a7f4 0%, #7c7ff0 30%, #6366f1 60%, #4338ca 100%)",
+          background:
+            "linear-gradient(155deg, color-mix(in srgb, var(--color-aurora-indigo) 40%, white) 0%, var(--color-aurora-indigo) 35%, var(--color-aurora-violet) 70%, color-mix(in srgb, var(--color-aurora-violet) 50%, var(--color-ink)) 100%)",
           boxShadow:
-            "0 14px 40px -12px rgba(79, 70, 229, 0.55), inset 0 3px 6px rgba(255,255,255,0.35), inset 0 -6px 12px rgba(0,0,0,0.25)",
+            "0 14px 40px -12px color-mix(in srgb, var(--color-aurora-indigo) 55%, transparent), inset 0 3px 6px rgba(255,255,255,0.35), inset 0 -6px 12px rgba(0,0,0,0.25)",
           border: "1px solid rgba(255,255,255,0.15)",
         }}
       >
@@ -419,17 +420,18 @@ function DoctorBody({ size, state }: { size: number; state: CharacterState }) {
   const isSleeping = state === "sleeping";
   return (
     <>
-      {/* Skin-toned head */}
+      {/* Theme-aware head (skin / stone / silver) */}
       <div
         className="character-body absolute inset-0 rounded-full overflow-hidden"
         style={{
-          background: "linear-gradient(155deg, #fde1c6 0%, #f4c79f 40%, #e6a775 100%)",
+          background:
+            "linear-gradient(155deg, var(--companion-doctor-skin-light) 0%, var(--companion-doctor-skin-mid) 40%, var(--companion-doctor-skin-deep) 100%)",
           boxShadow:
-            "0 14px 40px -12px rgba(180, 100, 50, 0.45), inset 0 3px 6px rgba(255,255,255,0.5), inset 0 -6px 12px rgba(120, 60, 20, 0.2)",
+            "0 14px 40px -12px color-mix(in srgb, var(--companion-doctor-skin-deep) 45%, transparent), inset 0 3px 6px rgba(255,255,255,0.5), inset 0 -6px 12px rgba(0,0,0,0.2)",
           border: "1px solid rgba(255,255,255,0.25)",
         }}
       >
-        {/* Cheek blush */}
+        {/* Cheek blush - aurora-pink */}
         <div
           aria-hidden
           className="absolute rounded-full"
@@ -438,7 +440,8 @@ function DoctorBody({ size, state }: { size: number; state: CharacterState }) {
             left: "12%",
             width: "18%",
             height: "12%",
-            background: "radial-gradient(ellipse, rgba(248, 113, 113, 0.35), transparent 70%)",
+            background:
+              "radial-gradient(ellipse, color-mix(in srgb, var(--color-aurora-pink) 40%, transparent), transparent 70%)",
             filter: "blur(3px)",
           }}
         />
@@ -450,7 +453,8 @@ function DoctorBody({ size, state }: { size: number; state: CharacterState }) {
             right: "12%",
             width: "18%",
             height: "12%",
-            background: "radial-gradient(ellipse, rgba(248, 113, 113, 0.35), transparent 70%)",
+            background:
+              "radial-gradient(ellipse, color-mix(in srgb, var(--color-aurora-pink) 40%, transparent), transparent 70%)",
             filter: "blur(3px)",
           }}
         />
@@ -476,14 +480,14 @@ function DoctorBody({ size, state }: { size: number; state: CharacterState }) {
         viewBox="0 0 80 40"
         fill="none"
       >
-        {/* Cap dome */}
+        {/* Cap dome - theme-aware */}
         <path
           d="M8 30 Q8 4 40 4 Q72 4 72 30 L72 32 L8 32 Z"
-          fill="white"
-          stroke="#e5e7eb"
+          fill="var(--color-card)"
+          stroke="var(--color-border)"
           strokeWidth="1"
         />
-        {/* Red cross */}
+        {/* Aurora-pink cross */}
         <rect x="36" y="10" width="8" height="18" rx="1" fill="var(--color-aurora-pink)" />
         <rect x="31" y="15" width="18" height="8" rx="1" fill="var(--color-aurora-pink)" />
         {/* Cap shadow on forehead */}
@@ -500,7 +504,12 @@ function DoctorBody({ size, state }: { size: number; state: CharacterState }) {
           <Eye diameter={size * 0.2} sleeping={isSleeping} sad={state === "sad"} delay="0.2s" />
         </div>
         <div style={{ marginTop: `${size * 0.07}px` }}>
-          <Mouth shape={mouthShapeFor(state)} size={size} color="#7c2d12" scale={0.9} />
+          <Mouth
+            shape={mouthShapeFor(state)}
+            size={size}
+            color="var(--companion-doctor-skin-deep)"
+            scale={0.9}
+          />
         </div>
       </div>
     </>
@@ -511,7 +520,7 @@ function MouseBody({ size, state }: { size: number; state: CharacterState }) {
   const isSleeping = state === "sleeping";
   return (
     <>
-      {/* Ears (behind body, poking out top) */}
+      {/* Ears (behind body, poking out top) - theme-aware fur */}
       <div
         aria-hidden
         className="absolute rounded-full"
@@ -520,7 +529,8 @@ function MouseBody({ size, state }: { size: number; state: CharacterState }) {
           left: "6%",
           width: "34%",
           height: "34%",
-          background: "radial-gradient(circle at 40% 40%, #d1d5db, #9ca3af 70%)",
+          background:
+            "radial-gradient(circle at 40% 40%, var(--companion-mouse-fur-light), var(--companion-mouse-fur-mid) 70%)",
           boxShadow: "inset 0 -2px 3px rgba(0,0,0,0.18)",
         }}
       >
@@ -531,7 +541,8 @@ function MouseBody({ size, state }: { size: number; state: CharacterState }) {
             left: "25%",
             width: "55%",
             height: "55%",
-            background: "radial-gradient(circle at 40% 40%, #fbcfe8, #f9a8d4)",
+            background:
+              "radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--color-aurora-pink) 35%, white), color-mix(in srgb, var(--color-aurora-pink) 60%, white))",
           }}
         />
       </div>
@@ -543,7 +554,8 @@ function MouseBody({ size, state }: { size: number; state: CharacterState }) {
           right: "6%",
           width: "34%",
           height: "34%",
-          background: "radial-gradient(circle at 40% 40%, #d1d5db, #9ca3af 70%)",
+          background:
+            "radial-gradient(circle at 40% 40%, var(--companion-mouse-fur-light), var(--companion-mouse-fur-mid) 70%)",
           boxShadow: "inset 0 -2px 3px rgba(0,0,0,0.18)",
         }}
       >
@@ -554,18 +566,20 @@ function MouseBody({ size, state }: { size: number; state: CharacterState }) {
             left: "25%",
             width: "55%",
             height: "55%",
-            background: "radial-gradient(circle at 40% 40%, #fbcfe8, #f9a8d4)",
+            background:
+              "radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--color-aurora-pink) 35%, white), color-mix(in srgb, var(--color-aurora-pink) 60%, white))",
           }}
         />
       </div>
 
-      {/* Body */}
+      {/* Body - theme-aware fur */}
       <div
         className="character-body absolute inset-0 rounded-full overflow-hidden"
         style={{
-          background: "linear-gradient(155deg, #e5e7eb 0%, #d1d5db 30%, #9ca3af 70%, #6b7280 100%)",
+          background:
+            "linear-gradient(155deg, var(--companion-mouse-fur-light) 0%, color-mix(in srgb, var(--companion-mouse-fur-light) 70%, var(--companion-mouse-fur-mid)) 30%, var(--companion-mouse-fur-mid) 70%, var(--companion-mouse-fur-deep) 100%)",
           boxShadow:
-            "0 14px 40px -12px rgba(75, 85, 99, 0.55), inset 0 3px 6px rgba(255,255,255,0.45), inset 0 -6px 12px rgba(0,0,0,0.25)",
+            "0 14px 40px -12px color-mix(in srgb, var(--companion-mouse-fur-deep) 55%, transparent), inset 0 3px 6px rgba(255,255,255,0.45), inset 0 -6px 12px rgba(0,0,0,0.25)",
           border: "1px solid rgba(255,255,255,0.2)",
         }}
       >
@@ -594,7 +608,7 @@ function MouseBody({ size, state }: { size: number; state: CharacterState }) {
           <Eye diameter={size * 0.18} sleeping={isSleeping} sad={state === "sad"} delay="0.2s" />
         </div>
 
-        {/* Pink nose */}
+        {/* Nose - aurora pink */}
         <div
           aria-hidden
           className="rounded-full"
@@ -602,26 +616,32 @@ function MouseBody({ size, state }: { size: number; state: CharacterState }) {
             marginTop: `${size * 0.07}px`,
             width: `${size * 0.11}px`,
             height: `${size * 0.09}px`,
-            background: "radial-gradient(circle at 35% 35%, #f9a8d4, #ec4899)",
+            background:
+              "radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--color-aurora-pink) 50%, white), var(--color-aurora-pink))",
             boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
           }}
         />
 
-        {/* Whiskers */}
+        {/* Whiskers - aurora-violet blended with fur-deep */}
         <svg
           className="absolute"
           style={{ bottom: "24%", left: 0, width: "100%", height: "20%" }}
           viewBox="0 0 100 20"
           fill="none"
         >
-          <line x1="10" y1="6" x2="36" y2="10" stroke="#4b5563" strokeWidth="0.8" strokeLinecap="round" opacity="0.7" />
-          <line x1="10" y1="14" x2="36" y2="12" stroke="#4b5563" strokeWidth="0.8" strokeLinecap="round" opacity="0.6" />
-          <line x1="90" y1="6" x2="64" y2="10" stroke="#4b5563" strokeWidth="0.8" strokeLinecap="round" opacity="0.7" />
-          <line x1="90" y1="14" x2="64" y2="12" stroke="#4b5563" strokeWidth="0.8" strokeLinecap="round" opacity="0.6" />
+          <line x1="10" y1="6" x2="36" y2="10" stroke="var(--companion-mouse-fur-deep)" strokeWidth="0.8" strokeLinecap="round" opacity="0.75" />
+          <line x1="10" y1="14" x2="36" y2="12" stroke="var(--companion-mouse-fur-deep)" strokeWidth="0.8" strokeLinecap="round" opacity="0.6" />
+          <line x1="90" y1="6" x2="64" y2="10" stroke="var(--companion-mouse-fur-deep)" strokeWidth="0.8" strokeLinecap="round" opacity="0.75" />
+          <line x1="90" y1="14" x2="64" y2="12" stroke="var(--companion-mouse-fur-deep)" strokeWidth="0.8" strokeLinecap="round" opacity="0.6" />
         </svg>
 
         <div style={{ marginTop: `${size * 0.04}px` }}>
-          <Mouth shape={mouthShapeFor(state)} size={size} color="#4b5563" scale={0.7} />
+          <Mouth
+            shape={mouthShapeFor(state)}
+            size={size}
+            color="var(--companion-mouse-fur-deep)"
+            scale={0.7}
+          />
         </div>
       </div>
     </>
@@ -632,7 +652,7 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
   const isSleeping = state === "sleeping";
   return (
     <>
-      {/* Ear tufts */}
+      {/* Ear tufts - theme-aware deep body color */}
       <div
         aria-hidden
         className="absolute"
@@ -641,7 +661,8 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
           left: "14%",
           width: "18%",
           height: "24%",
-          background: "linear-gradient(180deg, #78350f 0%, #92400e 100%)",
+          background:
+            "linear-gradient(180deg, var(--companion-owl-body-deep) 0%, var(--companion-owl-body-mid) 100%)",
           clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
           transform: "rotate(-12deg)",
         }}
@@ -654,23 +675,26 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
           right: "14%",
           width: "18%",
           height: "24%",
-          background: "linear-gradient(180deg, #78350f 0%, #92400e 100%)",
+          background:
+            "linear-gradient(180deg, var(--companion-owl-body-deep) 0%, var(--companion-owl-body-mid) 100%)",
           clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
           transform: "rotate(12deg)",
         }}
       />
 
-      {/* Body */}
+      {/* Body - theme-aware plumage */}
       <div
         className="character-body absolute inset-0 rounded-full overflow-hidden"
         style={{
-          background: "linear-gradient(155deg, #b45309 0%, #92400e 40%, #78350f 100%)",
+          background:
+            "linear-gradient(155deg, var(--companion-owl-body-light) 0%, var(--companion-owl-body-mid) 40%, var(--companion-owl-body-deep) 100%)",
           boxShadow:
-            "0 14px 40px -12px rgba(120, 53, 15, 0.55), inset 0 3px 6px rgba(255,255,255,0.25), inset 0 -6px 12px rgba(0,0,0,0.3)",
-          border: "1px solid rgba(253, 224, 71, 0.2)",
+            "0 14px 40px -12px color-mix(in srgb, var(--companion-owl-body-deep) 55%, transparent), inset 0 3px 6px rgba(255,255,255,0.25), inset 0 -6px 12px rgba(0,0,0,0.3)",
+          border:
+            "1px solid color-mix(in srgb, var(--color-aurora-pink) 20%, transparent)",
         }}
       >
-        {/* Cream chest/belly */}
+        {/* Aurora chest/belly - pink-blended cream */}
         <div
           aria-hidden
           className="absolute rounded-full"
@@ -679,7 +703,8 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
             left: "15%",
             width: "70%",
             height: "60%",
-            background: "radial-gradient(ellipse at center top, #fde68a, #fcd34d 60%, transparent 85%)",
+            background:
+              "radial-gradient(ellipse at center top, color-mix(in srgb, var(--color-aurora-pink) 25%, var(--color-card)), color-mix(in srgb, var(--color-aurora-pink) 50%, var(--color-card)) 60%, transparent 85%)",
           }}
         />
         {/* Gloss */}
@@ -691,7 +716,8 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
             left: "18%",
             width: "30%",
             height: "18%",
-            background: "radial-gradient(ellipse, rgba(255, 237, 180, 0.6), transparent 70%)",
+            background:
+              "radial-gradient(ellipse, color-mix(in srgb, var(--color-aurora-pink) 35%, white), transparent 70%)",
             filter: "blur(2px)",
           }}
         />
@@ -727,7 +753,7 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
           ))}
         </div>
 
-        {/* Beak */}
+        {/* Beak - aurora pink→violet gradient */}
         <svg
           style={{ marginTop: `${size * 0.01}px`, width: size * 0.14, height: size * 0.12 }}
           viewBox="0 0 14 12"
@@ -736,13 +762,13 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
           <path
             d="M7 0 L13 6 Q7 11 1 6 Z"
             fill="url(#beak-grad)"
-            stroke="#78350f"
+            stroke="var(--companion-owl-body-deep)"
             strokeWidth="0.8"
           />
           <defs>
             <linearGradient id="beak-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#fbbf24" />
-              <stop offset="100%" stopColor="#d97706" />
+              <stop offset="0%" stopColor="var(--color-aurora-pink)" />
+              <stop offset="100%" stopColor="var(--color-aurora-violet)" />
             </linearGradient>
           </defs>
         </svg>
