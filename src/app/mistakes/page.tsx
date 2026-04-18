@@ -9,6 +9,8 @@ import { useGamification } from "@/hooks/useGamification";
 import { demoCards } from "@/data/cards";
 import { getFeedMistakes, groupBySpecialty, groupByTopic } from "@/lib/mistakes";
 import { hapticCorrect, hapticWrong } from "@/lib/feedback";
+import { useSpecialty } from "@/contexts/SpecialtyContext";
+import { allSpecialties } from "@/data/specialties";
 
 type PageState = "idle" | "session" | "summary";
 type FilterMode = "all" | "specialty" | "topic";
@@ -29,11 +31,18 @@ function pluralize(n: number, one: string, few: string, many: string): string {
 
 export default function MistakesPage() {
   const { progress, recordAnswerWithGamification } = useGamification();
+  const { activeSpecialty, setActiveSpecialty, clearSpecialty } = useSpecialty();
 
   const [pageState, setPageState] = useState<PageState>("idle");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
-  const [specialtyFilter, setSpecialtyFilter] = useState<string | null>(null);
+  const specialtyFilter = activeSpecialty?.name ?? null;
   const [topicFilter, setTopicFilter] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeSpecialty && filterMode === "all") {
+      setFilterMode("specialty");
+    }
+  }, [activeSpecialty]);
   const [showSpecialtyPicker, setShowSpecialtyPicker] = useState(false);
   const [showTopicPicker, setShowTopicPicker] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -334,7 +343,7 @@ export default function MistakesPage() {
               <button
                 onClick={() => {
                   setFilterMode("all");
-                  setSpecialtyFilter(null);
+                  clearSpecialty();
                   setTopicFilter(null);
                 }}
                 className={`flex-1 py-3 rounded-xl text-xs font-medium transition-colors ${
@@ -403,7 +412,7 @@ export default function MistakesPage() {
                 <div className="mt-1 flex flex-col gap-0.5 bg-surface rounded-2xl overflow-hidden border border-border/40 max-h-64 overflow-y-auto">
                   <button
                     onClick={() => {
-                      setSpecialtyFilter(null);
+                      clearSpecialty();
                       setTopicFilter(null);
                       setShowSpecialtyPicker(false);
                     }}
@@ -424,7 +433,8 @@ export default function MistakesPage() {
                     <button
                       key={g.key}
                       onClick={() => {
-                        setSpecialtyFilter(g.key);
+                        const spec = allSpecialties.find((s) => s.name === g.key);
+                        if (spec) setActiveSpecialty(spec.id);
                         setTopicFilter(null);
                         setShowSpecialtyPicker(false);
                       }}
