@@ -43,7 +43,10 @@ export default function ExamTimer({ totalSeconds, onTimeUp, paused = false }: Pr
           style={{ width: `${progress * 100}%` }}
         />
       </div>
-      <span className={`text-xs font-mono font-medium tabular-nums ${isLow ? "text-rose-500" : "text-muted"}`}>
+      <span
+        className={`text-xs font-mono font-medium tabular-nums ${isLow ? "" : "text-muted"}`}
+        style={isLow ? { color: "var(--color-aurora-pink)" } : undefined}
+      >
         {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
       </span>
     </div>

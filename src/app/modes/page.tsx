@@ -78,7 +78,7 @@ export default function ModesPage() {
       <TopBar />
       <main className="flex-1 pt-20 pb-20 overflow-y-auto">
         <div className="px-6 pt-4 pb-6 text-center">
-          <p className="text-xs uppercase tracking-[0.25em] text-muted font-medium mb-3">
+          <p className="text-xs uppercase tracking-[0.25em] font-medium mb-3" style={{ color: "var(--color-aurora-violet)" }}>
             Подготовка
           </p>
           <h1 className="text-3xl font-light text-foreground tracking-tight">
@@ -95,7 +95,7 @@ export default function ModesPage() {
                 <Link
                   key={mode.title}
                   href={mode.href}
-                  className="block w-full text-left bg-card rounded-2xl border border-border px-5 py-4 hover:bg-surface transition-colors btn-press"
+                  className="block w-full text-left bg-card rounded-2xl aurora-hairline px-5 py-4 hover:bg-surface transition-colors btn-press"
                 >
                   <span className="text-base font-light text-foreground">
                     {mode.title}
@@ -128,7 +128,7 @@ export default function ModesPage() {
                 <Link
                   key={mode.title}
                   href={mode.href}
-                  className="block w-full text-left bg-card rounded-2xl border border-border px-5 py-4 hover:bg-surface transition-colors btn-press"
+                  className="block w-full text-left bg-card rounded-2xl aurora-hairline px-5 py-4 hover:bg-surface transition-colors btn-press"
                 >
                   <span className="text-base font-light text-foreground">
                     {mode.title}

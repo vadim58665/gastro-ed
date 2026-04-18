@@ -131,7 +131,10 @@ export default function WelcomePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div
+          className="w-5 h-5 border-2 rounded-full animate-spin"
+          style={{ borderColor: "var(--color-aurora-indigo)", borderTopColor: "transparent" }}
+        />
       </div>
     );
   }
@@ -159,8 +162,8 @@ export default function WelcomePage() {
         {sent ? (
           /* OTP code input */
           <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary-light flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-primary">
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: "var(--aurora-violet-soft)" }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: "var(--color-aurora-violet)" }}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
               </svg>
             </div>
@@ -184,18 +187,21 @@ export default function WelcomePage() {
                   onChange={(e) => handleOtpChange(i, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(i, e)}
                   disabled={submitting}
-                  className="w-11 h-14 rounded-xl border border-border bg-card text-center text-xl font-light text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all disabled:opacity-50"
+                  className="aurora-otp-cell w-11 h-14 rounded-xl border border-border bg-card text-center text-xl font-light text-foreground disabled:opacity-50"
                 />
               ))}
             </div>
 
             {error && (
-              <p className="text-xs text-rose-500 font-medium mb-4">{error}</p>
+              <p className="text-xs font-medium mb-4" style={{ color: "var(--color-aurora-pink)" }}>{error}</p>
             )}
 
             {submitting && (
               <div className="flex justify-center mb-4">
-                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <div
+                  className="w-5 h-5 border-2 rounded-full animate-spin"
+                  style={{ borderColor: "var(--color-aurora-indigo)", borderTopColor: "transparent" }}
+                />
               </div>
             )}
 
@@ -229,13 +235,13 @@ export default function WelcomePage() {
             />
 
             {error && (
-              <p className="text-xs text-rose-500 font-medium px-1">{error}</p>
+              <p className="text-xs font-medium px-1" style={{ color: "var(--color-aurora-pink)" }}>{error}</p>
             )}
 
             <button
               type="submit"
               disabled={submitting || !email}
-              className="btn-raised-dark w-full py-3.5 text-white rounded-2xl text-sm font-medium tracking-wide disabled:opacity-70 disabled:cursor-not-allowed"
+              className="btn-premium-dark w-full py-3.5 rounded-2xl text-sm font-medium tracking-wide disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {submitting ? "Отправка..." : "Получить код"}
             </button>

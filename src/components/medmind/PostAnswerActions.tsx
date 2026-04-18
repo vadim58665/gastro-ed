@@ -69,15 +69,20 @@ const ACTIONS: { key: PostAction; label: string; icon: React.ReactNode }[] = [
 ];
 
 export default function PostAnswerActions({ onAction, isWrongAnswer }: Props) {
+  void isWrongAnswer;
   return (
     <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-2">
       {ACTIONS.map((a) => (
         <button
           key={a.key}
           onClick={() => onAction(a.key)}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-[10px] uppercase tracking-widest text-muted hover:text-primary hover:border-primary/30 transition-colors"
+          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] uppercase tracking-widest text-muted transition-colors"
+          style={{
+            border: "1px solid var(--aurora-violet-border)",
+            background: "var(--aurora-violet-soft)",
+          }}
         >
-          <span className="text-primary/70">{a.icon}</span>
+          <span style={{ color: "var(--color-aurora-violet)" }}>{a.icon}</span>
           <span>{a.label}</span>
         </button>
       ))}

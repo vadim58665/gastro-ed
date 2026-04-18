@@ -6,7 +6,10 @@ interface Props {
 
 export default function KeyFactBanner({ keyFact }: Props) {
   return (
-    <div className="mx-6 mb-2 px-3 py-2 rounded-lg border border-warning/20 bg-warning/5">
+    <div
+      className="mx-6 mb-2 px-3 py-2 rounded-lg border"
+      style={{ borderColor: "var(--aurora-violet-border)", background: "var(--aurora-violet-soft)" }}
+    >
       <p className="text-xs text-muted font-medium mb-0.5">
         Помните:
       </p>

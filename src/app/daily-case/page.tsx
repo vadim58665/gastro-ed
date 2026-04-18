@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import BottomNav from "@/components/ui/BottomNav";
 import DailyCasePlayer from "@/components/daily/DailyCasePlayer";
 import DailyCaseResult from "@/components/daily/DailyCaseResult";
+import DailyCaseHeader from "@/components/daily/DailyCaseHeader";
 import { getDailyCase, getTodayDateStr } from "@/data/dailyCases";
 import { useProgress } from "@/hooks/useProgress";
 import { getSupabase } from "@/lib/supabase/client";
@@ -14,6 +15,13 @@ import {
 } from "@/lib/dailyCaseSession";
 import { useMedMind } from "@/contexts/MedMindContext";
 import type { StepResult } from "@/types/dailyCase";
+
+/** "2026-04-18" -> "18 апр" */
+function formatDateLabel(dateStr: string): string {
+  const [, m, d] = dateStr.split("-").map(Number);
+  const months = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+  return `${d} ${months[m - 1] ?? ""}`.trim();
+}
 
 export default function DailyCasePage() {
   const { progress, saveProgress } = useProgress();
@@ -130,41 +138,16 @@ export default function DailyCasePage() {
     [progress, dateStr, saveProgress, dailyCase.steps.length, dailyCase.id]
   );
 
-  const difficultyLabel =
-    dailyCase.difficulty === "easy" ? "Легко" :
-    dailyCase.difficulty === "medium" ? "Средне" : "Сложно";
-  const difficultyDotColor =
-    dailyCase.difficulty === "easy" ? "#10b981" :
-    dailyCase.difficulty === "medium" ? "#f59e0b" : "#ef4444";
-
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white/85 backdrop-blur-xl border-b border-border/60 z-50 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_6px_24px_-12px_rgba(17,24,39,0.12)]">
-        <div className="max-w-lg mx-auto px-6 py-3 flex items-center justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted">
-              Диагноз дня
-            </div>
-            <div className="text-sm font-medium text-foreground truncate mt-0.5">{dailyCase.title}</div>
-          </div>
-          <div className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/60 border border-border/70 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset]">
-            <span
-              className="w-1.5 h-1.5 rounded-full"
-              style={{
-                backgroundColor: difficultyDotColor,
-                boxShadow: `0 0 6px ${difficultyDotColor}80`,
-              }}
-            />
-            <span className="text-[10px] uppercase tracking-[0.15em] text-foreground font-semibold">
-              {difficultyLabel}
-            </span>
-          </div>
-        </div>
-      </header>
+    <div className="daily-case-shell flex flex-col min-h-screen">
+      <DailyCaseHeader
+        title={dailyCase.title}
+        dateLabel={formatDateLabel(dateStr)}
+        difficulty={dailyCase.difficulty}
+      />
 
       {/* Content */}
-      <main className="flex-1 pt-20 pb-20 overflow-y-auto">
+      <main className="flex-1 pt-20 pb-24 overflow-y-auto">
         <div className="max-w-lg mx-auto px-6 py-4">
           {stepResults ? (
             <DailyCaseResult
@@ -173,25 +156,38 @@ export default function DailyCasePage() {
               dateStr={dateStr}
             />
           ) : !started ? (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-              <div className="text-6xl font-extralight text-foreground tracking-tight mb-2">
+            <div className="flex flex-col items-center justify-center min-h-[65vh] text-center px-6">
+              <div
+                className="text-[96px] font-extralight leading-none tracking-tight aurora-text mb-3"
+                style={{ filter: `drop-shadow(0 0 40px color-mix(in srgb, var(--color-aurora-violet) 35%, transparent))` }}
+              >
                 {dailyCase.steps.length}
               </div>
-              <p className="text-[10px] uppercase tracking-[0.24em] text-muted font-semibold mb-6">
+              <p
+                className="text-[10px] uppercase tracking-[0.24em] font-semibold mb-8"
+                style={{ color: "var(--color-aurora-violet)" }}
+              >
                 {dailyCase.steps.length === 1 ? "этап" : "этапов"}
               </p>
 
-              <p className="text-sm text-foreground/80 leading-relaxed max-w-xs mb-2">
+              <p className="text-[18px] font-extralight text-white leading-snug max-w-xs mb-3">
                 {dailyCase.title}
               </p>
-              <p className="text-xs text-muted leading-relaxed max-w-xs mb-10">
+              <p className="text-[12px] leading-relaxed max-w-xs mb-12" style={{ color: "rgba(255,255,255,0.55)" }}>
                 На каждый этап дается ограниченное время. Отвечайте быстро и точно для максимума очков.
               </p>
 
               <button
                 onClick={() => setStarted(true)}
-                className="px-10 py-4 rounded-2xl bg-foreground text-background text-sm font-semibold uppercase tracking-[0.2em] btn-press shadow-[0_4px_20px_-4px_rgba(17,24,39,0.3)]"
+                className="btn-press inline-flex items-center gap-2 px-10 py-4 rounded-2xl bg-white text-[13px] font-semibold uppercase tracking-[0.22em]"
+                style={{
+                  color: "var(--color-ink)",
+                  boxShadow: `0 8px 32px -8px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent), 0 0 0 1px rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.2)`,
+                }}
               >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <polygon points="6 4 20 12 6 20 6 4" />
+                </svg>
                 Начать
               </button>
             </div>

@@ -20,12 +20,15 @@ export default function ExamTimer({ seconds }: ExamTimerProps) {
   return (
     <div
       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono tracking-wider transition-colors ${
-        isCritical
-          ? "bg-danger-light text-danger"
-          : isLow
-            ? "bg-warning-light text-warning"
-            : "bg-surface text-muted"
+        isCritical || isLow ? "" : "bg-surface text-muted"
       }`}
+      style={
+        isCritical
+          ? { background: "var(--aurora-pink-soft)", color: "var(--color-aurora-pink)" }
+          : isLow
+            ? { background: "var(--aurora-violet-soft)", color: "var(--color-aurora-violet)" }
+            : undefined
+      }
     >
       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />

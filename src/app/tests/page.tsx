@@ -19,15 +19,9 @@ import { accreditationCategories } from "@/data/specialties";
 
 // Accent colors for category left-border
 const CATEGORY_COLORS = [
-  "#6366f1", // indigo
-  "#8b5cf6", // violet
-  "#06b6d4", // cyan
-  "#10b981", // emerald
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#ec4899", // pink
-  "#3b82f6", // blue
-  "#14b8a6", // teal
+  "var(--color-aurora-indigo)",
+  "var(--color-aurora-violet)",
+  "var(--color-aurora-pink)",
 ];
 
 // Level 1: pick accreditation category
@@ -285,11 +279,16 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
                     <div
                       className={`w-16 h-16 rounded-full flex flex-col items-center justify-center border-2 transition-all ${
                         isComplete
-                          ? "border-success bg-success/10 text-success"
+                          ? ""
                           : pct > 0
                           ? "border-primary/50 bg-primary/5 text-foreground"
                           : "border-border bg-surface text-foreground"
                       }`}
+                      style={isComplete ? {
+                        borderColor: "var(--color-aurora-indigo)",
+                        background: "var(--aurora-indigo-soft)",
+                        color: "var(--color-aurora-indigo)",
+                      } : undefined}
                     >
                       <span className="text-[11px] font-semibold leading-none">
                         {block.rangeStart}

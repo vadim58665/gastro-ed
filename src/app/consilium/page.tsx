@@ -44,14 +44,20 @@ export default function ConsiliumPage() {
       <div className="h-screen flex flex-col">
         <TopBar />
         <main className="flex-1 pt-24 pb-20 flex items-center justify-center px-6">
-          <div className="text-center">
-            <p className="text-sm text-foreground mb-2">Режим Консилиум</p>
-            <p className="text-xs text-muted mb-6 leading-relaxed">
-              Ведите приём AI-пациента, собирайте анамнез и ставьте диагноз
+          <div className="text-center max-w-xs">
+            <p
+              className="text-xs uppercase tracking-[0.2em] font-medium mb-6"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
+              Консилиум
+            </p>
+            <p className="text-sm text-foreground mb-2">Ведите приём AI-пациента</p>
+            <p className="text-xs text-muted mb-8 leading-relaxed">
+              Собирайте анамнез, задавайте вопросы, назначайте обследования и поставьте диагноз. AI оценит вашу работу.
             </p>
             <button
               onClick={() => router.push("/subscription")}
-              className="px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-medium"
+              className="px-8 py-3 rounded-xl btn-premium-dark text-sm font-medium"
             >
               Подключить подписку
             </button>
@@ -173,7 +179,7 @@ export default function ConsiliumPage() {
         <TopBar />
         <main className="flex-1 pt-24 pb-20 flex items-center justify-center px-6">
           <div className="text-center max-w-xs">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-6">
+            <p className="text-xs uppercase tracking-[0.2em] font-medium mb-6" style={{ color: "var(--color-aurora-violet)" }}>
               Консилиум
             </p>
             <p className="text-sm text-foreground mb-2">
@@ -184,7 +190,7 @@ export default function ConsiliumPage() {
             </p>
             <button
               onClick={startSession}
-              className="px-8 py-3 rounded-xl bg-primary text-white text-sm font-medium"
+              className="px-8 py-3 rounded-xl btn-premium-dark text-sm font-medium"
             >
               Начать приём
             </button>
@@ -200,7 +206,10 @@ export default function ConsiliumPage() {
       <TopBar />
       <main className="flex-1 pt-24 pb-4 overflow-y-auto">
         <div className="px-4 pt-4">
-          <p className="text-[10px] uppercase tracking-[0.15em] text-muted font-medium mb-4 text-center">
+          <p
+            className="text-[10px] uppercase tracking-[0.2em] font-semibold mb-4 text-center"
+            style={{ color: "var(--color-aurora-violet)" }}
+          >
             Консилиум - приём пациента
           </p>
 
@@ -215,9 +224,14 @@ export default function ConsiliumPage() {
                   <div
                     className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                       msg.role === "user"
-                        ? "bg-primary text-white rounded-br-md"
+                        ? "text-white rounded-br-md"
                         : "bg-surface text-foreground border border-border rounded-bl-md"
                     }`}
+                    style={
+                      msg.role === "user"
+                        ? { background: "var(--aurora-gradient-primary)" }
+                        : undefined
+                    }
                   >
                     <div className="whitespace-pre-wrap">{msg.content}</div>
                   </div>
@@ -246,7 +260,7 @@ export default function ConsiliumPage() {
           <div className="text-center space-y-3">
             <button
               onClick={startSession}
-              className="w-full py-2.5 rounded-xl bg-primary text-white text-sm font-medium"
+              className="w-full py-2.5 rounded-xl btn-premium-dark text-sm font-medium"
             >
               Новый пациент
             </button>
@@ -275,7 +289,7 @@ export default function ConsiliumPage() {
             <button
               onClick={handleSend}
               disabled={!input.trim() || isStreaming}
-              className="px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-medium disabled:opacity-30 transition-opacity"
+              className="px-4 py-2.5 rounded-xl btn-premium-dark text-xs font-medium disabled:opacity-30 transition-opacity"
             >
               OK
             </button>
@@ -289,7 +303,8 @@ export default function ConsiliumPage() {
               }
               sendDiagnosis();
             }}
-            className="w-full mt-2 py-2 rounded-lg text-[10px] uppercase tracking-widest text-primary hover:bg-primary/5 transition-colors"
+            className="w-full mt-2 py-2 rounded-lg text-[10px] uppercase tracking-widest transition-colors hover:bg-[var(--aurora-violet-soft)]"
+            style={{ color: "var(--color-aurora-violet)" }}
           >
             Поставить диагноз
           </button>

@@ -6,26 +6,29 @@ interface ErrorClassificationProps {
   type: ErrorType;
 }
 
-const ERROR_META: Record<ErrorType, { label: string; description: string; color: string }> = {
+const ERROR_META: Record<
+  ErrorType,
+  { label: string; description: string; color: string }
+> = {
   gap: {
     label: "Пробел в знаниях",
     description: "Материал не был изучен или забыт",
-    color: "text-danger",
+    color: "var(--color-aurora-pink)",
   },
   distractor: {
     label: "Дистрактор",
     description: "Неправильный вариант показался похожим на правильный",
-    color: "text-warning",
+    color: "var(--color-aurora-violet)",
   },
   careless: {
     label: "Невнимательность",
     description: "Знал ответ, но ошибся из-за невнимательности",
-    color: "text-primary",
+    color: "var(--color-primary)",
   },
   tactical: {
     label: "Ошибка тактики",
     description: "Неверный ход клинического рассуждения",
-    color: "text-foreground",
+    color: "var(--color-foreground)",
   },
 };
 
@@ -35,14 +38,27 @@ export default function ErrorClassification({ type }: ErrorClassificationProps) 
   return (
     <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-surface border border-border">
       <div className="mt-0.5">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={meta.color}>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ color: meta.color }}
+        >
           <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
       </div>
       <div>
-        <p className={`text-xs font-medium uppercase tracking-widest ${meta.color}`}>
+        <p
+          className="text-xs font-medium uppercase tracking-widest"
+          style={{ color: meta.color }}
+        >
           {meta.label}
         </p>
         <p className="text-xs text-muted mt-0.5 leading-relaxed">

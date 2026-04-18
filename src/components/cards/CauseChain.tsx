@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { CauseChainCard } from "@/types/card";
+import ExplanationPanel from "@/components/ui/ExplanationPanel";
 
 interface Props {
   card: CauseChainCard;
@@ -63,9 +64,7 @@ export default function CauseChain({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-5 p-6">
-      <div className="text-xs font-bold text-muted uppercase tracking-widest">
-        Цепочка причин
-      </div>
+      <div className="aurora-card-type">Цепочка причин</div>
 
       <p className="text-sm font-medium text-foreground">{card.title}</p>
 
@@ -80,7 +79,7 @@ export default function CauseChain({ card, onAnswer }: Props) {
           return (
             <div key={i} className="flex flex-col items-center w-full">
               {i > 0 && (
-                <svg width="12" height="20" viewBox="0 0 12 20" className="text-border my-1">
+                <svg width="12" height="20" viewBox="0 0 12 20" className="my-1" style={{ color: "color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent)" }}>
                   <path d="M6 0v14M2 10l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               )}
@@ -89,14 +88,19 @@ export default function CauseChain({ card, onAnswer }: Props) {
                 <button
                   onClick={() => handleSlotTap(i)}
                   disabled={submitted || !filledValue}
-                  className={`w-full px-4 py-3 rounded-xl border-2 text-sm text-center transition-colors ${
+                  style={
                     submitted
                       ? isCorrect
-                        ? "bg-success-light border-success/40 text-success"
-                        : "bg-danger-light border-danger/40 text-danger"
+                        ? { background: "color-mix(in srgb, var(--color-aurora-indigo) 10%, transparent)", borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent)", color: "var(--color-aurora-indigo)" }
+                        : { background: "var(--aurora-pink-soft)", borderColor: "color-mix(in srgb, var(--color-aurora-pink) 35%, transparent)", color: "var(--color-aurora-pink)" }
                       : filledValue
-                      ? "bg-primary-light border-foreground/30 text-foreground"
-                      : "border-dashed border-foreground/25 text-muted"
+                      ? { background: "var(--aurora-indigo-soft)", borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 30%, transparent)" }
+                      : {}
+                  }
+                  className={`w-full px-4 py-3 rounded-xl border-2 text-sm text-center transition-colors ${
+                    !submitted && !filledValue
+                      ? "border-dashed border-foreground/25 text-muted"
+                      : ""
                   }`}
                 >
                   {submitted && isWrong ? (
@@ -143,20 +147,16 @@ export default function CauseChain({ card, onAnswer }: Props) {
       )}
 
       {submitted && (
-        <div
-          className={`animate-result p-5 rounded-2xl text-sm leading-relaxed ${
+        <ExplanationPanel
+          correct={blankIndices.every((i) => filled.get(i) === card.steps[i].text)}
+          title={
             blankIndices.every((i) => filled.get(i) === card.steps[i].text)
-              ? "bg-success-light border border-success/30 text-emerald-800"
-              : "bg-danger-light border border-danger/30 text-rose-800"
-          }`}
-        >
-          <div className="font-bold mb-1">
-            {blankIndices.every((i) => filled.get(i) === card.steps[i].text)
               ? "Верно!"
-              : "Не совсем"}
-          </div>
+              : "Не совсем"
+          }
+        >
           {card.explanation}
-        </div>
+        </ExplanationPanel>
       )}
     </div>
   );

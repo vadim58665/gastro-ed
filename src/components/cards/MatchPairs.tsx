@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { MatchPairsCard } from "@/types/card";
+import ExplanationPanel from "@/components/ui/ExplanationPanel";
 
 interface Props {
   card: MatchPairsCard;
@@ -68,9 +69,7 @@ export default function MatchPairs({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-5 p-6">
-      <div className="text-xs font-bold text-muted uppercase tracking-widest">
-        Сопоставление
-      </div>
+      <div className="aurora-card-type">Сопоставление</div>
 
       <p className="text-sm text-muted">{card.instruction}</p>
 
@@ -80,17 +79,38 @@ export default function MatchPairs({ card, onAnswer }: Props) {
           {leftItems.map((item) => {
             const isSelected = selectedLeft === item;
             const isMatched = matched.has(item);
-            let bg = "bg-surface border-border";
+
+            let styleOverride: React.CSSProperties = {};
+            let extraClass = "bg-surface border-border";
             if (submitted) {
               const right = matched.get(item);
-              bg =
-                correctMap.get(item) === right
-                  ? "bg-success-light border-success/30"
-                  : "bg-danger-light border-danger/30";
+              if (correctMap.get(item) === right) {
+                extraClass = "";
+                styleOverride = {
+                  background: "color-mix(in srgb, var(--color-aurora-indigo) 10%, transparent)",
+                  borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 35%, transparent)",
+                  color: "var(--color-aurora-indigo)",
+                };
+              } else {
+                extraClass = "";
+                styleOverride = {
+                  background: "var(--aurora-pink-soft)",
+                  borderColor: "color-mix(in srgb, var(--color-aurora-pink) 30%, transparent)",
+                  color: "var(--color-aurora-pink)",
+                };
+              }
             } else if (isSelected) {
-              bg = "bg-primary-light border-foreground/40";
+              extraClass = "";
+              styleOverride = {
+                background: "color-mix(in srgb, var(--color-aurora-indigo) 12%, transparent)",
+                borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 50%, transparent)",
+              };
             } else if (isMatched) {
-              bg = "bg-primary-light/60 border-border";
+              extraClass = "";
+              styleOverride = {
+                background: "color-mix(in srgb, var(--color-aurora-indigo) 6%, transparent)",
+                borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 20%, transparent)",
+              };
             }
 
             return (
@@ -98,7 +118,8 @@ export default function MatchPairs({ card, onAnswer }: Props) {
                 key={item}
                 onClick={() => handleLeftTap(item)}
                 disabled={submitted}
-                className={`w-full text-left px-3 py-2.5 rounded-xl border text-xs leading-snug transition-colors ${bg}`}
+                style={styleOverride}
+                className={`w-full text-left px-3 py-2.5 rounded-xl border text-xs leading-snug transition-colors ${extraClass}`}
               >
                 {item}
               </button>
@@ -113,14 +134,31 @@ export default function MatchPairs({ card, onAnswer }: Props) {
               ([, r]) => r === item
             )?.[0];
             const isPaired = !!pairedLeft;
-            let bg = "bg-surface border-border";
+
+            let styleOverride: React.CSSProperties = {};
+            let extraClass = "bg-surface border-border";
             if (submitted && pairedLeft) {
-              bg =
-                correctMap.get(pairedLeft) === item
-                  ? "bg-success-light border-success/30"
-                  : "bg-danger-light border-danger/30";
+              if (correctMap.get(pairedLeft) === item) {
+                extraClass = "";
+                styleOverride = {
+                  background: "color-mix(in srgb, var(--color-aurora-indigo) 10%, transparent)",
+                  borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 35%, transparent)",
+                  color: "var(--color-aurora-indigo)",
+                };
+              } else {
+                extraClass = "";
+                styleOverride = {
+                  background: "var(--aurora-pink-soft)",
+                  borderColor: "color-mix(in srgb, var(--color-aurora-pink) 30%, transparent)",
+                  color: "var(--color-aurora-pink)",
+                };
+              }
             } else if (isPaired) {
-              bg = "bg-primary-light/60 border-border";
+              extraClass = "";
+              styleOverride = {
+                background: "color-mix(in srgb, var(--color-aurora-indigo) 6%, transparent)",
+                borderColor: "color-mix(in srgb, var(--color-aurora-indigo) 20%, transparent)",
+              };
             }
 
             return (
@@ -128,7 +166,8 @@ export default function MatchPairs({ card, onAnswer }: Props) {
                 key={item}
                 onClick={() => handleRightTap(item)}
                 disabled={submitted || isPaired}
-                className={`w-full text-left px-3 py-2.5 rounded-xl border text-xs leading-snug transition-colors ${bg}`}
+                style={styleOverride}
+                className={`w-full text-left px-3 py-2.5 rounded-xl border text-xs leading-snug transition-colors ${extraClass}`}
               >
                 {item}
               </button>
@@ -147,26 +186,22 @@ export default function MatchPairs({ card, onAnswer }: Props) {
       )}
 
       {submitted && (
-        <div
-          className={`animate-result p-5 rounded-2xl text-sm leading-relaxed ${
+        <ExplanationPanel
+          correct={correctCount === card.pairs.length}
+          title={
             correctCount === card.pairs.length
-              ? "bg-success-light border border-success/30 text-emerald-800"
-              : "bg-danger-light border border-danger/30 text-rose-800"
-          }`}
-        >
-          <div className="font-bold mb-2">
-            {correctCount === card.pairs.length
               ? "Верно!"
-              : `${correctCount} из ${card.pairs.length} правильно`}
-          </div>
-          <div className="space-y-1.5">
+              : `${correctCount} из ${card.pairs.length} правильно`
+          }
+        >
+          <div className="space-y-1.5 mt-1">
             {card.pairs.map((p, i) => (
               <p key={i} className="text-xs">
                 <span className="font-medium">{p.left}</span> - {p.right}: {p.explanation}
               </p>
             ))}
           </div>
-        </div>
+        </ExplanationPanel>
       )}
     </div>
   );

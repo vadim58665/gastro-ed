@@ -8,9 +8,12 @@ interface FatigueBannerProps {
 export default function FatigueBanner({ message, onDismiss }: FatigueBannerProps) {
   return (
     <div className="fixed top-16 left-4 right-4 z-50 animate-bubble-in">
-      <div className="bg-warning/10 border border-warning/20 rounded-xl px-4 py-3 flex items-start justify-between gap-3">
+      <div
+        className="border rounded-xl px-4 py-3 flex items-start justify-between gap-3"
+        style={{ background: "var(--aurora-violet-soft)", borderColor: "var(--aurora-violet-border)" }}
+      >
         <div>
-          <p className="text-xs font-medium text-warning">Время отдохнуть</p>
+          <p className="text-xs font-medium" style={{ color: "var(--color-aurora-violet)" }}>Время отдохнуть</p>
           <p className="text-[11px] text-foreground mt-1 leading-relaxed">
             {message}
           </p>

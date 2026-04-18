@@ -8,10 +8,34 @@ interface ConfidenceButtonsProps {
   disabled?: boolean;
 }
 
-const LEVELS: { key: ConfidenceLevel; label: string; color: string }[] = [
-  { key: "confident", label: "Уверен", color: "border-success/40 text-success hover:bg-success/5" },
-  { key: "unsure", label: "Не уверен", color: "border-warning/40 text-warning hover:bg-warning/5" },
-  { key: "guessing", label: "Угадываю", color: "border-danger/40 text-danger hover:bg-danger/5" },
+const LEVELS: {
+  key: ConfidenceLevel;
+  label: string;
+  color: string;
+  borderColor: string;
+  hoverBg: string;
+}[] = [
+  {
+    key: "confident",
+    label: "Уверен",
+    color: "var(--color-aurora-indigo)",
+    borderColor: "var(--aurora-indigo-border)",
+    hoverBg: "var(--aurora-indigo-soft)",
+  },
+  {
+    key: "unsure",
+    label: "Не уверен",
+    color: "var(--color-aurora-violet)",
+    borderColor: "var(--aurora-violet-border)",
+    hoverBg: "var(--aurora-violet-soft)",
+  },
+  {
+    key: "guessing",
+    label: "Угадываю",
+    color: "var(--color-aurora-pink)",
+    borderColor: "var(--aurora-pink-border)",
+    hoverBg: "var(--aurora-pink-soft)",
+  },
 ];
 
 export default function ConfidenceButtons({
@@ -27,10 +51,20 @@ export default function ConfidenceButtons({
           onClick={() => onSelect(l.key)}
           disabled={disabled}
           className={`px-3 py-1.5 rounded-full border text-[10px] uppercase tracking-widest transition-all ${
+            disabled ? "opacity-40 pointer-events-none" : ""
+          }`}
+          style={
             selected === l.key
-              ? l.color.replace("hover:", "") + " bg-opacity-10"
-              : "border-border text-muted hover:text-foreground"
-          } ${disabled ? "opacity-40 pointer-events-none" : ""}`}
+              ? {
+                  color: l.color,
+                  borderColor: l.borderColor,
+                  background: l.hoverBg,
+                }
+              : {
+                  color: undefined,
+                  borderColor: undefined,
+                }
+          }
         >
           {l.label}
         </button>

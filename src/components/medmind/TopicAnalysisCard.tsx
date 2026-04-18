@@ -8,11 +8,11 @@ interface Props {
 
 export default function TopicAnalysisCard({ topic }: Props) {
   const pct = Math.round(topic.masteryScore * 100);
-  const color = topic.isWeak
-    ? "bg-danger"
+  const barColor = topic.isWeak
+    ? "var(--color-aurora-pink)"
     : pct > 85
-      ? "bg-success"
-      : "bg-primary";
+      ? "var(--color-aurora-indigo)"
+      : "var(--color-primary)";
 
   return (
     <div className="flex items-center gap-3 py-2">
@@ -24,8 +24,8 @@ export default function TopicAnalysisCard({ topic }: Props) {
       </div>
       <div className="w-20 h-1.5 bg-surface rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full ${color}`}
-          style={{ width: `${pct}%` }}
+          className="h-full rounded-full"
+          style={{ width: `${pct}%`, background: barColor }}
         />
       </div>
       <p className="text-sm font-extralight text-foreground w-10 text-right">

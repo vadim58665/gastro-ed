@@ -93,13 +93,16 @@ function FeedContent() {
             </button>
           )}
           {label && (
-            <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium truncate min-w-0">
+            <p className="text-[9px] uppercase tracking-[0.22em] text-muted font-medium truncate min-w-0">
               {label} · {cards.length}
             </p>
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[10px] uppercase tracking-widest text-primary/70 px-2 py-1 whitespace-nowrap">
+          <span
+            className="text-[9px] font-medium tracking-wide px-2 py-0.5 rounded-full whitespace-nowrap"
+            style={{ background: "rgba(99,102,241,0.08)", color: "#6366F1" }}
+          >
             {rank.title}
           </span>
           <QuestionSearch cards={demoCards} />
@@ -115,7 +118,7 @@ function FeedContent() {
 export default function FeedPage() {
   return (
     <div className="h-screen flex flex-col">
-      <TopBar />
+      <TopBar transparent />
       <main className="flex-1 pt-24 pb-16 overflow-hidden flex flex-col">
         <Suspense>
           <FeedContent />

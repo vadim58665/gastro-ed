@@ -5,6 +5,8 @@ import type { DailyCase, DailyCaseStep, StepResult } from "@/types/dailyCase";
 import { calculateStepPoints, STEP_TIME_LIMIT } from "@/types/dailyCase";
 import { saveSession, type StoredSession } from "@/lib/dailyCaseSession";
 import { useMedMind } from "@/contexts/MedMindContext";
+import AuroraTimer from "@/components/ui/AuroraTimer";
+import AuroraStages from "@/components/ui/AuroraStages";
 
 interface Props {
   dailyCase: DailyCase;
@@ -227,84 +229,62 @@ export default function DailyCasePlayer({
     });
   };
 
-  // Timer display
-  const seconds = Math.ceil(timeLeft / 1000);
-  const timerFraction = timeLeft / STEP_TIME_LIMIT;
-  const timerColor =
-    timerFraction > 0.5 ? "text-foreground" :
-    timerFraction > 0.2 ? "text-warning" : "text-danger";
-  const barColor =
-    timerFraction > 0.5 ? "bg-foreground/80" :
-    timerFraction > 0.2 ? "bg-warning" : "bg-danger";
-
   // Running score
   const currentPoints = stepResults.reduce((sum, r) => sum + r.points, 0);
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Timer bar */}
-      <div className="relative h-[3px] bg-border/60 rounded-full overflow-hidden">
-        <div
-          className={`absolute inset-y-0 left-0 rounded-full transition-all duration-100 ${barColor}`}
-          style={{ width: `${timerFraction * 100}%` }}
-        />
-      </div>
-
-      {/* Header: step info + timer + score */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {dailyCase.steps.map((s, i) => {
-            let dotStyle = "bg-border";
-            if (i < currentStep) dotStyle = "bg-foreground/70";
-            else if (i === currentStep) dotStyle = "bg-foreground ring-[3px] ring-foreground/15";
-            return (
-              <div key={i} className="flex flex-col items-center gap-1">
-                <div className={`w-2 h-2 rounded-full transition-all ${dotStyle}`} />
-                <span className="text-[8px] uppercase tracking-[0.12em] text-muted font-semibold">
-                  {stepLabels[s.type]}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="flex items-center gap-4">
-          {currentPoints > 0 && (
-            <div className="text-right">
-              <div className="text-[9px] uppercase tracking-[0.18em] text-muted font-semibold">очки</div>
-              <div className="text-lg font-extralight text-foreground tabular-nums leading-none mt-0.5">{currentPoints}</div>
+    <div className="flex flex-col gap-6">
+      {/* Timer row + optional points (prevents overlap with stages labels below) */}
+      <div className="flex items-center gap-4">
+        {currentPoints > 0 && (
+          <div className="shrink-0">
+            <div className="text-[9px] uppercase tracking-[0.22em] text-white/50 font-semibold">
+              очки
             </div>
-          )}
-          <div className="text-right">
-            <div className="text-[9px] uppercase tracking-[0.18em] text-muted font-semibold">таймер</div>
-            <div className={`text-3xl font-extralight tabular-nums leading-none mt-0.5 ${timerColor}`}>
-              {seconds}
+            <div className="text-2xl font-extralight aurora-text tabular-nums leading-none mt-0.5">
+              {currentPoints}
             </div>
           </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <AuroraTimer timeLeftMs={timeLeft} totalMs={STEP_TIME_LIMIT} />
         </div>
       </div>
+
+      {/* Stages (full width, no competing right-aligned content) */}
+      <AuroraStages
+        stages={dailyCase.steps.map((s) => stepLabels[s.type])}
+        currentIndex={currentStep}
+      />
 
       {/* Step content */}
       <div key={currentStep} className="animate-result flex flex-col gap-4">
-        <div className="text-[10px] font-semibold text-muted uppercase tracking-[0.22em]">
+        <div
+          className="text-[10px] font-semibold uppercase tracking-[0.22em]"
+          style={{ color: "var(--color-aurora-violet)" }}
+        >
           {step.title}
         </div>
-        <div className="rounded-2xl bg-surface/70 border border-border/40 p-5 text-[13px] leading-relaxed text-foreground/85">
+        <div className="aurora-surface-dark rounded-2xl p-5 text-[13px] leading-relaxed text-white/85">
           {step.description}
         </div>
       </div>
 
       {/* Options */}
       <div className="flex flex-col gap-2.5">
-        {shuffledIndices.map((i) => (
-          <button
-            key={i}
-            onClick={() => handleSelect(i)}
-            className="btn-press w-full text-left px-5 py-4 rounded-2xl bg-surface border border-border/40 text-[13px] font-medium text-foreground hover:border-border transition-colors"
-          >
-            {step.options[i].text}
-          </button>
-        ))}
+        {shuffledIndices.map((i, idx) => {
+          const letter = String.fromCharCode(65 + idx);
+          return (
+            <button
+              key={i}
+              onClick={() => handleSelect(i)}
+              className="aurora-opt-dark"
+            >
+              <span className="aurora-opt-dark-idx">{letter}</span>
+              {step.options[i].text}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

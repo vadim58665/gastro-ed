@@ -36,11 +36,14 @@ export default function AchievementsPage() {
       <main className="flex-1 pt-24 pb-20 overflow-y-auto px-4">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-3xl font-extralight text-foreground">
+            <p className="text-3xl font-extralight aurora-text tabular-nums">
               {unlockedCount}
               <span className="text-muted">/{achievements.length}</span>
             </p>
-            <p className="text-xs uppercase tracking-widest text-muted mt-1">
+            <p
+              className="text-xs uppercase tracking-widest mt-1"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
               Достижений
             </p>
           </div>
@@ -50,7 +53,10 @@ export default function AchievementsPage() {
         <div className="space-y-6">
           {Object.entries(grouped).map(([category, items]) => (
             <section key={category}>
-              <h2 className="text-xs uppercase tracking-widest text-muted mb-3">
+              <h2
+                className="text-xs uppercase tracking-widest mb-3"
+                style={{ color: "var(--color-aurora-violet)" }}
+              >
                 {categoryLabels[category] || category}
               </h2>
               <div className="grid grid-cols-1 gap-3">

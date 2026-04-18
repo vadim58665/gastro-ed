@@ -114,7 +114,7 @@ export default function MedMindTips() {
               >
                 <div>
                   <p className="text-sm text-foreground">{topic.topic}</p>
-                  <p className="text-[10px] text-danger">
+                  <p className="text-[10px]" style={{ color: "var(--color-aurora-pink)" }}>
                     {Math.round(topic.errorRate * 100)}% ошибок
                   </p>
                 </div>
@@ -165,14 +165,16 @@ export default function MedMindTips() {
               </div>
               <div className="w-24 h-1.5 bg-surface rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    t.masteryScore > 0.85
-                      ? "bg-success"
-                      : t.isWeak
-                        ? "bg-danger"
-                        : "bg-primary"
-                  }`}
-                  style={{ width: `${Math.round(t.masteryScore * 100)}%` }}
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${Math.round(t.masteryScore * 100)}%`,
+                    background:
+                      t.masteryScore > 0.85
+                        ? "var(--color-aurora-indigo)"
+                        : t.isWeak
+                          ? "var(--color-aurora-pink)"
+                          : "var(--color-primary)",
+                  }}
                 />
               </div>
               <p className="text-[10px] text-muted w-8 text-right">

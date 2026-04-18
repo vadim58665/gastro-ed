@@ -134,10 +134,14 @@ describe("DailyCasePlayer persistence", () => {
     });
 
     // Click the correct answer on step 0.
-    const buttons = container.querySelectorAll("button.btn-press");
-    const correctBtn = Array.from(buttons).find(
-      (b) => b.textContent?.trim() === "A"
-    ) as HTMLButtonElement | undefined;
+    // Buttons now use aurora-opt-dark class and have a letter-index prefix span
+    // (e.g. "A" span + option text). Find the button whose option text is "A".
+    const buttons = container.querySelectorAll("button.aurora-opt-dark");
+    const correctBtn = Array.from(buttons).find((b) => {
+      // textContent = letter-index + option-text; option text starts after the first char
+      const full = b.textContent?.trim() ?? "";
+      return full.slice(1) === "A";
+    }) as HTMLButtonElement | undefined;
     expect(correctBtn).toBeDefined();
 
     act(() => {

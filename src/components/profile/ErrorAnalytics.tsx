@@ -86,7 +86,7 @@ export default function ErrorAnalytics({ specialtyId }: { specialtyId: string })
         spotlightColor="rgba(244, 63, 94, 0.12)"
       >
         <div className="px-6 py-8 text-center">
-          <div className="text-6xl md:text-7xl font-extralight tracking-tight leading-none text-danger tabular-nums">
+          <div className="text-6xl md:text-7xl font-extralight tracking-tight leading-none tabular-nums" style={{ color: "var(--color-aurora-pink)" }}>
             {summary.totalErrors}
           </div>
           <p className="text-[11px] uppercase tracking-[0.22em] text-muted mt-3 font-medium">
@@ -96,8 +96,7 @@ export default function ErrorAnalytics({ specialtyId }: { specialtyId: string })
           {summary.totalAnswered > 0 && (
             <div className="w-full h-1.5 mt-6 rounded-full bg-surface overflow-hidden">
               <div
-                className="h-full rounded-full bg-danger"
-                style={{ width: `${Math.round(summary.errorRate * 100)}%` }}
+                style={{ width: `${Math.round(summary.errorRate * 100)}%`, background: "var(--color-aurora-pink)" }}
               />
             </div>
           )}
@@ -131,13 +130,15 @@ export default function ErrorAnalytics({ specialtyId }: { specialtyId: string })
                 </span>
                 <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-danger"
                     style={{
                       width: `${Math.round((b.errorCount / maxBlockErrors) * 100)}%`,
+                      height: "100%",
+                      borderRadius: "9999px",
+                      background: "var(--color-aurora-pink)",
                     }}
                   />
                 </div>
-                <span className="text-xs text-danger font-semibold tabular-nums w-8 text-right">
+                <span className="text-xs font-semibold tabular-nums w-8 text-right" style={{ color: "var(--color-aurora-pink)" }}>
                   {b.errorCount}
                 </span>
                 <svg
@@ -162,7 +163,7 @@ export default function ErrorAnalytics({ specialtyId }: { specialtyId: string })
       {/* C. Frequent errors */}
       {frequentErrors.length > 0 && (
         <div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-danger font-medium mb-3">
+          <p className="text-[10px] uppercase tracking-[0.2em] font-medium mb-3" style={{ color: "var(--color-aurora-pink)" }}>
             Частые ошибки
           </p>
           <div className="space-y-1.5">
@@ -180,11 +181,14 @@ export default function ErrorAnalytics({ specialtyId }: { specialtyId: string })
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-                  <span className="text-sm font-extralight text-danger tabular-nums">
+                  <span className="text-sm font-extralight tabular-nums" style={{ color: "var(--color-aurora-pink)" }}>
                     {e.wrongCount}
                   </span>
                   {e.isRepeat && (
-                    <span className="text-[8px] uppercase tracking-wider text-warning font-bold px-1.5 py-0.5 rounded bg-warning/10 border border-warning/20">
+                    <span
+                      className="text-[8px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded border"
+                      style={{ color: "var(--color-aurora-violet)", background: "var(--aurora-violet-soft)", borderColor: "var(--aurora-violet-border)" }}
+                    >
                       повтор
                     </span>
                   )}
@@ -211,7 +215,7 @@ export default function ErrorAnalytics({ specialtyId }: { specialtyId: string })
                         Блок {e.blockNumber} · {e.wrongCount}/{e.totalAttempts} неверно
                       </p>
                     </div>
-                    <span className="text-sm font-extralight text-danger tabular-nums shrink-0 mt-0.5">
+                    <span className="text-sm font-extralight tabular-nums shrink-0 mt-0.5" style={{ color: "var(--color-aurora-pink)" }}>
                       {e.wrongCount}
                     </span>
                   </div>
@@ -225,7 +229,7 @@ export default function ErrorAnalytics({ specialtyId }: { specialtyId: string })
       {/* D. Repeat errors */}
       {repeatErrors.length > 0 && (
         <div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-warning font-medium mb-3">
+          <p className="text-[10px] uppercase tracking-[0.2em] font-medium mb-3" style={{ color: "var(--color-aurora-violet)" }}>
             Повторные ошибки
           </p>
           <p className="text-[10px] text-muted mb-3 leading-relaxed">
@@ -235,7 +239,8 @@ export default function ErrorAnalytics({ specialtyId }: { specialtyId: string })
             {repeatErrors.slice(0, 5).map((e) => (
               <div
                 key={e.questionId}
-                className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-warning/5 border border-warning/15"
+                className="flex items-start gap-3 py-2.5 px-3 rounded-lg border"
+                style={{ background: "var(--aurora-violet-soft)", borderColor: "var(--aurora-violet-border)" }}
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-foreground line-clamp-2 leading-relaxed">

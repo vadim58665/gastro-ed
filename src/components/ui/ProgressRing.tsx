@@ -36,7 +36,8 @@ export default function ProgressRing({ current, total, size = 32 }: Props) {
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className={`transition-all duration-500 ${isComplete ? "text-emerald-500" : "text-foreground/40"}`}
+          className="transition-all duration-500 text-foreground/40"
+          style={isComplete ? { color: "var(--color-aurora-indigo)" } : undefined}
         />
       </svg>
       <span className="absolute text-[10px] font-semibold text-foreground/70">

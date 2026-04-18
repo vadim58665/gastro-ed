@@ -6,10 +6,25 @@ import {
 import { checkRateLimit, rateLimitResponse } from "../../_lib/rate-limit";
 
 type EntityType = "card" | "accreditation_question";
-type ContentType = "hint" | "explain_short" | "explain_long";
+type ContentType =
+  | "hint"
+  | "explain_short"
+  | "explain_long"
+  | "mnemonic"
+  | "poem"
+  | "explanation"
+  | "learning_plan";
 
 const ENTITY_TYPES: EntityType[] = ["card", "accreditation_question"];
-const CONTENT_TYPES: ContentType[] = ["hint", "explain_short", "explain_long"];
+const CONTENT_TYPES: ContentType[] = [
+  "hint",
+  "explain_short",
+  "explain_long",
+  "mnemonic",
+  "poem",
+  "explanation",
+  "learning_plan",
+];
 
 export async function GET(req: Request) {
   try {

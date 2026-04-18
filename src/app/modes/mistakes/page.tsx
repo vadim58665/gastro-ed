@@ -98,7 +98,7 @@ export default function MistakesHubPage() {
                     Проработать все ошибки специальности подряд
                   </p>
                 </div>
-                <span className="text-sm font-semibold text-danger">
+                <span className="text-sm font-semibold" style={{ color: "var(--color-aurora-pink)" }}>
                   {totalMistakes}
                 </span>
               </div>
@@ -139,7 +139,7 @@ export default function MistakesHubPage() {
                           <span className="text-base font-light text-foreground">
                             Блок {block}
                           </span>
-                          <span className="text-sm font-semibold text-danger">
+                          <span className="text-sm font-semibold" style={{ color: "var(--color-aurora-pink)" }}>
                             {count}
                           </span>
                         </div>

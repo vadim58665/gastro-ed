@@ -193,7 +193,10 @@ export default function CompanionChat({
               MedMind
             </div>
             <div className="w-8 h-px bg-border mb-4" />
-            <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-4">
+            <p
+              className="text-xs uppercase tracking-[0.2em] font-semibold mb-4"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
               ИИ-компаньон врача
             </p>
             <p className="text-sm text-muted leading-relaxed max-w-[280px] mb-6">
@@ -232,7 +235,7 @@ export default function CompanionChat({
 
         {error && (
           <div className="text-center">
-            <p className="text-xs text-danger">{error}</p>
+            <p className="text-xs" style={{ color: "var(--color-aurora-pink)" }}>{error}</p>
             <button
               onClick={() => setError(null)}
               className="text-[10px] uppercase tracking-widest text-muted mt-1"

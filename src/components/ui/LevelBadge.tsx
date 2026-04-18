@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { getLevelForXp, getXpToNextLevel, getRankForAccuracy } from "@/data/levels";
 
 interface Props {
@@ -8,25 +9,25 @@ interface Props {
   compact?: boolean;
 }
 
-const colorMap: Record<string, string> = {
-  muted: "text-muted",
-  primary: "text-primary",
-  success: "text-success",
-  warning: "text-warning",
-  danger: "text-danger",
-  purple: "text-purple-500",
+const colorMap: Record<string, { className: string; style?: React.CSSProperties }> = {
+  muted: { className: "text-muted" },
+  primary: { className: "text-primary" },
+  success: { className: "", style: { color: "var(--color-aurora-indigo)" } },
+  warning: { className: "", style: { color: "var(--color-aurora-violet)" } },
+  danger: { className: "", style: { color: "var(--color-aurora-pink)" } },
+  purple: { className: "text-purple-500" },
 };
 
 export default function LevelBadge({ xp, recentAnswers, compact }: Props) {
   const level = getLevelForXp(xp);
   const next = getXpToNextLevel(xp);
   const rank = getRankForAccuracy(recentAnswers);
-  const levelColor = colorMap[level.color] || "text-foreground";
-  const rankColor = colorMap[rank.color] || "text-foreground";
+  const levelColorEntry = colorMap[level.color] || { className: "text-foreground" };
+  const rankColorEntry = colorMap[rank.color] || { className: "text-foreground" };
 
   if (compact) {
     return (
-      <span className={`text-xs font-medium ${rankColor}`}>
+      <span className={`text-xs font-medium ${rankColorEntry.className}`} style={rankColorEntry.style}>
         {rank.title}
       </span>
     );
@@ -34,13 +35,13 @@ export default function LevelBadge({ xp, recentAnswers, compact }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className={`text-3xl font-extralight ${levelColor}`}>
+      <span className={`text-3xl font-extralight ${levelColorEntry.className}`} style={levelColorEntry.style}>
         {level.level}
       </span>
       <span className="text-[10px] uppercase tracking-[0.2em] text-muted">
         уровень
       </span>
-      <span className={`text-sm font-medium ${rankColor} mt-1`}>
+      <span className={`text-sm font-medium ${rankColorEntry.className} mt-1`} style={rankColorEntry.style}>
         {rank.title}
       </span>
       {next && (

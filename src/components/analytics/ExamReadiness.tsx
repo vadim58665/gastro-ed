@@ -11,7 +11,14 @@ import {
 } from "@/lib/examReadiness";
 import MagicCard from "@/components/ui/MagicCard";
 
-export default function ExamReadiness() {
+interface ExamReadinessProps {
+  /** Тренд изменения за период, опционально */
+  trend?: { delta: number; period: string };
+  /** Слабые темы (топ-3), опционально */
+  weakTopics?: Array<{ name: string; percent: number }>;
+}
+
+export default function ExamReadiness({ trend, weakTopics }: ExamReadinessProps = {}) {
   const { progress } = useProgress();
   const { activeSpecialty } = useSpecialty();
   const router = useRouter();
@@ -60,7 +67,7 @@ export default function ExamReadiness() {
   }
 
   const hasAttempts = report.totalAttempts > 0;
-  const weakTopics = report.topics.filter((t) => t.status === "weak");
+  const weakTopicsFromReport = report.topics.filter((t) => t.status === "weak");
   const developingTopics = report.topics.filter(
     (t) => t.status === "developing" && t.weight < 1
   );
@@ -106,6 +113,40 @@ export default function ExamReadiness() {
               }}
             />
           </div>
+          {trend && (
+            <div
+              className="flex items-center gap-1 mt-2 text-[9px] font-semibold tracking-wide"
+              style={{ color: "#6366F1" }}
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                {trend.delta >= 0 ? (
+                  <>
+                    <polyline points="17 6 23 6 23 12" />
+                    <polyline points="1 18 7 12 13 18 23 6" />
+                  </>
+                ) : (
+                  <>
+                    <polyline points="17 18 23 18 23 12" />
+                    <polyline points="1 6 7 12 13 6 23 18" />
+                  </>
+                )}
+              </svg>
+              {trend.delta >= 0 ? `+${trend.delta}%` : `${trend.delta}%`} {trend.period}
+            </div>
+          )}
+          {weakTopics && weakTopics.length > 0 && (
+            <div className="flex gap-1.5 mt-2.5 flex-wrap">
+              {weakTopics.map((t) => (
+                <span
+                  key={t.name}
+                  className="text-[8.5px] tracking-[0.1em] uppercase px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: "rgba(236,72,153,0.08)", color: "#EC4899" }}
+                >
+                  {t.name} {t.percent}%
+                </span>
+              ))}
+            </div>
+          )}
           <p className="text-[10px] text-muted/70 mt-4 leading-relaxed">
             тема даёт полный вклад при 5+ попытках и высокой точности
           </p>
@@ -135,10 +176,10 @@ export default function ExamReadiness() {
             Начните проходить карточки — данные появятся после первых ответов
           </p>
         </div>
-      ) : weakTopics.length > 0 ? (
+      ) : weakTopicsFromReport.length > 0 ? (
         <PrioritySection
           title="Приоритет — проработать"
-          topics={weakTopics.slice(0, 5)}
+          topics={weakTopicsFromReport.slice(0, 5)}
           onOpen={(t) => router.push(`/feed?topic=${encodeURIComponent(t)}`)}
           variant="weak"
         />
@@ -216,9 +257,8 @@ function PrioritySection({
   return (
     <div>
       <p
-        className={`text-[10px] uppercase tracking-[0.15em] font-medium mb-2 ${
-          variant === "weak" ? "text-danger" : "text-warning"
-        }`}
+        className="text-[10px] uppercase tracking-[0.15em] font-medium mb-2"
+        style={{ color: variant === "weak" ? "var(--color-aurora-pink)" : "var(--color-aurora-violet)" }}
       >
         {title}
       </p>
@@ -239,10 +279,12 @@ function PrioritySection({
             </div>
             <div className="w-16 h-1 rounded-full bg-border overflow-hidden">
               <div
-                className={`h-full rounded-full ${
-                  variant === "weak" ? "bg-danger" : "bg-warning"
-                }`}
-                style={{ width: `${Math.round(t.contribution * 100)}%` }}
+                style={{
+                  width: `${Math.round(t.contribution * 100)}%`,
+                  height: "100%",
+                  borderRadius: "9999px",
+                  background: variant === "weak" ? "var(--color-aurora-pink)" : "var(--color-aurora-violet)",
+                }}
               />
             </div>
             <svg
@@ -267,12 +309,12 @@ function PrioritySection({
 
 function AllTopicsRow({ topic: t }: { topic: TopicReadiness }) {
   const isUntouched = t.status === "untouched";
-  const barColor =
+  const barBackground =
     t.status === "weak"
-      ? "bg-danger"
+      ? "var(--color-aurora-pink)"
       : t.status === "strong"
-        ? "bg-success"
-        : "bg-primary";
+        ? "var(--color-aurora-indigo)"
+        : "var(--color-primary)";
 
   return (
     <div
@@ -292,8 +334,7 @@ function AllTopicsRow({ topic: t }: { topic: TopicReadiness }) {
         <>
           <div className="w-14 h-1 rounded-full bg-border overflow-hidden">
             <div
-              className={`h-full rounded-full ${barColor}`}
-              style={{ width: `${Math.round(t.contribution * 100)}%` }}
+              style={{ width: `${Math.round(t.contribution * 100)}%`, height: "100%", borderRadius: "9999px", background: barBackground }}
             />
           </div>
           <span className="text-[10px] text-muted w-9 text-right tabular-nums">

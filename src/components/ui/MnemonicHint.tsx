@@ -56,7 +56,8 @@ export default function MnemonicHint({ cardId, keyFact, cardHistory }: Props) {
           fill="none"
           stroke="currentColor"
           strokeWidth="1.5"
-          className="text-warning shrink-0"
+          className="shrink-0"
+          style={{ color: "var(--color-aurora-violet)" }}
         >
           <path d="M9 21h6M12 3a6 6 0 014 10.5V17H8v-3.5A6 6 0 0112 3z" />
         </svg>

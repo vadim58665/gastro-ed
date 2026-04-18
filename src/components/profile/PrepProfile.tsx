@@ -40,12 +40,12 @@ function formatDate(timestamp: number): string {
   });
 }
 
-const LEVEL_CONFIG: Record<BlockReadinessLevel, { label: string; color: string; bg: string }> = {
-  not_started: { label: "Не начат", color: "text-muted", bg: "bg-border" },
-  started:     { label: "Начат", color: "text-foreground", bg: "bg-primary/40" },
-  weak:        { label: "Слабый", color: "text-danger", bg: "bg-danger" },
-  ready:       { label: "Готов", color: "text-primary", bg: "bg-primary" },
-  strong:      { label: "Уверенно", color: "text-success", bg: "bg-success" },
+const LEVEL_CONFIG: Record<BlockReadinessLevel, { label: string; colorClass?: string; colorVar?: string; bgClass?: string; bgVar?: string }> = {
+  not_started: { label: "Не начат",  colorClass: "text-muted",       bgClass: "bg-border" },
+  started:     { label: "Начат",     colorClass: "text-foreground",  bgClass: "bg-primary/40" },
+  weak:        { label: "Слабый",    colorVar: "var(--color-aurora-pink)",   bgVar: "var(--aurora-pink-soft)" },
+  ready:       { label: "Готов",     colorClass: "text-primary",     bgClass: "bg-primary" },
+  strong:      { label: "Уверенно",  colorVar: "var(--color-aurora-indigo)", bgVar: "var(--aurora-indigo-soft)" },
 };
 
 export default function PrepProfile() {
@@ -207,7 +207,7 @@ export default function PrepProfile() {
             <MagicCard
               className="rounded-3xl"
               gradientFrom="#6366f1"
-              gradientTo="#10b981"
+              gradientTo="var(--color-aurora-indigo)"
               spotlightColor="rgba(16, 185, 129, 0.14)"
             >
               <div className="px-6 py-8">
@@ -244,7 +244,7 @@ export default function PrepProfile() {
                 value={lastExamScore !== null ? `${lastExamScore}%` : "-"}
                 label="последний экзамен"
                 sub={lastExamScore !== null ? (lastExamScore >= 70 ? "сдан" : "не сдан") : undefined}
-                subColor={lastExamScore !== null ? (lastExamScore >= 70 ? "text-success" : "text-danger") : undefined}
+                subColor={lastExamScore !== null ? (lastExamScore >= 70 ? "var(--color-aurora-indigo)" : "var(--color-aurora-pink)") : undefined}
               />
               <MetricCell
                 value={avgExamScore > 0 ? `${avgExamScore}%` : "-"}
@@ -280,19 +280,28 @@ export default function PrepProfile() {
                     {/* Coverage bar */}
                     <div className="flex-1 h-2 rounded-full bg-border/50 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all ${cfg.bg}`}
-                        style={{ width: `${Math.max(covPct, b.level !== "not_started" ? 4 : 0)}%` }}
+                        className={`h-full rounded-full transition-all${cfg.bgClass ? ` ${cfg.bgClass}` : ""}`}
+                        style={{
+                          width: `${Math.max(covPct, b.level !== "not_started" ? 4 : 0)}%`,
+                          ...(cfg.bgVar ? { background: cfg.bgVar } : {}),
+                        }}
                       />
                     </div>
 
                     {/* Accuracy + level */}
                     <div className="flex items-center gap-2 shrink-0">
                       {b.answered > 0 && (
-                        <span className={`text-[10px] font-semibold tabular-nums ${accPct >= 70 ? "text-success" : "text-danger"}`}>
+                        <span
+                          className="text-[10px] font-semibold tabular-nums"
+                          style={{ color: accPct >= 70 ? "var(--color-aurora-indigo)" : "var(--color-aurora-pink)" }}
+                        >
                           {accPct}%
                         </span>
                       )}
-                      <span className={`text-[9px] uppercase tracking-wider font-bold ${cfg.color}`}>
+                      <span
+                        className={`text-[9px] uppercase tracking-wider font-bold${cfg.colorClass ? ` ${cfg.colorClass}` : ""}`}
+                        style={cfg.colorVar ? { color: cfg.colorVar } : undefined}
+                      >
                         {cfg.label}
                       </span>
                     </div>
@@ -305,8 +314,17 @@ export default function PrepProfile() {
           {/* Weak blocks alert */}
           {weakBlocks.length > 0 && (
             <div className="px-6 mb-6">
-              <div className="rounded-2xl bg-danger/5 border border-danger/15 p-4">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-danger font-medium mb-2">
+              <div
+                className="rounded-2xl p-4 border"
+                style={{
+                  background: "var(--aurora-pink-soft)",
+                  borderColor: "var(--aurora-pink-border)",
+                }}
+              >
+                <p
+                  className="text-[10px] uppercase tracking-[0.2em] font-medium mb-2"
+                  style={{ color: "var(--color-aurora-pink)" }}
+                >
                   Требуют внимания
                 </p>
                 <p className="text-xs text-foreground leading-relaxed">
@@ -358,21 +376,27 @@ export default function PrepProfile() {
                             {result.percentage}%
                           </span>
                           {result.passed ? (
-                            <span className="text-[8px] uppercase tracking-wider text-success font-bold px-1.5 py-0.5 rounded bg-success/10">
+                            <span
+                              className="text-[8px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded"
+                              style={{ color: "var(--color-aurora-indigo)", background: "var(--aurora-indigo-soft)" }}
+                            >
                               сдан
                             </span>
                           ) : (
-                            <span className="text-[8px] uppercase tracking-wider text-danger font-bold px-1.5 py-0.5 rounded bg-danger/10">
+                            <span
+                              className="text-[8px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded"
+                              style={{ color: "var(--color-aurora-pink)", background: "var(--aurora-pink-soft)" }}
+                            >
                               не сдан
                             </span>
                           )}
                           {trend === "up" && (
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-success">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: "var(--color-aurora-indigo)" }}>
                               <polyline points="18 15 12 9 6 15" />
                             </svg>
                           )}
                           {trend === "down" && (
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-danger">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: "var(--color-aurora-pink)" }}>
                               <polyline points="6 9 12 15 18 9" />
                             </svg>
                           )}
@@ -422,14 +446,17 @@ function StatRow({
   label: string;
   highlight?: "success" | "danger";
 }) {
-  const valueColor = highlight === "success"
-    ? "text-success"
+  const valueColorVar = highlight === "success"
+    ? "var(--color-aurora-indigo)"
     : highlight === "danger"
-      ? "text-danger"
-      : "text-foreground";
+      ? "var(--color-aurora-pink)"
+      : undefined;
   return (
     <div>
-      <div className={`text-lg font-extralight tracking-tight tabular-nums leading-none ${valueColor}`}>
+      <div
+        className="text-lg font-extralight tracking-tight tabular-nums leading-none text-foreground"
+        style={valueColorVar ? { color: valueColorVar } : undefined}
+      >
         {value}
       </div>
       <p className="text-[9px] uppercase tracking-[0.12em] text-muted mt-1 font-medium">
@@ -459,7 +486,10 @@ function MetricCell({
         {label}
       </p>
       {sub && (
-        <p className={`text-[8px] mt-0.5 font-semibold ${subColor ?? "text-muted"}`}>
+        <p
+          className="text-[8px] mt-0.5 font-semibold text-muted"
+          style={subColor ? { color: subColor } : undefined}
+        >
           {sub}
         </p>
       )}

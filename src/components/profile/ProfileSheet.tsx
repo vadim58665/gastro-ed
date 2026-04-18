@@ -43,12 +43,6 @@ const themes: Array<{
     description: "Глубокий серый",
     swatches: ["#17181c", "#3a3d46", "#8792a3"],
   },
-  {
-    id: "bordeaux",
-    name: "Бордо",
-    description: "Благородное вино",
-    swatches: ["#faf5f5", "#9b1b30", "#d4536a"],
-  },
 ];
 
 const languages: Array<{
@@ -147,7 +141,10 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
                 </button>
               )}
               <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-[0.28em] text-muted font-semibold">
+                <p
+                  className="text-[10px] uppercase tracking-[0.28em] font-semibold"
+                  style={{ color: "var(--color-aurora-violet)" }}
+                >
                   {view === "menu"
                     ? "Настройки"
                     : view === "language"
@@ -224,7 +221,10 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
                       <div className="text-[11px] text-muted mt-0.5">{c.description}</div>
                     </div>
                     {active && (
-                      <div className="shrink-0 w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center">
+                      <div
+                        className="shrink-0 w-6 h-6 rounded-full text-white flex items-center justify-center"
+                        style={{ background: "var(--aurora-gradient-primary)" }}
+                      >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
@@ -377,7 +377,10 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
                       <div className="text-[11px] text-muted mt-0.5">{t.description}</div>
                     </div>
                     {active && (
-                      <div className="shrink-0 w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center">
+                      <div
+                        className="shrink-0 w-6 h-6 rounded-full text-white flex items-center justify-center"
+                        style={{ background: "var(--aurora-gradient-primary)" }}
+                      >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
@@ -413,7 +416,10 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
                       </div>
                     </div>
                     {active && (
-                      <div className="shrink-0 w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center">
+                      <div
+                        className="shrink-0 w-6 h-6 rounded-full text-white flex items-center justify-center"
+                        style={{ background: "var(--aurora-gradient-primary)" }}
+                      >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>

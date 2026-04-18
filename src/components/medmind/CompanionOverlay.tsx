@@ -23,24 +23,36 @@ import { buildAccreditationSnapshot } from "@/lib/accreditationSnapshot";
 import MarkdownResponse from "./MarkdownResponse";
 import { getSupabase } from "@/lib/supabase/client";
 
-type PrebuiltAction = "hint_prebuilt" | "explain_short" | "explain_long";
-type ChatAction =
-  | "explain"
+type PrebuiltAction =
+  | "hint_prebuilt"
+  | "explain_short"
+  | "explain_long"
   | "mnemonic"
   | "poem"
-  | "hint"
-  | "free"
-  | "explain_friend"
-  | "why_chain"
+  | "explain"
   | "plan";
+type ChatAction = "hint" | "free" | "explain_friend" | "why_chain";
 type QuickAction = PrebuiltAction | ChatAction;
 
 const HIDDEN_PATHS = ["/welcome", "/auth", "/subscription"];
 
-const PREBUILT_TYPE: Record<PrebuiltAction, "hint" | "explain_short" | "explain_long"> = {
+type PrebuiltContentType =
+  | "hint"
+  | "explain_short"
+  | "explain_long"
+  | "mnemonic"
+  | "poem"
+  | "explanation"
+  | "learning_plan";
+
+const PREBUILT_TYPE: Record<PrebuiltAction, PrebuiltContentType> = {
   hint_prebuilt: "hint",
   explain_short: "explain_short",
   explain_long: "explain_long",
+  mnemonic: "mnemonic",
+  poem: "poem",
+  explain: "explanation",
+  plan: "learning_plan",
 };
 
 function getCardText(card: unknown): string {
@@ -307,7 +319,7 @@ export default function CompanionOverlay() {
 
         if (
           action &&
-          ["mnemonic", "poem", "explain", "explain_long"].includes(action) &&
+          ["mnemonic", "poem", "explain", "explain_long", "plan"].includes(action) &&
           fullResponse
         ) {
           const contentType =
@@ -315,7 +327,12 @@ export default function CompanionOverlay() {
               ? "poem"
               : action === "mnemonic"
                 ? "mnemonic"
-                : "explanation";
+                : action === "plan"
+                  ? "learning_plan"
+                  : "explanation";
+          // Сохраняем в личную коллекцию юзера + upsert в общий кэш
+          // prebuilt_content (если есть entityId/entityType) — следующий
+          // пользователь по той же карточке получит готовое без токенов.
           fetch("/api/medmind/content", {
             method: "POST",
             headers: {
@@ -327,6 +344,8 @@ export default function CompanionOverlay() {
               topic: cardTopic || "Общее",
               questionContext: cardText.slice(0, 200),
               contentRu: fullResponse,
+              entityType: entityType ?? undefined,
+              entityId: entityId ?? undefined,
             }),
           }).catch(() => {
             /* silent: saving is best-effort */
@@ -379,32 +398,19 @@ export default function CompanionOverlay() {
       return;
     }
 
-    // Prebuilt actions: look up DB first, fall back to chat if missing.
-    if (action === "hint_prebuilt") {
-      const prompt = cardText
+    // Prebuilt actions: сначала смотрим в общий кэш (prebuilt_content) —
+    // если кто-то уже генерировал это для той же карточки, отдаём без
+    // токенов. Если нет — streamChat + save обратно в кэш на будущее.
+    const prebuiltPrompts: Record<PrebuiltAction, string> = {
+      hint_prebuilt: cardText
         ? `Дай подсказку (не ответ!) к этому вопросу:\n\n${cardText}`
-        : "Дай подсказку к текущему вопросу";
-      runPrebuiltWithFallback("hint_prebuilt", prompt);
-      return;
-    }
-    if (action === "explain_short") {
-      const prompt = cardText
+        : "Дай подсказку к текущему вопросу",
+      explain_short: cardText
         ? `Объясни кратко этот вопрос (2–4 предложения):\n\n${cardText}`
-        : "Объясни кратко текущий вопрос";
-      runPrebuiltWithFallback("explain_short", prompt);
-      return;
-    }
-    if (action === "explain_long") {
-      const prompt = cardText
+        : "Объясни кратко текущий вопрос",
+      explain_long: cardText
         ? `Дай подробный разбор этого вопроса — патогенез, клиника, почему остальные варианты неверны:\n\n${cardText}`
-        : "Дай подробный разбор текущего вопроса";
-      runPrebuiltWithFallback("explain_long", prompt);
-      return;
-    }
-
-    // Chat actions: direct streaming runtime call.
-    const prompts: Record<ChatAction, string> = {
-      free: "",
+        : "Дай подробный разбор текущего вопроса",
       explain: cardText
         ? `Объясни подробно этот вопрос:\n\n${cardText}`
         : "Объясни последний вопрос подробно",
@@ -414,6 +420,20 @@ export default function CompanionOverlay() {
       poem: cardText
         ? `Придумай короткий стишок для запоминания:\n\n${cardText}`
         : "Придумай стишок для запоминания последней темы",
+      plan: cardTopic
+        ? `Составь учебный план по теме: ${cardTopic}`
+        : "Составь учебный план по последней теме",
+    };
+
+    if (action in prebuiltPrompts) {
+      runPrebuiltWithFallback(action as PrebuiltAction, prebuiltPrompts[action as PrebuiltAction]);
+      return;
+    }
+
+    // Chat actions: direct streaming runtime call (без кэша — зависят от
+    // контекста юзера или персонального ответа).
+    const chatPrompts: Record<ChatAction, string> = {
+      free: "",
       hint: cardText
         ? `Дай подсказку (не ответ!) к этому вопросу:\n\n${cardText}`
         : "Дай подсказку к последнему вопросу",
@@ -423,11 +443,8 @@ export default function CompanionOverlay() {
       why_chain: cardText
         ? `Я ответил на этот вопрос. Спроси меня "Почему ты выбрал этот ответ?" и разбери ход моих рассуждений:\n\n${cardText}`
         : "Спроси меня, почему я ответил именно так на последний вопрос",
-      plan: cardTopic
-        ? `Составь учебный план по теме: ${cardTopic}`
-        : "Составь учебный план по последней теме",
     };
-    streamChatRequest(prompts[action as ChatAction], action);
+    streamChatRequest(chatPrompts[action as ChatAction], action);
   };
 
   const handleAction = (action: QuickAction) => {
@@ -585,7 +602,7 @@ export default function CompanionOverlay() {
                         executeAction(a);
                       }
                     }}
-                    className="flex-1 py-2 rounded-xl bg-primary text-white text-[10px] uppercase tracking-[0.15em] font-semibold btn-press"
+                    className="flex-1 py-2 rounded-xl btn-premium-dark text-[10px] uppercase tracking-[0.15em] font-semibold btn-press"
                   >
                     Помогите сейчас
                   </button>
@@ -630,7 +647,7 @@ export default function CompanionOverlay() {
                     </p>
                     <button
                       onClick={() => handleAction("free")}
-                      className="w-full py-2.5 rounded-full bg-primary text-white text-xs font-medium uppercase tracking-widest btn-press"
+                      className="w-full py-2.5 rounded-full btn-premium-dark text-xs font-medium uppercase tracking-widest btn-press"
                     >
                       Задать вопрос
                     </button>
@@ -641,11 +658,15 @@ export default function CompanionOverlay() {
                       <button
                         key={a.key}
                         onClick={() => handleAction(a.key)}
-                        className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium transition-colors border border-transparent ${
-                          a.prebuilt
-                            ? "text-foreground bg-primary/5 hover:bg-primary/10 hover:border-primary/20"
-                            : "text-foreground hover:bg-primary/5 hover:text-primary hover:border-primary/20"
-                        }`}
+                        className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium transition-colors border text-foreground"
+                        style={{
+                          background: a.prebuilt
+                            ? "var(--aurora-violet-soft)"
+                            : "transparent",
+                          borderColor: a.prebuilt
+                            ? "var(--aurora-violet-border)"
+                            : "transparent",
+                        }}
                       >
                         {a.label}
                       </button>
@@ -660,7 +681,7 @@ export default function CompanionOverlay() {
                   </p>
                   <button
                     onClick={() => { handleClose(); router.push("/subscription"); }}
-                    className="w-full py-2.5 rounded-full bg-primary text-white text-xs font-medium uppercase tracking-widest btn-press"
+                    className="w-full py-2.5 rounded-full btn-premium-dark text-xs font-medium uppercase tracking-widest btn-press"
                   >
                     Подключить
                   </button>
@@ -688,12 +709,14 @@ export default function CompanionOverlay() {
                       aria-label={isListening ? "Остановить запись" : "Голосовой ввод"}
                       className={`absolute right-2 top-2 p-1.5 rounded-lg transition-colors ${
                         isListening
-                          ? "text-danger bg-danger/10"
+                          ? ""
                           : "text-muted hover:text-primary"
                       }`}
                       style={
                         isListening
                           ? {
+                              color: "var(--color-aurora-pink)",
+                              background: "var(--aurora-pink-soft)",
                               transform: `scale(${1 + voiceLevel * 0.25})`,
                               boxShadow: `0 0 ${Math.round(voiceLevel * 14)}px rgba(239, 68, 68, 0.45)`,
                               transition: "transform 80ms linear, box-shadow 80ms linear",
@@ -711,12 +734,12 @@ export default function CompanionOverlay() {
                   )}
                 </div>
                 {voiceError && (
-                  <p className="mt-1 text-[10px] text-danger">{voiceError}</p>
+                  <p className="mt-1 text-[10px]" style={{ color: "var(--color-aurora-pink)" }}>{voiceError}</p>
                 )}
                 <button
                   type="submit"
                   disabled={!input.trim()}
-                  className="mt-2 w-full py-2 rounded-xl bg-primary text-white text-xs font-medium uppercase tracking-widest disabled:opacity-30 transition-opacity"
+                  className="mt-2 w-full py-2 rounded-xl btn-premium-dark text-xs font-medium uppercase tracking-widest disabled:opacity-30 transition-opacity"
                 >
                   Отправить
                 </button>
@@ -741,7 +764,8 @@ export default function CompanionOverlay() {
                     setShowInput(true);
                     setTimeout(() => inputRef.current?.focus(), 100);
                   }}
-                  className="flex-1 py-2 rounded-lg text-[10px] uppercase tracking-widest text-primary hover:bg-primary/5 transition-colors"
+                  className="flex-1 py-2 rounded-lg text-[10px] uppercase tracking-widest transition-colors hover:bg-[var(--aurora-violet-soft)]"
+                  style={{ color: "var(--color-aurora-violet)" }}
                 >
                   Ещё вопрос
                 </button>

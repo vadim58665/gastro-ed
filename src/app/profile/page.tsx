@@ -18,8 +18,8 @@ export default function ProfilePage() {
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar />
-      <main className="flex-1 pt-24 pb-20 overflow-y-auto">
+      <TopBar premium />
+      <main className="flex-1 pt-28 pb-20 overflow-y-auto">
         {mode === "prep" ? <PrepProfile /> : <FeedProfile />}
       </main>
       <BottomNav />

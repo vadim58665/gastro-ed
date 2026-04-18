@@ -9,6 +9,8 @@ import { useGamification } from "@/hooks/useGamification";
 import { demoCards } from "@/data/cards";
 import { getFeedMistakes, groupBySpecialty, groupByTopic } from "@/lib/mistakes";
 import { hapticCorrect, hapticWrong } from "@/lib/feedback";
+import { useSpecialty } from "@/contexts/SpecialtyContext";
+import { allSpecialties } from "@/data/specialties";
 
 type PageState = "idle" | "session" | "summary";
 type FilterMode = "all" | "specialty" | "topic";
@@ -29,11 +31,18 @@ function pluralize(n: number, one: string, few: string, many: string): string {
 
 export default function MistakesPage() {
   const { progress, recordAnswerWithGamification } = useGamification();
+  const { activeSpecialty, setActiveSpecialty, clearSpecialty } = useSpecialty();
 
   const [pageState, setPageState] = useState<PageState>("idle");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
-  const [specialtyFilter, setSpecialtyFilter] = useState<string | null>(null);
+  const specialtyFilter = activeSpecialty?.name ?? null;
   const [topicFilter, setTopicFilter] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeSpecialty && filterMode === "all") {
+      setFilterMode("specialty");
+    }
+  }, [activeSpecialty]);
   const [showSpecialtyPicker, setShowSpecialtyPicker] = useState(false);
   const [showTopicPicker, setShowTopicPicker] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -56,7 +65,7 @@ export default function MistakesPage() {
   );
 
   // Темы всегда считаем в рамках выбранной специальности (если есть),
-  // иначе — по всем ошибкам.
+  // иначе - по всем ошибкам.
   const topicGroups = useMemo(() => {
     const scoped = specialtyFilter
       ? allMistakes.filter((c) => c.specialty === specialtyFilter)
@@ -104,7 +113,7 @@ export default function MistakesPage() {
       setLastCorrect(isCorrect);
       isCorrect ? hapticCorrect() : hapticWrong();
       if (currentCard) {
-        // Важно: skipReviewSchedule=true — не добавляем карточку в FSRS-очередь
+        // Важно: skipReviewSchedule=true - не добавляем карточку в FSRS-очередь
         // при неверном ответе, чтобы она не всплывала через день в /review.
         // Правильный ответ обнулит consecutiveFails, и карточка исчезнет из /mistakes.
         recordAnswerWithGamification(
@@ -149,10 +158,13 @@ export default function MistakesPage() {
         <TopBar showBack />
         <main className="flex-1 pt-24 pb-20 flex flex-col items-center justify-center">
           <div className="text-center px-6">
-            <div className="text-6xl font-extralight text-foreground tracking-tight leading-none mb-3">
+            <div className="text-6xl font-extralight tracking-tight leading-none aurora-text tabular-nums mb-3">
               0
             </div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-8">
+            <p
+              className="text-xs uppercase tracking-[0.2em] font-medium mb-8"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
               ошибок
             </p>
             <div className="w-12 h-px bg-border mx-auto mb-8" />
@@ -182,13 +194,19 @@ export default function MistakesPage() {
         <main className="flex-1 pt-24 pb-20 overflow-y-auto">
           <div className="px-6 max-w-lg mx-auto">
             <div className="text-center pt-8 pb-6">
-              <p className="text-[10px] uppercase tracking-[0.25em] text-muted font-semibold mb-1">
+              <p
+                className="text-[10px] uppercase tracking-[0.25em] font-semibold mb-1"
+                style={{ color: "var(--color-aurora-violet)" }}
+              >
                 Результат
               </p>
               <div
-                className={`text-7xl font-extralight tracking-tight leading-none ${
-                  isGood ? "text-success" : "text-danger"
-                }`}
+                className="text-7xl font-extralight tracking-tight leading-none tabular-nums"
+                style={{
+                  color: isGood
+                    ? "var(--color-aurora-indigo)"
+                    : "var(--color-aurora-pink)",
+                }}
               >
                 {accuracy}%
               </div>
@@ -201,14 +219,30 @@ export default function MistakesPage() {
 
             <div className="flex justify-center gap-8 mb-8">
               <div className="text-center">
-                <div className="text-2xl font-extralight text-success">{correct}</div>
-                <div className="text-[9px] uppercase tracking-[0.15em] text-muted font-semibold">
+                <div
+                  className="text-2xl font-extralight"
+                  style={{ color: "var(--color-aurora-indigo)" }}
+                >
+                  {correct}
+                </div>
+                <div
+                  className="text-[9px] uppercase tracking-[0.15em] font-semibold"
+                  style={{ color: "var(--color-aurora-violet)" }}
+                >
                   закрыто
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-extralight text-danger">{wrong}</div>
-                <div className="text-[9px] uppercase tracking-[0.15em] text-muted font-semibold">
+                <div
+                  className="text-2xl font-extralight"
+                  style={{ color: "var(--color-aurora-pink)" }}
+                >
+                  {wrong}
+                </div>
+                <div
+                  className="text-[9px] uppercase tracking-[0.15em] font-semibold"
+                  style={{ color: "var(--color-aurora-violet)" }}
+                >
                   осталось
                 </div>
               </div>
@@ -216,7 +250,10 @@ export default function MistakesPage() {
                 <div className="text-2xl font-extralight text-foreground">
                   {allMistakes.length}
                 </div>
-                <div className="text-[9px] uppercase tracking-[0.15em] text-muted font-semibold">
+                <div
+                  className="text-[9px] uppercase tracking-[0.15em] font-semibold"
+                  style={{ color: "var(--color-aurora-violet)" }}
+                >
                   всего ошибок
                 </div>
               </div>
@@ -224,7 +261,7 @@ export default function MistakesPage() {
 
             <button
               onClick={handleBackToIdle}
-              className="btn-press w-full py-4 rounded-2xl bg-foreground text-background text-xs uppercase tracking-[0.2em] font-semibold"
+              className="btn-press btn-premium-dark w-full py-4 rounded-2xl text-xs uppercase tracking-[0.2em] font-semibold"
             >
               К режимам
             </button>
@@ -246,7 +283,10 @@ export default function MistakesPage() {
         <main className="flex-1 pt-24 pb-20 overflow-y-auto">
           <div className="px-5 pt-4">
             <div className="flex justify-between items-center mb-1.5">
-              <span className="text-[10px] uppercase tracking-[0.2em] text-muted font-semibold">
+              <span
+                className="text-[10px] uppercase tracking-[0.2em] font-semibold"
+                style={{ color: "var(--color-aurora-violet)" }}
+              >
                 Ошибки
               </span>
               <span className="text-[10px] text-muted tabular-nums">
@@ -255,14 +295,17 @@ export default function MistakesPage() {
             </div>
             <div className="h-[3px] bg-border/40 rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-danger to-danger/70 transition-all duration-300"
-                style={{ width: `${progressFraction * 100}%` }}
+                className="h-full rounded-full transition-all duration-300"
+                style={{
+                  width: `${progressFraction * 100}%`,
+                  background: "var(--aurora-gradient-primary)",
+                }}
               />
             </div>
           </div>
 
           <div className="px-3 pt-3">
-            <div className="w-full max-w-lg mx-auto rounded-3xl surface-raised">
+            <div className="w-full max-w-lg mx-auto rounded-3xl aurora-hairline bg-white">
               <div className="flex items-center justify-between px-6 pt-5 pb-1">
                 <span className="text-xs text-muted font-semibold uppercase tracking-wider">
                   {currentCard.topic}
@@ -282,11 +325,20 @@ export default function MistakesPage() {
               <button
                 ref={nextRef}
                 onClick={handleNext}
-                className={`w-full py-3.5 rounded-2xl text-sm font-medium transition-colors ${
+                className="btn-press w-full py-3.5 rounded-2xl text-sm font-medium border transition-colors"
+                style={
                   lastCorrect
-                    ? "bg-success/15 text-success border border-success/25"
-                    : "bg-danger/15 text-danger border border-danger/25"
-                }`}
+                    ? {
+                        background: "var(--aurora-indigo-soft)",
+                        color: "var(--color-aurora-indigo)",
+                        borderColor: "var(--aurora-indigo-border)",
+                      }
+                    : {
+                        background: "var(--aurora-pink-soft)",
+                        color: "var(--color-aurora-pink)",
+                        borderColor: "var(--aurora-pink-border)",
+                      }
+                }
               >
                 {lastCorrect
                   ? "Далее — ошибка закрыта"
@@ -312,13 +364,19 @@ export default function MistakesPage() {
       <main className="flex-1 pt-24 pb-20 overflow-y-auto">
         <div className="px-6 max-w-lg mx-auto">
           <div className="text-center pt-8 pb-6">
-            <p className="text-[10px] uppercase tracking-[0.25em] text-muted font-semibold mb-1">
+            <p
+              className="text-[10px] uppercase tracking-[0.25em] font-semibold mb-1"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
               Ошибки
             </p>
-            <div className="text-6xl font-extralight text-foreground tracking-tight leading-none">
+            <div className="text-6xl font-extralight tracking-tight leading-none aurora-text tabular-nums">
               {allMistakes.length}
             </div>
-            <p className="text-[11px] uppercase tracking-[0.15em] text-muted mt-2 font-medium">
+            <p
+              className="text-[11px] uppercase tracking-[0.15em] mt-2 font-medium"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
               {pluralize(allMistakes.length, "карточка", "карточки", "карточек")}
             </p>
           </div>
@@ -327,21 +385,33 @@ export default function MistakesPage() {
 
           {/* Режимы */}
           <div className="mb-5">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted font-semibold mb-3">
+            <p
+              className="text-[10px] uppercase tracking-[0.2em] font-semibold mb-3"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
               Режим проработки
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => {
                   setFilterMode("all");
-                  setSpecialtyFilter(null);
+                  clearSpecialty();
                   setTopicFilter(null);
                 }}
-                className={`flex-1 py-3 rounded-xl text-xs font-medium transition-colors ${
+                className={`flex-1 py-3 rounded-xl text-xs font-medium transition-all ${
                   filterMode === "all"
-                    ? "bg-foreground text-background border border-foreground"
+                    ? "text-white relative"
                     : "bg-surface text-foreground border border-border hover:bg-card"
                 }`}
+                style={
+                  filterMode === "all"
+                    ? {
+                        background: "var(--aurora-gradient-premium)",
+                        boxShadow:
+                          "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 24px -10px color-mix(in srgb, var(--color-aurora-indigo) 55%, transparent)",
+                      }
+                    : undefined
+                }
               >
                 Все
               </button>
@@ -350,21 +420,39 @@ export default function MistakesPage() {
                   setFilterMode("specialty");
                   setTopicFilter(null);
                 }}
-                className={`flex-1 py-3 rounded-xl text-xs font-medium transition-colors ${
+                className={`flex-1 py-3 rounded-xl text-xs font-medium transition-all ${
                   filterMode === "specialty"
-                    ? "bg-foreground text-background border border-foreground"
+                    ? "text-white relative"
                     : "bg-surface text-foreground border border-border hover:bg-card"
                 }`}
+                style={
+                  filterMode === "specialty"
+                    ? {
+                        background: "var(--aurora-gradient-premium)",
+                        boxShadow:
+                          "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 24px -10px color-mix(in srgb, var(--color-aurora-indigo) 55%, transparent)",
+                      }
+                    : undefined
+                }
               >
                 Специальность
               </button>
               <button
                 onClick={() => setFilterMode("topic")}
-                className={`flex-1 py-3 rounded-xl text-xs font-medium transition-colors ${
+                className={`flex-1 py-3 rounded-xl text-xs font-medium transition-all ${
                   filterMode === "topic"
-                    ? "bg-foreground text-background border border-foreground"
+                    ? "text-white relative"
                     : "bg-surface text-foreground border border-border hover:bg-card"
                 }`}
+                style={
+                  filterMode === "topic"
+                    ? {
+                        background: "var(--aurora-gradient-premium)",
+                        boxShadow:
+                          "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 24px -10px color-mix(in srgb, var(--color-aurora-indigo) 55%, transparent)",
+                      }
+                    : undefined
+                }
               >
                 Тема
               </button>
@@ -403,7 +491,7 @@ export default function MistakesPage() {
                 <div className="mt-1 flex flex-col gap-0.5 bg-surface rounded-2xl overflow-hidden border border-border/40 max-h-64 overflow-y-auto">
                   <button
                     onClick={() => {
-                      setSpecialtyFilter(null);
+                      clearSpecialty();
                       setTopicFilter(null);
                       setShowSpecialtyPicker(false);
                     }}
@@ -424,7 +512,8 @@ export default function MistakesPage() {
                     <button
                       key={g.key}
                       onClick={() => {
-                        setSpecialtyFilter(g.key);
+                        const spec = allSpecialties.find((s) => s.name === g.key);
+                        if (spec) setActiveSpecialty(spec.id);
                         setTopicFilter(null);
                         setShowSpecialtyPicker(false);
                       }}
@@ -526,7 +615,7 @@ export default function MistakesPage() {
           <button
             onClick={handleStartSession}
             disabled={filteredMistakes.length === 0}
-            className="btn-press w-full py-4 rounded-2xl bg-foreground text-background text-xs uppercase tracking-[0.2em] font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+            className="btn-press btn-premium-dark w-full py-4 rounded-2xl text-xs uppercase tracking-[0.2em] font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {filteredMistakes.length > 0
               ? `Начать · ${filteredMistakes.length} ${pluralize(filteredMistakes.length, "карточка", "карточки", "карточек")}`
@@ -535,12 +624,12 @@ export default function MistakesPage() {
 
           <Link
             href="/review"
-            className="block mt-6 px-4 py-3 rounded-xl bg-surface border border-border hover:bg-card transition-colors"
+            className="block mt-6 relative rounded-xl aurora-hairline bg-white/60 hover:bg-white/80 transition-colors p-4"
           >
-            <div className="text-xs font-medium text-foreground">
+            <div className="text-xs font-medium text-foreground relative z-10">
               Интервальное повторение →
             </div>
-            <p className="text-[10px] text-muted mt-0.5 leading-snug">
+            <p className="text-[10px] text-muted mt-0.5 leading-snug relative z-10">
               Закрепление выученных карточек по расписанию, чтобы не забыть
             </p>
           </Link>

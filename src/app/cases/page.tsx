@@ -33,7 +33,7 @@ export default function CasesPage() {
       <TopBar />
       <main className="flex-1 pt-20 pb-20 overflow-y-auto">
         <div className="px-6 pt-4 pb-4 text-center">
-          <p className="text-xs uppercase tracking-[0.25em] text-muted font-medium mb-3">
+          <p className="text-xs uppercase tracking-[0.25em] font-medium mb-3" style={{ color: "var(--color-aurora-violet)" }}>
             Ситуационные
           </p>
           <h1 className="text-3xl font-light text-foreground tracking-tight">
@@ -74,7 +74,10 @@ export default function CasesPage() {
                 Изучено 0 из 0 задач
               </p>
               <div className="w-full h-1 bg-border rounded-full overflow-hidden mt-2 max-w-xs mx-auto">
-                <div className="h-full bg-primary rounded-full" style={{ width: "0%" }} />
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: "0%", background: "var(--aurora-gradient-primary)" }}
+                />
               </div>
             </div>
 

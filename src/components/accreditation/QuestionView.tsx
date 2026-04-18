@@ -102,17 +102,22 @@ export default function QuestionView({
 
       <div className="space-y-2">
         {question.options.map((option, index) => {
-          let borderClass = "border-border";
-          let bgClass = "bg-card";
+          let style: React.CSSProperties = {};
 
           if (showResult && index === question.correctIndex) {
-            borderClass = "border-emerald-300";
-            bgClass = "bg-emerald-50";
+            style = {
+              borderColor: "var(--color-aurora-violet)",
+              background: "var(--aurora-violet-soft)",
+            };
           } else if (showResult && selected === index && index !== question.correctIndex) {
-            borderClass = "border-rose-300";
-            bgClass = "bg-rose-50";
+            style = {
+              borderColor: "var(--color-aurora-pink)",
+              background: "var(--aurora-pink-soft)",
+            };
           } else if (selected === index) {
-            borderClass = "border-primary/50";
+            style = {
+              borderColor: "color-mix(in srgb, var(--color-aurora-violet) 50%, transparent)",
+            };
           }
 
           return (
@@ -120,7 +125,8 @@ export default function QuestionView({
               key={index}
               onClick={() => handleSelect(index)}
               disabled={(selected !== null && mode !== "learn") || hasExisting}
-              className={`w-full text-left px-4 py-3 rounded-xl border ${borderClass} ${bgClass} transition-all text-sm`}
+              className="w-full text-left px-4 py-3 rounded-xl border border-border bg-card transition-all text-sm"
+              style={style}
             >
               {option}
             </button>
@@ -167,7 +173,7 @@ export default function QuestionView({
         {showNextButton && (
           <button
             onClick={handleNext}
-            className="btn-press flex-1 h-14 rounded-2xl bg-foreground text-white text-xs uppercase tracking-[0.2em] font-semibold shadow-lg shadow-foreground/15 hover:shadow-xl hover:shadow-foreground/20 transition-all"
+            className="btn-press btn-premium-dark flex-1 h-14 rounded-2xl text-xs uppercase tracking-[0.2em] font-semibold"
           >
             Следующий вопрос
           </button>

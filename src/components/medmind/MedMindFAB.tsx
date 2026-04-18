@@ -29,11 +29,23 @@ export default function MedMindFAB() {
       {/* FAB Button */}
       <button
         onClick={() => setOpen(!open)}
-        className={`fixed bottom-20 right-4 z-50 ${size} rounded-full flex items-center justify-center transition-all duration-200 btn-press card-shadow ${
-          open
-            ? "bg-primary text-white"
-            : "bg-card border border-primary/30 text-primary"
+        className={`fixed bottom-20 right-4 z-50 ${size} rounded-full flex items-center justify-center transition-all duration-200 btn-press ${
+          open ? "text-white" : "bg-card"
         }`}
+        style={
+          open
+            ? {
+                background: "var(--aurora-gradient-primary)",
+                boxShadow:
+                  "0 4px 14px -2px color-mix(in srgb, var(--color-aurora-violet) 45%, transparent), 0 2px 6px rgba(17,24,39,0.08)",
+              }
+            : {
+                border: "1px solid var(--aurora-violet-border)",
+                color: "var(--color-aurora-violet)",
+                boxShadow:
+                  "0 2px 8px -2px color-mix(in srgb, var(--color-aurora-violet) 25%, transparent)",
+              }
+        }
       >
         <svg
           width="24"

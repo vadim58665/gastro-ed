@@ -115,7 +115,7 @@ export default function ProfileSetupPage() {
           />
 
           {error && (
-            <p className="text-xs text-rose-500 font-medium px-1">{error}</p>
+            <p className="text-xs font-medium px-1" style={{ color: "var(--color-aurora-pink)" }}>{error}</p>
           )}
 
           <button

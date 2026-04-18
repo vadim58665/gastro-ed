@@ -63,12 +63,18 @@ export default function HintButton({ entityId, entityType = "card" }: Props) {
 
   if (showPaywall) {
     return (
-      <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+      <div
+        className="mt-3 rounded-xl px-4 py-3"
+        style={{
+          border: "1px solid var(--aurora-violet-border)",
+          background: "var(--aurora-violet-soft)",
+        }}
+      >
         <p className="text-xs text-foreground mb-1 font-medium">
           Подсказка доступна в подписке
         </p>
         <p className="text-[11px] text-muted mb-3 leading-relaxed">
-          Получайте наводящие подсказки к каждому вопросу — не раскрывая ответ.
+          Получайте наводящие подсказки к каждому вопросу, не раскрывая ответ.
         </p>
         <div className="flex gap-2">
           <button
@@ -76,7 +82,8 @@ export default function HintButton({ entityId, entityType = "card" }: Props) {
               setShowPaywall(false);
               router.push("/subscription");
             }}
-            className="text-[10px] uppercase tracking-[0.15em] font-semibold text-primary btn-press"
+            className="text-[10px] uppercase tracking-[0.15em] font-semibold btn-press"
+            style={{ color: "var(--color-aurora-violet)" }}
           >
             Подключить
           </button>
@@ -93,8 +100,14 @@ export default function HintButton({ entityId, entityType = "card" }: Props) {
 
   if (hint) {
     return (
-      <div className="mt-3 border-l-2 border-primary/30 pl-3">
-        <p className="text-[10px] uppercase tracking-[0.15em] text-primary mb-1">
+      <div
+        className="mt-3 pl-3"
+        style={{ borderLeft: "2px solid var(--aurora-violet-border)" }}
+      >
+        <p
+          className="text-[10px] uppercase tracking-[0.15em] mb-1"
+          style={{ color: "var(--color-aurora-violet)" }}
+        >
           Подсказка
         </p>
         <p className="text-sm text-foreground/80 leading-relaxed">{hint}</p>
@@ -106,7 +119,8 @@ export default function HintButton({ entityId, entityType = "card" }: Props) {
     <button
       onClick={handleClick}
       disabled={loading}
-      className="mt-3 inline-flex items-center gap-1.5 text-xs text-primary btn-press disabled:opacity-50"
+      className="mt-3 inline-flex items-center gap-1.5 text-xs btn-press disabled:opacity-50"
+      style={{ color: "var(--color-aurora-violet)" }}
       aria-label="Показать подсказку"
     >
       <svg

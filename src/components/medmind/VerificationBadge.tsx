@@ -13,7 +13,10 @@ export default function VerificationBadge({
 }: Props) {
   if (isAccurate && confidence > 0.7) {
     return (
-      <div className="flex items-center gap-1.5 text-success">
+      <div
+        className="flex items-center gap-1.5"
+        style={{ color: "var(--color-aurora-indigo)" }}
+      >
         <svg
           width="12"
           height="12"
@@ -35,7 +38,10 @@ export default function VerificationBadge({
 
   return (
     <div>
-      <div className="flex items-center gap-1.5 text-warning">
+      <div
+        className="flex items-center gap-1.5"
+        style={{ color: "var(--color-aurora-violet)" }}
+      >
         <svg
           width="12"
           height="12"

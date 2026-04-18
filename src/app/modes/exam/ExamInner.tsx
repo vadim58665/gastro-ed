@@ -164,7 +164,10 @@ export default function ExamInner() {
         <main className="flex-1 pt-20 pb-20 flex flex-col">
           {config.marathon && marathonFailed && (
             <div className="text-center px-6 pt-6 pb-2">
-              <p className="text-xs uppercase tracking-[0.15em] text-rose-500 font-medium">
+              <p
+                className="text-xs uppercase tracking-[0.15em] font-medium"
+                style={{ color: "var(--color-aurora-pink)" }}
+              >
                 Марафон окончен
               </p>
             </div>

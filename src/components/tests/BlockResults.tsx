@@ -29,9 +29,8 @@ export default function BlockResults({
       {/* Score */}
       <div className="text-center mb-8">
         <div
-          className={`text-7xl font-extralight tracking-tight leading-none mb-2 ${
-            passed ? "text-emerald-600" : "text-rose-500"
-          }`}
+          className="text-7xl font-extralight tracking-tight leading-none mb-2"
+          style={{ color: passed ? "var(--color-aurora-indigo)" : "var(--color-aurora-pink)" }}
         >
           {pct}%
         </div>
@@ -40,9 +39,10 @@ export default function BlockResults({
         </p>
         <div className="w-12 h-px bg-border mx-auto my-6" />
         <div
-          className={`inline-block px-4 py-2 rounded-xl text-sm font-medium ${
-            passed ? "bg-success-light text-success" : "bg-danger-light text-danger"
-          }`}
+          className="inline-block px-4 py-2 rounded-xl text-sm font-medium"
+          style={passed
+            ? { background: "var(--aurora-indigo-soft)", color: "var(--color-aurora-indigo)" }
+            : { background: "var(--aurora-pink-soft)", color: "var(--color-aurora-pink)" }}
         >
           {pct >= 90
             ? "Превосходно"
@@ -67,16 +67,17 @@ export default function BlockResults({
               return (
                 <div
                   key={answer.questionId}
-                  className="px-4 py-3 rounded-xl border border-danger/20 bg-danger-light/60"
+                  className="px-4 py-3 rounded-xl border"
+                  style={{ borderColor: "var(--aurora-pink-border)", background: "var(--aurora-pink-soft)" }}
                 >
                   <p className="text-sm text-foreground leading-relaxed mb-2">
                     {q.question}
                   </p>
                   <div className="space-y-1">
-                    <p className="text-xs text-danger">
+                    <p className="text-xs" style={{ color: "var(--color-aurora-pink)" }}>
                       Ваш ответ: {q.options[answer.selectedIndex]}
                     </p>
-                    <p className="text-xs text-success">
+                    <p className="text-xs" style={{ color: "var(--color-aurora-indigo)" }}>
                       Правильно: {q.options[q.correctIndex]}
                     </p>
                   </div>

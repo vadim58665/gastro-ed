@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { DoseCalcCard } from "@/types/card";
+import ExplanationPanel from "@/components/ui/ExplanationPanel";
 
 interface Props {
   card: DoseCalcCard;
@@ -32,11 +33,9 @@ export default function DoseCalc({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-5 p-6">
-      <div className="text-xs font-bold text-muted uppercase tracking-widest">
-        Рассчитай дозу
-      </div>
+      <div className="aurora-card-type">Рассчитай дозу</div>
 
-      <p className="text-sm text-muted leading-relaxed">{card.scenario}</p>
+      <p className="aurora-scenario">{card.scenario}</p>
 
       {/* Params */}
       <div className="bg-surface rounded-2xl p-4 space-y-2">
@@ -58,14 +57,21 @@ export default function DoseCalc({ card, onAnswer }: Props) {
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor =
+                "color-mix(in srgb, var(--color-aurora-indigo) 60%, transparent)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "";
+            }}
             placeholder="0"
-            className="flex-1 px-5 py-4 rounded-full bg-card border-2 border-border text-foreground placeholder-muted focus:border-foreground/40 focus:outline-none transition-colors text-sm text-right"
+            className="flex-1 px-5 py-4 rounded-full bg-card border-2 border-border text-foreground placeholder-muted focus:outline-none transition-colors text-sm text-right"
           />
           <span className="text-sm text-muted shrink-0">{card.unit}</span>
           <button
             onClick={handleSubmit}
             disabled={!value.trim()}
-            className="btn-press px-8 py-4 rounded-full bg-foreground text-white font-bold disabled:opacity-30 transition-opacity shadow-lg shadow-foreground/20"
+            className="btn-premium-dark px-8 py-4 rounded-full disabled:opacity-30"
           >
             OK
           </button>
@@ -85,20 +91,12 @@ export default function DoseCalc({ card, onAnswer }: Props) {
             </p>
           </div>
 
-          <div
-            className={`animate-result p-5 rounded-2xl text-sm leading-relaxed ${
-              isCorrect
-                ? "bg-success-light border border-success/30 text-emerald-800"
-                : "bg-danger-light border border-danger/30 text-rose-800"
-            }`}
+          <ExplanationPanel
+            correct={isCorrect}
+            title={isCorrect ? "Верно!" : `Ваш ответ: ${value} ${card.unit}`}
           >
-            <div className="font-bold mb-1">
-              {isCorrect
-                ? "Верно!"
-                : `Ваш ответ: ${value} ${card.unit}`}
-            </div>
             {card.explanation}
-          </div>
+          </ExplanationPanel>
         </>
       )}
     </div>

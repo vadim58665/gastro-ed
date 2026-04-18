@@ -134,7 +134,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <p className="text-sm text-danger text-center">{error}</p>
+                <p className="text-sm text-center" style={{ color: "var(--color-aurora-pink)" }}>{error}</p>
               )}
 
               {loading && (
@@ -177,7 +177,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <p className="text-sm text-danger">{error}</p>
+                <p className="text-sm" style={{ color: "var(--color-aurora-pink)" }}>{error}</p>
               )}
 
               <button

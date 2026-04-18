@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { FillBlankCard } from "@/types/card";
+import ExplanationPanel from "@/components/ui/ExplanationPanel";
 
 interface Props {
   card: FillBlankCard;
@@ -30,7 +31,7 @@ export default function FillBlank({ card, onAnswer }: Props) {
 
   return (
     <div className="flex flex-col gap-5 p-6">
-      <div className="text-xs font-bold text-muted uppercase tracking-widest">
+      <div className="aurora-card-type">
         Заверши фразу
       </div>
 
@@ -63,18 +64,12 @@ export default function FillBlank({ card, onAnswer }: Props) {
           </button>
         </div>
       ) : (
-        <div
-          className={`animate-result p-5 rounded-2xl text-sm leading-relaxed ${
-            isCorrect
-              ? "bg-success-light border border-success/30 text-emerald-800"
-              : "bg-danger-light border border-danger/30 text-rose-800"
-          }`}
+        <ExplanationPanel
+          correct={isCorrect}
+          title={isCorrect ? "Верно!" : `Ответ: ${card.correctAnswer}`}
         >
-          <div className="font-bold mb-1">
-            {isCorrect ? "Верно!" : `Ответ: ${card.correctAnswer}`}
-          </div>
           {card.explanation}
-        </div>
+        </ExplanationPanel>
       )}
     </div>
   );
