@@ -661,6 +661,107 @@ body {
 }
 
 /* ===========================================================
+   Aurora feed utilities (Phase 3, 2026-04-18)
+   =========================================================== */
+
+/* Answer options (pill buttons) */
+.aurora-opt {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  padding: 11px 18px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  background: #fff;
+  border: 1.5px solid rgba(99, 102, 241, 0.18);
+  color: #1A1A2E;
+  transition: all 0.15s ease;
+}
+.aurora-opt:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.04);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.aurora-opt-correct {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(99, 102, 241, 0.1));
+  border: 1.5px solid #A855F7;
+  color: #6b21a8;
+  font-weight: 600;
+  box-shadow:
+    0 0 0 3px rgba(168, 85, 247, 0.12),
+    0 6px 18px -6px rgba(168, 85, 247, 0.35);
+}
+
+.aurora-opt-wrong {
+  background: rgba(236, 72, 153, 0.08);
+  border: 1.5px solid #EC4899;
+  color: #9f1239;
+  font-weight: 600;
+}
+
+.aurora-opt-dim { opacity: 0.4; }
+
+/* Explanation panels */
+.aurora-explanation {
+  position: relative;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #1A1A2E;
+}
+.aurora-explanation-correct {
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.06), rgba(168, 85, 247, 0.05));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+.aurora-explanation-wrong {
+  background: linear-gradient(180deg, rgba(236, 72, 153, 0.06), rgba(168, 85, 247, 0.04));
+  border: 1px solid rgba(236, 72, 153, 0.2);
+}
+.aurora-explanation-head {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.aurora-explanation-correct .aurora-explanation-head { color: #6366F1; }
+.aurora-explanation-wrong .aurora-explanation-head { color: #EC4899; }
+
+/* Scenario panel (question context box) */
+.aurora-scenario {
+  background: linear-gradient(180deg, #ffffff 0%, rgba(99, 102, 241, 0.04) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.08);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #1A1A2E;
+}
+
+/* Card type label (top of each card) */
+.aurora-card-type {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #6366F1;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.aurora-card-type::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #A855F7;
+}
+
+/* ===========================================================
    Theme: Mocha (warm coffee & cream)
    =========================================================== */
 html[data-theme="mocha"] {
