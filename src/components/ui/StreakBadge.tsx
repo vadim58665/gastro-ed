@@ -24,9 +24,9 @@ export default function StreakBadge() {
     <div
       className="inline-flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full bg-white"
       style={{
-        border: "1px solid rgba(99,102,241,0.15)",
+        border: "1px solid var(--aurora-indigo-border)",
         boxShadow:
-          "0 1px 2px rgba(17,24,39,0.04), 0 6px 18px -8px rgba(99,102,241,0.3)",
+          "0 1px 2px rgba(17,24,39,0.04), 0 6px 18px -8px color-mix(in srgb, var(--color-aurora-indigo) 30%, transparent)",
       }}
     >
       <div
@@ -37,10 +37,10 @@ export default function StreakBadge() {
           padding: 2,
           background: `conic-gradient(
             from -90deg,
-            #6366F1,
-            #A855F7,
-            #EC4899 ${percent}%,
-            rgba(99,102,241,0.1) ${percent}%
+            var(--color-aurora-indigo),
+            var(--color-aurora-violet),
+            var(--color-aurora-pink) ${percent}%,
+            var(--aurora-indigo-soft) ${percent}%
           )`,
         }}
       >
@@ -54,7 +54,10 @@ export default function StreakBadge() {
         <span className="text-[10px] font-medium text-foreground">
           {streak} {pluralDay(streak)}
         </span>
-        <span className="text-[8px] tracking-[0.15em] uppercase text-muted">
+        <span
+          className="text-[8px] tracking-[0.15em] uppercase"
+          style={{ color: "var(--color-aurora-violet)" }}
+        >
           Streak
         </span>
       </div>
