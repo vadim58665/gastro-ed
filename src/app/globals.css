@@ -32,6 +32,25 @@
   --shadow-inner-hi: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   --shadow-inner-ring: inset 0 0 0 1px rgba(17, 24, 39, 0.04);
   --ring-refined: 0 0 0 1px rgba(17, 24, 39, 0.05);
+
+  /* Aurora palette - formalised (Phase 1, 2026-04-18) */
+  --color-aurora-indigo: #6366F1;
+  --color-aurora-violet: #A855F7;
+  --color-aurora-pink: #EC4899;
+  --color-ink: #1A1A2E;
+
+  /* Aurora-tinted shadows */
+  --shadow-aurora-sm:
+    0 1px 2px rgba(99, 102, 241, 0.06),
+    0 6px 18px -8px rgba(99, 102, 241, 0.25);
+  --shadow-aurora-md:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 2px rgba(99, 102, 241, 0.06),
+    0 18px 36px -18px rgba(168, 85, 247, 0.28);
+  --shadow-aurora-lg:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 2px 6px rgba(49, 46, 129, 0.35),
+    0 18px 40px -12px rgba(99, 102, 241, 0.55);
 }
 
 html, body {
@@ -46,12 +65,13 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Ambient page depth — subtle radial for luxury minimalism */
+/* Ambient page depth - aurora-ambient (Phase 1, 2026-04-18) */
 body {
   background-color: var(--color-background);
   background-image:
-    radial-gradient(1200px 800px at 50% -10%, rgba(99, 102, 241, 0.05), transparent 60%),
-    radial-gradient(800px 600px at 100% 100%, rgba(148, 163, 184, 0.08), transparent 55%);
+    radial-gradient(1200px 800px at 50% -10%, rgba(99, 102, 241, 0.08), transparent 60%),
+    radial-gradient(600px 400px at 100% 30%, rgba(168, 85, 247, 0.06), transparent 55%),
+    radial-gradient(800px 600px at 0% 100%, rgba(236, 72, 153, 0.04), transparent 55%);
   background-attachment: fixed;
 }
 
@@ -580,6 +600,64 @@ body {
   .shine-card {
     transition: none;
   }
+}
+
+/* ===========================================================
+   Aurora utilities (Phase 1, 2026-04-18)
+   =========================================================== */
+
+/* Aurora welcome band - тонкая полоска под TopBar на premium-страницах */
+.aurora-welcome-band {
+  position: relative;
+  height: 20px;
+  background:
+    radial-gradient(600px 80px at 20% 100%, rgba(99, 102, 241, 0.18), transparent 70%),
+    radial-gradient(600px 80px at 80% 100%, rgba(236, 72, 153, 0.12), transparent 70%);
+  pointer-events: none;
+}
+
+/* Aurora hairline gradient border для premium-карточек */
+.aurora-hairline {
+  position: relative;
+}
+.aurora-hairline::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.2px;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.4) 0%,
+    rgba(168, 85, 247, 0.2) 50%,
+    rgba(236, 72, 153, 0.15) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Aurora conic-gradient ring для больших progress-rings (используется .style={--fill:X%}) */
+.aurora-conic {
+  background: conic-gradient(
+    from -90deg,
+    #6366F1 0%,
+    #A855F7 30%,
+    #EC4899 var(--aurora-fill, 40%),
+    rgba(99, 102, 241, 0.08) var(--aurora-fill, 40%)
+  );
+}
+
+/* Aurora gradient (линейный) - используется в .aurora-grad-bg */
+.aurora-grad-bg {
+  background: linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #EC4899 100%);
 }
 
 /* ===========================================================
