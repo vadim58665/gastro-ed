@@ -6,13 +6,15 @@ import TopBar from "@/components/ui/TopBar";
 import ShineCard from "@/components/ui/ShineCard";
 import { TIER_CONFIGS, type SubscriptionTier } from "@/types/medmind";
 
-const TIER_PALETTE: Record<SubscriptionTier, { from: string; to: string; grad: string }> = {
-  free: { from: "#94a3b8", to: "#cbd5e1", grad: "tier-grad-1" },
-  feed_helper: { from: "#6366f1", to: "#a855f7", grad: "tier-grad-2" },
-  accred_basic: { from: "#6366f1", to: "#a855f7", grad: "tier-grad-2" },
-  accred_mentor: { from: "#a855f7", to: "#ec4899", grad: "tier-grad-3" },
-  accred_tutor: { from: "#f59e0b", to: "#ec4899", grad: "tier-grad-4" },
-  accred_extreme: { from: "#10b981", to: "#6366f1", grad: "tier-grad-5" },
+type TierPalette = { from: string; to: string; isDark?: boolean };
+
+const TIER_PALETTE: Record<SubscriptionTier, TierPalette> = {
+  free: { from: "var(--color-muted, #94a3b8)", to: "var(--color-border, #cbd5e1)" },
+  feed_helper: { from: "var(--color-aurora-indigo)", to: "var(--color-aurora-violet)" },
+  accred_basic: { from: "var(--color-aurora-indigo)", to: "var(--color-aurora-violet)" },
+  accred_mentor: { from: "var(--color-aurora-violet)", to: "var(--color-aurora-pink)" },
+  accred_tutor: { from: "var(--color-aurora-indigo)", to: "var(--color-aurora-pink)" },
+  accred_extreme: { from: "var(--color-ink)", to: "var(--color-aurora-indigo)", isDark: true },
 };
 
 const PAID_TIERS: SubscriptionTier[] = [
@@ -118,9 +120,8 @@ export default function SubscriptionPage() {
           <div
             className="flex gap-1 p-1 rounded-xl mb-6"
             style={{
-              backgroundImage: "linear-gradient(180deg, #eef0f7 0%, #f5f6fa 100%)",
-              boxShadow:
-                "inset 0 1px 2px rgba(17,24,39,0.06), inset 0 0 0 1px rgba(17,24,39,0.05)",
+              backgroundImage: "linear-gradient(180deg, var(--color-surface, #eef0f7) 0%, var(--color-background, #f5f6fa) 100%)",
+              boxShadow: "inset 0 1px 2px rgba(17,24,39,0.06), inset 0 0 0 1px rgba(17,24,39,0.05)",
             }}
           >
             <button
