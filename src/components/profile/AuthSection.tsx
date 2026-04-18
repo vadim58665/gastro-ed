@@ -18,7 +18,7 @@ export default function AuthSection() {
       {user ? (
         <div className="text-center space-y-3">
           <p className="text-sm text-foreground">{user.email}</p>
-          <p className="text-xs text-success font-medium">
+          <p className="text-xs font-medium" style={{ color: "var(--color-aurora-indigo)" }}>
             Синхронизировано
           </p>
           <button

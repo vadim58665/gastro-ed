@@ -224,9 +224,9 @@ export default function CardFeed({ cards }: Props) {
                 </span>
                 {struggling && (
                   <span
-                    className="w-2 h-2 rounded-full bg-warning"
+                    className="w-2 h-2 rounded-full"
                     title="Сложная карточка"
-                    style={{ boxShadow: "0 0 8px rgba(245, 158, 11, 0.7)" }}
+                    style={{ background: "var(--color-aurora-violet)", boxShadow: "0 0 8px rgba(139, 92, 246, 0.7)" }}
                   />
                 )}
               </div>

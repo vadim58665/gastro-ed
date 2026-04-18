@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { AchievementDef } from "@/types/gamification";
 
 interface Props {
@@ -8,11 +8,11 @@ interface Props {
   onDismiss: () => void;
 }
 
-const rarityColors: Record<string, string> = {
-  common: "text-muted",
-  rare: "text-primary",
-  epic: "text-warning",
-  legendary: "text-danger",
+const rarityColors: Record<string, { className?: string; style?: React.CSSProperties }> = {
+  common: { className: "text-muted" },
+  rare: { className: "text-primary" },
+  epic: { style: { color: "var(--color-aurora-violet)" } },
+  legendary: { style: { color: "var(--color-aurora-pink)" } },
 };
 
 export default function AchievementUnlock({ achievement, onDismiss }: Props) {
@@ -39,8 +39,9 @@ export default function AchievementUnlock({ achievement, onDismiss }: Props) {
       </p>
       <p
         className={`text-6xl font-extralight mb-2 ${
-          rarityColors[achievement.rarity] || "text-foreground"
+          rarityColors[achievement.rarity]?.className || "text-foreground"
         }`}
+        style={rarityColors[achievement.rarity]?.style}
       >
         +{achievement.xpReward}
       </p>

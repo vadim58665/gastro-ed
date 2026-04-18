@@ -62,7 +62,8 @@ export default function ExamCountdown() {
         {examDate && (
           <button
             onClick={clear}
-            className="px-3 py-2 rounded-lg text-xs text-danger"
+            className="px-3 py-2 rounded-lg text-xs"
+            style={{ color: "var(--color-aurora-pink)" }}
           >
             Убрать
           </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { validateNickname } from "@/lib/validation/nickname";
 
 interface Props {
@@ -60,10 +60,10 @@ export default function NicknameField({ value, onChange, onValidityChange }: Pro
     };
   }, [value, onValidityChange]);
 
-  const color =
-    status === "available" ? "text-emerald-600" :
-    status === "taken" || status === "invalid" ? "text-rose-600" :
-    "text-muted";
+  const statusStyle: React.CSSProperties =
+    status === "available" ? { color: "var(--color-aurora-indigo)" } :
+    status === "taken" || status === "invalid" ? { color: "var(--color-aurora-pink)" } :
+    {};
 
   return (
     <div className="flex flex-col gap-1">
@@ -77,7 +77,10 @@ export default function NicknameField({ value, onChange, onValidityChange }: Pro
         onChange={(e) => onChange(e.target.value.toLowerCase())}
         maxLength={20}
       />
-      <span className={`text-[11px] px-1 ${color}`}>
+      <span
+        className={`text-[11px] px-1 ${status === "idle" ? "text-muted" : ""}`}
+        style={statusStyle}
+      >
         {message || "3-20 символов: a-z, 0-9, _"}
       </span>
     </div>

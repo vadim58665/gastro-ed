@@ -79,9 +79,13 @@ export default function BlitzTest({ card, onAnswer }: Props) {
         <div
           className={`text-sm font-mono font-bold px-3 py-1 rounded-full ${
             timeLeft <= 10 && started
-              ? "text-danger bg-danger-light"
+              ? ""
               : "text-foreground/50 bg-surface"
           }`}
+          style={timeLeft <= 10 && started ? {
+            color: "var(--color-aurora-pink)",
+            background: "var(--aurora-pink-soft)",
+          } : undefined}
         >
           {timeLeft}с
         </div>

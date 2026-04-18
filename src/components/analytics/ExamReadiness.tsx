@@ -257,9 +257,8 @@ function PrioritySection({
   return (
     <div>
       <p
-        className={`text-[10px] uppercase tracking-[0.15em] font-medium mb-2 ${
-          variant === "weak" ? "text-danger" : "text-warning"
-        }`}
+        className="text-[10px] uppercase tracking-[0.15em] font-medium mb-2"
+        style={{ color: variant === "weak" ? "var(--color-aurora-pink)" : "var(--color-aurora-violet)" }}
       >
         {title}
       </p>
@@ -280,10 +279,12 @@ function PrioritySection({
             </div>
             <div className="w-16 h-1 rounded-full bg-border overflow-hidden">
               <div
-                className={`h-full rounded-full ${
-                  variant === "weak" ? "bg-danger" : "bg-warning"
-                }`}
-                style={{ width: `${Math.round(t.contribution * 100)}%` }}
+                style={{
+                  width: `${Math.round(t.contribution * 100)}%`,
+                  height: "100%",
+                  borderRadius: "9999px",
+                  background: variant === "weak" ? "var(--color-aurora-pink)" : "var(--color-aurora-violet)",
+                }}
               />
             </div>
             <svg
@@ -308,12 +309,12 @@ function PrioritySection({
 
 function AllTopicsRow({ topic: t }: { topic: TopicReadiness }) {
   const isUntouched = t.status === "untouched";
-  const barColor =
+  const barBackground =
     t.status === "weak"
-      ? "bg-danger"
+      ? "var(--color-aurora-pink)"
       : t.status === "strong"
-        ? "bg-success"
-        : "bg-primary";
+        ? "var(--color-aurora-indigo)"
+        : "var(--color-primary)";
 
   return (
     <div
@@ -333,8 +334,7 @@ function AllTopicsRow({ topic: t }: { topic: TopicReadiness }) {
         <>
           <div className="w-14 h-1 rounded-full bg-border overflow-hidden">
             <div
-              className={`h-full rounded-full ${barColor}`}
-              style={{ width: `${Math.round(t.contribution * 100)}%` }}
+              style={{ width: `${Math.round(t.contribution * 100)}%`, height: "100%", borderRadius: "9999px", background: barBackground }}
             />
           </div>
           <span className="text-[10px] text-muted w-9 text-right tabular-nums">
