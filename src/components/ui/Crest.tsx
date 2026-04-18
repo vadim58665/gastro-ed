@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ReactNode } from "react";
 
 type CrestVariant = "indigo-violet" | "violet-pink" | "locked";
@@ -9,6 +10,7 @@ interface CrestProps {
   icon: ReactNode;
   title: string;
   sub?: string;
+  href?: string;
 }
 
 const HEX_CLIP = "polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%)";
@@ -18,33 +20,33 @@ const variantColors: Record<
   { from: string; to: string; shadow: string }
 > = {
   "indigo-violet": {
-    from: "#6366F1",
-    to: "#A855F7",
-    shadow: "rgba(99,102,241,0.5)",
+    from: "var(--color-aurora-indigo)",
+    to: "var(--color-aurora-violet)",
+    shadow: "color-mix(in srgb, var(--color-aurora-indigo) 50%, transparent)",
   },
   "violet-pink": {
-    from: "#A855F7",
-    to: "#EC4899",
-    shadow: "rgba(168,85,247,0.5)",
+    from: "var(--color-aurora-violet)",
+    to: "var(--color-aurora-pink)",
+    shadow: "color-mix(in srgb, var(--color-aurora-violet) 50%, transparent)",
   },
 };
 
-export default function Crest({ variant, icon, title, sub }: CrestProps) {
+export default function Crest({ variant, icon, title, sub, href }: CrestProps) {
   const isLocked = variant === "locked";
   const colors = !isLocked ? variantColors[variant] : null;
 
-  return (
+  const inner = (
     <div
       className={`flex-shrink-0 w-[88px] rounded-2xl px-2 pt-3.5 pb-2.5 text-center relative overflow-hidden ${
         isLocked ? "crest-locked" : ""
-      }`}
+      } ${href ? "btn-press cursor-pointer" : ""}`}
       style={{
         background: isLocked
           ? "linear-gradient(180deg, #f8f9fc 0%, #eef0f7 100%)"
           : "white",
-        border: "1px solid rgba(99,102,241,0.06)",
+        border: "1px solid var(--aurora-indigo-border)",
         boxShadow:
-          "0 1px 2px rgba(17,24,39,0.03), 0 6px 16px -10px rgba(99,102,241,0.18)",
+          "0 1px 2px rgba(17,24,39,0.03), 0 6px 16px -10px color-mix(in srgb, var(--color-aurora-indigo) 18%, transparent)",
       }}
     >
       <div
@@ -57,8 +59,8 @@ export default function Crest({ variant, icon, title, sub }: CrestProps) {
             clipPath: HEX_CLIP,
             background: colors
               ? `linear-gradient(135deg, ${colors.from}, ${colors.to})`
-              : "rgba(99,102,241,0.08)",
-            border: isLocked ? "1px dashed rgba(99,102,241,0.2)" : "none",
+              : "var(--aurora-indigo-soft)",
+            border: isLocked ? "1px dashed var(--aurora-indigo-border)" : "none",
             boxShadow: colors
               ? `0 4px 10px -3px ${colors.shadow}`
               : "none",
@@ -99,4 +101,9 @@ export default function Crest({ variant, icon, title, sub }: CrestProps) {
       )}
     </div>
   );
+
+  if (href) {
+    return <Link href={href}>{inner}</Link>;
+  }
+  return inner;
 }

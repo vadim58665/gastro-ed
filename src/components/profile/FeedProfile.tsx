@@ -255,6 +255,7 @@ export default function FeedProfile() {
                 icon={LOCK_SVG}
                 title={a.title}
                 sub="не открыто"
+                href="/achievements"
               />
             );
           }
@@ -271,6 +272,7 @@ export default function FeedProfile() {
                   ? new Date(a.unlockedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })
                   : undefined
               }
+              href="/achievements"
             />
           );
         })}

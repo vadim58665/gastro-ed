@@ -16,6 +16,13 @@ const rarityStyle: Record<string, React.CSSProperties> = {
   legendary: { borderColor: "var(--aurora-pink-border)" },
 };
 
+const rarityLabelColor: Record<string, string | undefined> = {
+  common: undefined,
+  rare: "var(--color-aurora-indigo)",
+  epic: "var(--color-aurora-violet)",
+  legendary: "var(--color-aurora-pink)",
+};
+
 const rarityLabels: Record<string, string> = {
   common: "Обычное",
   rare: "Редкое",
@@ -28,6 +35,7 @@ export default function AchievementCard({
   unlocked,
   unlockedAt,
 }: Props) {
+  const labelColor = rarityLabelColor[achievement.rarity];
   return (
     <div
       className={`rounded-lg border border-border p-4 transition-opacity ${
@@ -45,7 +53,10 @@ export default function AchievementCard({
       </div>
       <p className="text-xs text-muted mb-2">{achievement.description}</p>
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wider text-muted">
+        <span
+          className="text-[10px] uppercase tracking-wider font-semibold"
+          style={labelColor ? { color: labelColor } : { color: "var(--color-muted)" }}
+        >
           {rarityLabels[achievement.rarity]}
         </span>
         {unlocked && unlockedAt && (
