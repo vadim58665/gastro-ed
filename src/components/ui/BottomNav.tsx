@@ -99,10 +99,9 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/85"
       style={{
-        background: "rgba(255,255,255,0.85)",
-        borderTop: "1px solid rgba(99,102,241,0.08)",
+        borderTop: "1px solid var(--aurora-indigo-border)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
       }}
@@ -114,19 +113,28 @@ export default function BottomNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className="flex flex-col items-center gap-1 px-2 py-1 btn-press"
+              className="flex flex-col items-center gap-1 px-2 py-1 btn-press relative"
             >
+              {/* Top indicator line for active tab */}
+              {isActive && (
+                <span
+                  className="absolute top-[-1px] left-1/2 -translate-x-1/2 h-0.5 rounded-full"
+                  style={{
+                    width: 22,
+                    background: "var(--aurora-gradient-primary)",
+                    boxShadow: "0 0 8px color-mix(in srgb, var(--color-aurora-violet) 60%, transparent)",
+                  }}
+                />
+              )}
               <span
                 className="relative flex items-center justify-center rounded-[9px]"
                 style={{
                   width: 34,
                   height: 26,
-                  background: isActive
-                    ? "linear-gradient(135deg, #6366F1 0%, #A855F7 55%, #EC4899 100%)"
-                    : "transparent",
-                  color: isActive ? "#fff" : "#94a3b8",
+                  background: isActive ? "var(--aurora-gradient-primary)" : "transparent",
+                  color: isActive ? "#fff" : "var(--color-muted)",
                   boxShadow: isActive
-                    ? "inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px rgba(99,102,241,0.4), 0 8px 18px -6px rgba(168,85,247,0.55)"
+                    ? "inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent), 0 8px 18px -6px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent)"
                     : "none",
                 }}
               >
@@ -134,7 +142,10 @@ export default function BottomNav() {
                 {tab.href === "/mistakes" && mistakeCount > 0 && (
                   <span
                     className="absolute -top-1 -right-1 min-w-[14px] h-[14px] flex items-center justify-center text-white text-[8px] font-bold rounded-full px-0.5"
-                    style={{ background: "#EC4899" }}
+                    style={{
+                      background: "var(--color-aurora-pink)",
+                      boxShadow: "0 0 8px color-mix(in srgb, var(--color-aurora-pink) 60%, transparent)",
+                    }}
                   >
                     {mistakeCount > 99 ? "99+" : mistakeCount}
                   </span>
@@ -142,7 +153,9 @@ export default function BottomNav() {
               </span>
               <span
                 className="text-[8.5px] font-semibold tracking-wide"
-                style={{ color: isActive ? "#A855F7" : "#94a3b8" }}
+                style={{
+                  color: isActive ? "var(--color-aurora-violet)" : "var(--color-muted)",
+                }}
               >
                 {tab.label}
               </span>

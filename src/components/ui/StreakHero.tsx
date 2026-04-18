@@ -28,10 +28,10 @@ export default function StreakHero({
 }: StreakHeroProps) {
   return (
     <div
-      className="aurora-hairline relative rounded-3xl bg-white px-4 pt-4 pb-3.5 overflow-hidden"
+      className="aurora-hairline relative rounded-3xl bg-card px-4 pt-4 pb-3.5 overflow-hidden"
       style={{
         boxShadow:
-          "inset 0 1px 0 rgba(255,255,255,1), 0 1px 2px rgba(17,24,39,0.04), 0 20px 40px -20px rgba(99,102,241,0.32)",
+          "inset 0 1px 0 rgba(255,255,255,1), 0 1px 2px rgba(17,24,39,0.04), 0 20px 40px -20px color-mix(in srgb, var(--color-aurora-indigo) 32%, transparent)",
       }}
     >
       <div
@@ -39,23 +39,22 @@ export default function StreakHero({
         style={{
           height: "70%",
           background:
-            "radial-gradient(400px 180px at 70% 0%, rgba(99,102,241,0.14), transparent 70%)",
+            "radial-gradient(400px 180px at 70% 0%, color-mix(in srgb, var(--color-aurora-indigo) 14%, transparent), transparent 70%)",
         }}
       />
 
-      <div className="relative text-[9px] tracking-[0.22em] uppercase font-medium" style={{ color: "#6366F1" }}>
+      <div
+        className="relative text-[9px] tracking-[0.22em] uppercase font-medium"
+        style={{ color: "var(--color-aurora-indigo)" }}
+      >
         Твой streak
       </div>
 
       <div
-        className="relative font-extralight leading-none mt-2"
+        className="relative font-extralight leading-none mt-2 aurora-text"
         style={{
           fontSize: 54,
           letterSpacing: "-0.04em",
-          background: "linear-gradient(135deg, #1A1A2E 0%, #6366F1 50%, #A855F7 100%)",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          color: "transparent",
         }}
       >
         {currentStreak}
@@ -67,7 +66,7 @@ export default function StreakHero({
 
       <div
         className="relative flex gap-0.5 mt-3 pt-2.5"
-        style={{ borderTop: "1px solid rgba(99,102,241,0.1)" }}
+        style={{ borderTop: "1px solid var(--aurora-indigo-border)" }}
       >
         {weekPattern.map((d, i) => {
           const heightPx = Math.max(6, Math.round(d.activity * 22));
@@ -81,14 +80,16 @@ export default function StreakHero({
                   background: d.isToday
                     ? "transparent"
                     : isDim
-                    ? "rgba(99,102,241,0.08)"
-                    : "linear-gradient(180deg, #6366F1, #A855F7)",
+                    ? "var(--aurora-indigo-soft)"
+                    : "linear-gradient(180deg, var(--color-aurora-indigo), var(--color-aurora-violet))",
                   boxShadow: d.isToday
                     ? "none"
                     : isDim
                     ? "none"
-                    : "0 0 6px rgba(99,102,241,0.4)",
-                  border: d.isToday ? "1.5px dashed rgba(99,102,241,0.6)" : "none",
+                    : "0 0 6px color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent)",
+                  border: d.isToday
+                    ? "1.5px dashed color-mix(in srgb, var(--color-aurora-indigo) 60%, transparent)"
+                    : "none",
                   marginTop: d.isToday ? 0 : 22 - heightPx,
                 }}
               />
@@ -96,7 +97,11 @@ export default function StreakHero({
                 className={`text-[7px] tracking-wide mt-1 font-medium ${
                   d.isToday ? "font-semibold" : ""
                 }`}
-                style={{ color: d.isToday ? "#6366F1" : "#94a3b8" }}
+                style={{
+                  color: d.isToday
+                    ? "var(--color-aurora-indigo)"
+                    : "var(--color-muted)",
+                }}
               >
                 {d.label}
               </div>
@@ -107,7 +112,10 @@ export default function StreakHero({
 
       <div className="relative mt-2.5 flex justify-between items-baseline text-[9px] tracking-wide text-muted">
         <span>Лучший</span>
-        <span className="font-semibold tracking-[0.12em]" style={{ color: "#A855F7" }}>
+        <span
+          className="font-semibold tracking-[0.12em]"
+          style={{ color: "var(--color-aurora-violet)" }}
+        >
           {bestStreak} {pluralDay(bestStreak).toUpperCase()}
         </span>
       </div>

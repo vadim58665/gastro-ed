@@ -44,7 +44,7 @@ export default function AnswerOption({
         <span
           aria-hidden="true"
           className="absolute right-4 top-1/2 -translate-y-1/2 font-bold"
-          style={{ color: "#A855F7" }}
+          style={{ color: "var(--color-aurora-violet)" }}
         >
           ✓
         </span>
@@ -53,7 +53,7 @@ export default function AnswerOption({
         <span
           aria-hidden="true"
           className="absolute right-4 top-1/2 -translate-y-1/2 font-bold"
-          style={{ color: "#EC4899" }}
+          style={{ color: "var(--color-aurora-pink)" }}
         >
           ✗
         </span>

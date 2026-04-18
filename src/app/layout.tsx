@@ -11,6 +11,7 @@ import AuthGuard from "@/components/AuthGuard";
 import CompanionOverlay from "@/components/medmind/CompanionOverlay";
 import ScreenAutoSetter from "@/components/medmind/ScreenAutoSetter";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import AuroraIconDefs from "@/components/ui/AuroraIconDefs";
 import { PostHogProvider } from "@/lib/analytics/posthog-provider";
 import { PageviewTracker } from "@/lib/analytics/pageview-tracker";
 import "./globals.css";
@@ -52,6 +53,7 @@ export default function RootLayout({
             <PageviewTracker />
           </Suspense>
           <ThemeProvider>
+            <AuroraIconDefs />
             <AuthProvider>
               <AuthGuard>
                 <SubscriptionProvider>

@@ -2,6 +2,7 @@
 
 import { TEST_MODES, type TestMode, type TestModeInfo } from "@/hooks/useTestMode";
 import MagicCard from "@/components/ui/MagicCard";
+import IconBadge from "@/components/ui/IconBadge";
 
 interface TestModeSelectorProps {
   onSelect: (mode: TestMode) => void;
@@ -61,11 +62,9 @@ function ModeCard({
 }) {
   if (disabled) {
     return (
-      <div className="w-full text-left px-5 py-4 rounded-2xl border border-border/30 opacity-50">
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-surface flex items-center justify-center text-muted">
-            {ICONS[info.icon]}
-          </div>
+      <div className="w-full text-left rounded-2xl border border-border/40 opacity-50">
+        <div className="flex items-center gap-4 px-5 py-4">
+          <IconBadge icon={ICONS[info.icon]} size="md" gradient={false} />
           <div className="flex-1">
             <p className="text-sm font-light text-foreground">{info.label}</p>
             <p className="text-[11px] text-muted mt-0.5">{info.description}</p>
@@ -78,22 +77,39 @@ function ModeCard({
   return (
     <button onClick={onSelect} className="w-full text-left btn-press block">
       <MagicCard
-        className="w-full rounded-2xl"
-        gradientFrom={featured ? "#6366f1" : "#94a3b8"}
-        gradientTo={featured ? "#a855f7" : "#cbd5e1"}
+        className={`w-full rounded-2xl ${featured ? "aurora-hairline" : ""}`}
+        gradientFrom={featured ? "var(--color-aurora-violet)" : "var(--color-aurora-indigo)"}
+        gradientTo={featured ? "var(--color-aurora-pink)" : "var(--color-aurora-violet)"}
         gradientSize={260}
         spotlightColor={
-          featured ? "rgba(168, 85, 247, 0.12)" : "rgba(100, 116, 139, 0.08)"
+          featured
+            ? "color-mix(in srgb, var(--color-aurora-pink) 14%, transparent)"
+            : "color-mix(in srgb, var(--color-aurora-violet) 12%, transparent)"
         }
       >
         <div className="flex items-center gap-4 px-5 py-4">
-          <div className="w-11 h-11 rounded-xl bg-surface flex items-center justify-center text-foreground/70 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset]">
-            {ICONS[info.icon]}
-          </div>
+          <IconBadge
+            icon={ICONS[info.icon]}
+            size="md"
+            variant={featured ? "soft" : "outline"}
+          />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground tracking-tight truncate">
-              {info.label}
-            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-sm font-semibold text-foreground tracking-tight truncate">
+                {info.label}
+              </p>
+              {featured && (
+                <span
+                  className="text-[8px] uppercase tracking-[0.18em] font-bold px-1.5 py-0.5 rounded shrink-0"
+                  style={{
+                    color: "var(--color-aurora-pink)",
+                    background: "var(--aurora-pink-soft)",
+                  }}
+                >
+                  Топ
+                </span>
+              )}
+            </div>
             <p className="text-[11px] text-muted mt-0.5 truncate">
               {info.description}
             </p>
@@ -103,7 +119,7 @@ function ModeCard({
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            strokeWidth={1.5}
+            strokeWidth={1.75}
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>

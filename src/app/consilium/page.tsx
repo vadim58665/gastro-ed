@@ -44,14 +44,18 @@ export default function ConsiliumPage() {
       <div className="h-screen flex flex-col">
         <TopBar />
         <main className="flex-1 pt-24 pb-20 flex items-center justify-center px-6">
+          <div className="aurora-welcome-band absolute top-20 left-0 right-0" />
           <div className="text-center max-w-xs">
             <p
-              className="text-xs uppercase tracking-[0.2em] font-medium mb-6"
+              className="text-[10px] uppercase tracking-[0.28em] font-semibold mb-3"
               style={{ color: "var(--color-aurora-violet)" }}
             >
               Консилиум
             </p>
-            <p className="text-sm text-foreground mb-2">Ведите приём AI-пациента</p>
+            <h1 className="text-2xl font-extralight aurora-text tracking-tight mb-3">
+              AI-пациент ждёт приёма
+            </h1>
+            <div className="w-10 h-px bg-border mx-auto mb-5" />
             <p className="text-xs text-muted mb-8 leading-relaxed">
               Собирайте анамнез, задавайте вопросы, назначайте обследования и поставьте диагноз. AI оценит вашу работу.
             </p>
@@ -177,14 +181,19 @@ export default function ConsiliumPage() {
     return (
       <div className="h-screen flex flex-col">
         <TopBar />
-        <main className="flex-1 pt-24 pb-20 flex items-center justify-center px-6">
+        <main className="flex-1 pt-24 pb-20 flex items-center justify-center px-6 relative">
+          <div className="aurora-welcome-band absolute top-20 left-0 right-0" />
           <div className="text-center max-w-xs">
-            <p className="text-xs uppercase tracking-[0.2em] font-medium mb-6" style={{ color: "var(--color-aurora-violet)" }}>
+            <p
+              className="text-[10px] uppercase tracking-[0.28em] font-semibold mb-3"
+              style={{ color: "var(--color-aurora-violet)" }}
+            >
               Консилиум
             </p>
-            <p className="text-sm text-foreground mb-2">
+            <h1 className="text-2xl font-extralight aurora-text tracking-tight mb-3">
               Ведите приём AI-пациента
-            </p>
+            </h1>
+            <div className="w-10 h-px bg-border mx-auto mb-5" />
             <p className="text-xs text-muted mb-8 leading-relaxed">
               Собирайте анамнез, задавайте вопросы, назначайте обследования и поставьте диагноз. AI оценит вашу работу.
             </p>
@@ -225,12 +234,19 @@ export default function ConsiliumPage() {
                     className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                       msg.role === "user"
                         ? "text-white rounded-br-md"
-                        : "bg-surface text-foreground border border-border rounded-bl-md"
+                        : "text-foreground rounded-bl-md aurora-hairline"
                     }`}
                     style={
                       msg.role === "user"
-                        ? { background: "var(--aurora-gradient-primary)" }
-                        : undefined
+                        ? {
+                            background: "var(--aurora-gradient-primary)",
+                            boxShadow:
+                              "inset 0 1px 0 rgba(255,255,255,0.18), 0 6px 18px -8px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent)",
+                          }
+                        : {
+                            background:
+                              "linear-gradient(180deg, var(--color-card) 0%, var(--aurora-violet-soft) 100%)",
+                          }
                     }
                   >
                     <div className="whitespace-pre-wrap">{msg.content}</div>

@@ -35,13 +35,7 @@ export default function SpecialtyCard({
   const percent = cardCount > 0 ? Math.round((answeredCount / cardCount) * 100) : 0;
 
   return (
-    <div
-      className="bg-white rounded-2xl overflow-hidden"
-      style={{
-        border: "1px solid rgba(99,102,241,0.06)",
-        boxShadow: "0 1px 2px rgba(17,24,39,0.02)",
-      }}
-    >
+    <div className="bg-card aurora-hairline rounded-2xl overflow-hidden">
       <button
         type="button"
         onClick={onHeaderClick}
@@ -51,8 +45,8 @@ export default function SpecialtyCard({
           className="w-[34px] h-[34px] rounded-xl flex items-center justify-center flex-shrink-0 text-[13px] font-semibold tracking-tight"
           style={{
             background:
-              "linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.12))",
-            color: "#6366F1",
+              "linear-gradient(135deg, var(--aurora-indigo-soft), var(--aurora-violet-soft))",
+            color: "var(--color-aurora-indigo)",
           }}
         >
           {initial}
@@ -75,7 +69,9 @@ export default function SpecialtyCard({
           strokeLinecap="round"
           strokeLinejoin="round"
           className={`transition-transform ${expanded ? "rotate-90" : ""}`}
-          style={{ color: expanded ? "#6366F1" : "#94a3b8" }}
+          style={{
+            color: expanded ? "var(--color-aurora-indigo)" : "var(--color-muted)",
+          }}
         >
           <polyline points="9 18 15 12 9 6" />
         </svg>
@@ -86,8 +82,8 @@ export default function SpecialtyCard({
           className="px-3 pb-2.5 pt-1"
           style={{
             background:
-              "linear-gradient(180deg, rgba(99,102,241,0.03), transparent)",
-            borderTop: "1px solid rgba(99,102,241,0.06)",
+              "linear-gradient(180deg, var(--aurora-indigo-soft), transparent)",
+            borderTop: "1px solid var(--aurora-indigo-border)",
           }}
         >
           <button
@@ -96,8 +92,8 @@ export default function SpecialtyCard({
             className="w-full text-left flex justify-between items-center gap-2.5 px-2.5 py-2 rounded-lg btn-press mb-1"
             style={{
               background:
-                "linear-gradient(180deg, rgba(99,102,241,0.06), rgba(168,85,247,0.04))",
-              border: "1px solid rgba(99,102,241,0.12)",
+                "linear-gradient(180deg, var(--aurora-indigo-soft), var(--aurora-violet-soft))",
+              border: "1px solid var(--aurora-indigo-border)",
             }}
           >
             <div className="flex-1 min-w-0">
@@ -105,13 +101,14 @@ export default function SpecialtyCard({
                 Все темы специальности
               </div>
               <div
-                className="h-[2px] bg-[rgba(99,102,241,0.08)] rounded-full mt-1 overflow-hidden"
+                className="h-[2px] rounded-full mt-1 overflow-hidden"
+                style={{ background: "var(--aurora-indigo-soft)" }}
               >
                 <div
                   className="h-full rounded-full"
                   style={{
                     width: `${percent}%`,
-                    background: "linear-gradient(90deg, #6366F1, #A855F7)",
+                    background: "linear-gradient(90deg, var(--color-aurora-indigo), var(--color-aurora-violet))",
                   }}
                 />
               </div>
@@ -119,15 +116,7 @@ export default function SpecialtyCard({
                 {answeredCount} / {cardCount}
               </div>
             </div>
-            <span
-              className="text-[14px] font-extralight min-w-[28px] text-right tracking-tight"
-              style={{
-                background: "linear-gradient(135deg, #1A1A2E, #6366F1)",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: "transparent",
-              }}
-            >
+            <span className="text-[14px] font-extralight min-w-[28px] text-right tracking-tight aurora-text">
               {cardCount}
             </span>
           </button>
@@ -139,16 +128,16 @@ export default function SpecialtyCard({
                 key={topic.name}
                 type="button"
                 onClick={() => onTopicClick?.(topic.name)}
-                className="w-full text-left flex justify-between items-center gap-2.5 px-2.5 py-2 rounded-lg btn-press hover:bg-[rgba(99,102,241,0.04)]"
+                className="w-full text-left flex justify-between items-center gap-2.5 px-2.5 py-2 rounded-lg btn-press hover:bg-surface"
               >
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] text-foreground font-normal">{topic.name}</div>
-                  <div className="h-[2px] bg-[rgba(99,102,241,0.08)] rounded-full mt-1 overflow-hidden">
+                  <div className="h-[2px] rounded-full mt-1 overflow-hidden" style={{ background: "var(--aurora-indigo-soft)" }}>
                     <div
                       className="h-full rounded-full"
                       style={{
                         width: `${topicPct}%`,
-                        background: "linear-gradient(90deg, #6366F1, #A855F7)",
+                        background: "linear-gradient(90deg, var(--color-aurora-indigo), var(--color-aurora-violet))",
                       }}
                     />
                   </div>

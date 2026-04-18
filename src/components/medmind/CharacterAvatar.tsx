@@ -24,9 +24,9 @@ const PADDING_PX = 8;
 
 const GLOW_COLORS: Record<CompanionKind, string> = {
   orb: "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-aurora-violet) 55%, transparent), color-mix(in srgb, var(--color-aurora-indigo) 30%, transparent) 50%, transparent 75%)",
-  doctor: "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-aurora-indigo) 45%, transparent), color-mix(in srgb, var(--color-aurora-violet) 25%, transparent) 50%, transparent 75%)",
-  mouse: "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-aurora-pink) 45%, transparent), color-mix(in srgb, var(--companion-mouse-fur-mid) 40%, transparent) 50%, transparent 75%)",
-  owl: "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-aurora-pink) 45%, transparent), color-mix(in srgb, var(--color-aurora-violet) 30%, transparent) 50%, transparent 75%)",
+  doctor: "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--companion-accent) 50%, transparent), color-mix(in srgb, var(--color-aurora-indigo) 25%, transparent) 50%, transparent 75%)",
+  mouse: "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--companion-accent) 50%, transparent), color-mix(in srgb, var(--companion-mouse-fur-mid) 40%, transparent) 50%, transparent 75%)",
+  owl: "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--companion-accent) 55%, transparent), color-mix(in srgb, var(--color-aurora-violet) 30%, transparent) 50%, transparent 75%)",
 };
 
 /**
@@ -441,7 +441,7 @@ function DoctorBody({ size, state }: { size: number; state: CharacterState }) {
             width: "18%",
             height: "12%",
             background:
-              "radial-gradient(ellipse, color-mix(in srgb, var(--color-aurora-pink) 40%, transparent), transparent 70%)",
+              "radial-gradient(ellipse, color-mix(in srgb, var(--companion-accent) 50%, transparent), transparent 70%)",
             filter: "blur(3px)",
           }}
         />
@@ -454,7 +454,7 @@ function DoctorBody({ size, state }: { size: number; state: CharacterState }) {
             width: "18%",
             height: "12%",
             background:
-              "radial-gradient(ellipse, color-mix(in srgb, var(--color-aurora-pink) 40%, transparent), transparent 70%)",
+              "radial-gradient(ellipse, color-mix(in srgb, var(--companion-accent) 50%, transparent), transparent 70%)",
             filter: "blur(3px)",
           }}
         />
@@ -488,8 +488,8 @@ function DoctorBody({ size, state }: { size: number; state: CharacterState }) {
           strokeWidth="1"
         />
         {/* Aurora-pink cross */}
-        <rect x="36" y="10" width="8" height="18" rx="1" fill="var(--color-aurora-pink)" />
-        <rect x="31" y="15" width="18" height="8" rx="1" fill="var(--color-aurora-pink)" />
+        <rect x="36" y="10" width="8" height="18" rx="1" fill="var(--companion-accent)" />
+        <rect x="31" y="15" width="18" height="8" rx="1" fill="var(--companion-accent)" />
         {/* Cap shadow on forehead */}
         <rect x="8" y="30" width="64" height="3" fill="rgba(0,0,0,0.12)" />
       </svg>
@@ -542,7 +542,7 @@ function MouseBody({ size, state }: { size: number; state: CharacterState }) {
             width: "55%",
             height: "55%",
             background:
-              "radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--color-aurora-pink) 35%, white), color-mix(in srgb, var(--color-aurora-pink) 60%, white))",
+              "radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--companion-accent) 45%, white), color-mix(in srgb, var(--companion-accent) 70%, white))",
           }}
         />
       </div>
@@ -567,7 +567,7 @@ function MouseBody({ size, state }: { size: number; state: CharacterState }) {
             width: "55%",
             height: "55%",
             background:
-              "radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--color-aurora-pink) 35%, white), color-mix(in srgb, var(--color-aurora-pink) 60%, white))",
+              "radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--companion-accent) 45%, white), color-mix(in srgb, var(--companion-accent) 70%, white))",
           }}
         />
       </div>
@@ -617,7 +617,7 @@ function MouseBody({ size, state }: { size: number; state: CharacterState }) {
             width: `${size * 0.11}px`,
             height: `${size * 0.09}px`,
             background:
-              "radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--color-aurora-pink) 50%, white), var(--color-aurora-pink))",
+              "radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--companion-accent) 60%, white), var(--companion-accent))",
             boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
           }}
         />
@@ -691,10 +691,10 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
           boxShadow:
             "0 14px 40px -12px color-mix(in srgb, var(--companion-owl-body-deep) 55%, transparent), inset 0 3px 6px rgba(255,255,255,0.25), inset 0 -6px 12px rgba(0,0,0,0.3)",
           border:
-            "1px solid color-mix(in srgb, var(--color-aurora-pink) 20%, transparent)",
+            "1px solid color-mix(in srgb, var(--companion-accent) 25%, transparent)",
         }}
       >
-        {/* Aurora chest/belly - pink-blended cream */}
+        {/* Theme-aware chest/belly - accent-blended cream */}
         <div
           aria-hidden
           className="absolute rounded-full"
@@ -704,7 +704,7 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
             width: "70%",
             height: "60%",
             background:
-              "radial-gradient(ellipse at center top, color-mix(in srgb, var(--color-aurora-pink) 25%, var(--color-card)), color-mix(in srgb, var(--color-aurora-pink) 50%, var(--color-card)) 60%, transparent 85%)",
+              "radial-gradient(ellipse at center top, color-mix(in srgb, var(--companion-accent) 30%, var(--companion-owl-body-light)), color-mix(in srgb, var(--companion-accent) 50%, var(--companion-owl-body-mid)) 60%, transparent 85%)",
           }}
         />
         {/* Gloss */}
@@ -717,7 +717,7 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
             width: "30%",
             height: "18%",
             background:
-              "radial-gradient(ellipse, color-mix(in srgb, var(--color-aurora-pink) 35%, white), transparent 70%)",
+              "radial-gradient(ellipse, color-mix(in srgb, var(--companion-accent) 40%, white), transparent 70%)",
             filter: "blur(2px)",
           }}
         />
@@ -737,7 +737,8 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
               style={{
                 width: size * 0.34,
                 height: size * 0.34,
-                background: "radial-gradient(circle at 35% 35%, var(--aurora-pink-soft), color-mix(in srgb, var(--color-aurora-violet) 70%, transparent) 70%, var(--color-aurora-violet) 100%)",
+                background:
+                  "radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--companion-accent) 25%, white), color-mix(in srgb, var(--companion-accent) 70%, var(--companion-owl-body-deep)) 70%, var(--companion-owl-body-deep) 100%)",
                 boxShadow: "inset 0 2px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2)",
               }}
             >
@@ -767,8 +768,8 @@ function OwlBody({ size, state }: { size: number; state: CharacterState }) {
           />
           <defs>
             <linearGradient id="beak-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="var(--color-aurora-pink)" />
-              <stop offset="100%" stopColor="var(--color-aurora-violet)" />
+              <stop offset="0%" stopColor="var(--companion-accent)" />
+              <stop offset="100%" stopColor="color-mix(in srgb, var(--companion-accent) 50%, var(--companion-owl-body-deep))" />
             </linearGradient>
           </defs>
         </svg>

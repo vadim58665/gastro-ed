@@ -20,8 +20,8 @@ interface Props {
 export default function ShineCard({
   children,
   className = "",
-  colorFrom = "#6366f1",
-  colorTo = "#a855f7",
+  colorFrom = "var(--color-aurora-indigo)",
+  colorTo = "var(--color-aurora-violet)",
   duration = 8,
   borderWidth = 1.5,
   innerClassName = "",

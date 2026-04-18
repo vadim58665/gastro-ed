@@ -15,10 +15,10 @@ interface Props {
 export default function MagicCard({
   children,
   className = "",
-  gradientFrom = "#6366f1",
-  gradientTo = "#a855f7",
+  gradientFrom = "var(--color-aurora-indigo)",
+  gradientTo = "var(--color-aurora-violet)",
   gradientSize = 260,
-  spotlightColor = "rgba(99, 102, 241, 0.18)",
+  spotlightColor = "color-mix(in srgb, var(--color-aurora-indigo) 18%, transparent)",
   style,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);

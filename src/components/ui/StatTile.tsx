@@ -9,9 +9,8 @@ interface StatTileProps {
 export default function StatTile({ value, label, accent = false }: StatTileProps) {
   return (
     <div
-      className="rounded-2xl bg-white px-1.5 py-2.5 text-center"
+      className="rounded-2xl bg-card aurora-hairline px-1.5 py-2.5 text-center"
       style={{
-        border: "1px solid rgba(99,102,241,0.06)",
         boxShadow: "0 1px 2px rgba(17,24,39,0.03)",
       }}
     >
@@ -21,8 +20,8 @@ export default function StatTile({ value, label, accent = false }: StatTileProps
         className="text-[18px] font-light tracking-tight"
         style={{
           background: accent
-            ? "linear-gradient(135deg, #6366F1, #EC4899)"
-            : "linear-gradient(135deg, #1A1A2E, #6366F1)",
+            ? "linear-gradient(135deg, var(--color-aurora-indigo), var(--color-aurora-pink))"
+            : "var(--aurora-gradient-text)",
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
           color: "transparent",

@@ -37,32 +37,25 @@ export default function Greeting({ nickname, level, xp, hourOverride }: Greeting
       <div className="text-[26px] font-extralight tracking-tight text-foreground mt-1.5 leading-[1.1]">
         {hello},
         <br />
-        <span
-          className="font-light"
-          style={{
-            background: "linear-gradient(135deg, #1A1A2E 0%, #6366F1 55%, #A855F7 100%)",
-            WebkitBackgroundClip: "text",
-            backgroundClip: "text",
-            color: "transparent",
-          }}
-        >
-          {nickname}
-        </span>
+        <span className="font-light aurora-text">{nickname}</span>
       </div>
       <div className="flex gap-1.5 justify-center flex-wrap mt-2.5">
         <span
-          className="inline-flex items-center gap-1.5 text-[9px] tracking-[0.15em] uppercase font-medium px-2.5 py-1 rounded-full bg-white"
-          style={{ border: "1px solid rgba(99,102,241,0.15)", boxShadow: "0 1px 2px rgba(17,24,39,0.04)", color: "#1A1A2E" }}
+          className="inline-flex items-center gap-1.5 text-[9px] tracking-[0.15em] uppercase font-medium px-2.5 py-1 rounded-full bg-card aurora-hairline text-foreground"
+          style={{ boxShadow: "0 1px 2px rgba(17,24,39,0.04)" }}
         >
           <span
             className="w-1.5 h-1.5 rounded-full inline-block"
-            style={{ background: "linear-gradient(135deg, #6366F1, #A855F7)" }}
+            style={{
+              background:
+                "linear-gradient(135deg, var(--color-aurora-indigo), var(--color-aurora-violet))",
+            }}
           />
           {level}
         </span>
         <span
-          className="text-[9px] tracking-[0.15em] uppercase font-medium px-2.5 py-1 rounded-full"
-          style={{ background: "rgba(99,102,241,0.06)", color: "#64748b" }}
+          className="text-[9px] tracking-[0.15em] uppercase font-medium px-2.5 py-1 rounded-full text-muted"
+          style={{ background: "var(--aurora-indigo-soft)" }}
         >
           {formatXp(xp)} XP
         </span>

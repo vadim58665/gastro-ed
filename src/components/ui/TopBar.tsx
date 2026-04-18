@@ -28,10 +28,11 @@ export default function TopBar({
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50 overflow-hidden"
+        className={`fixed top-0 left-0 right-0 z-50 overflow-hidden ${
+          transparent ? "bg-white/60" : "bg-white/82"
+        }`}
         style={{
-          background: transparent ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.82)",
-          borderBottom: "1px solid rgba(99,102,241,0.08)",
+          borderBottom: "1px solid var(--aurora-indigo-border)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
         }}
@@ -41,7 +42,7 @@ export default function TopBar({
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                "radial-gradient(240px 80px at 15% 100%, rgba(99,102,241,0.12), transparent 70%), radial-gradient(240px 80px at 85% 100%, rgba(236,72,153,0.08), transparent 70%)",
+                "radial-gradient(240px 80px at 15% 100%, color-mix(in srgb, var(--color-aurora-indigo) 14%, transparent), transparent 70%), radial-gradient(240px 80px at 85% 100%, color-mix(in srgb, var(--color-aurora-pink) 10%, transparent), transparent 70%)",
             }}
           />
         )}
@@ -62,10 +63,9 @@ export default function TopBar({
             ) : (
               <div className="flex items-center gap-1.5">
                 <div
-                  className="w-2 h-2 rounded-[2px]"
+                  className="w-2 h-2 rounded-[2px] aurora-grad-bg"
                   style={{
-                    background: "linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #EC4899 100%)",
-                    boxShadow: "0 0 0 1px rgba(99,102,241,0.2)",
+                    boxShadow: "0 0 0 1px var(--aurora-indigo-border)",
                   }}
                 />
                 <span className="text-[10px] tracking-[0.22em] uppercase text-foreground font-medium">
@@ -79,9 +79,8 @@ export default function TopBar({
                 <button
                   onClick={onSettingsClick}
                   aria-label="Настройки"
-                  className="w-8 h-8 rounded-full bg-white border flex items-center justify-center text-muted"
+                  className="w-8 h-8 rounded-full bg-card aurora-hairline flex items-center justify-center text-muted"
                   style={{
-                    borderColor: "rgba(99,102,241,0.08)",
                     boxShadow: "0 1px 2px rgba(17,24,39,0.04)",
                   }}
                 >

@@ -24,39 +24,51 @@ const accentGradients: Record<
   { bar: string; glow: string; iconBg: string; iconColor: string }
 > = {
   indigo: {
-    bar: "linear-gradient(180deg, #6366F1, #A855F7)",
-    glow: "rgba(99,102,241,0.4)",
-    iconBg: "linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1))",
-    iconColor: "#6366F1",
+    bar: "linear-gradient(180deg, var(--color-aurora-indigo), var(--color-aurora-violet))",
+    glow: "color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent)",
+    iconBg:
+      "linear-gradient(135deg, var(--aurora-indigo-soft), var(--aurora-violet-soft))",
+    iconColor: "var(--color-aurora-indigo)",
   },
   "indigo-violet": {
-    bar: "linear-gradient(180deg, #6366F1, #A855F7)",
-    glow: "rgba(99,102,241,0.4)",
-    iconBg: "linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.12))",
-    iconColor: "#6366F1",
+    bar: "linear-gradient(180deg, var(--color-aurora-indigo), var(--color-aurora-violet))",
+    glow: "color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent)",
+    iconBg:
+      "linear-gradient(135deg, var(--aurora-indigo-soft), var(--aurora-violet-soft))",
+    iconColor: "var(--color-aurora-indigo)",
   },
   "violet-pink": {
-    bar: "linear-gradient(180deg, #A855F7, #EC4899)",
-    glow: "rgba(168,85,247,0.4)",
-    iconBg: "linear-gradient(135deg, rgba(168,85,247,0.1), rgba(236,72,153,0.1))",
-    iconColor: "#A855F7",
+    bar: "linear-gradient(180deg, var(--color-aurora-violet), var(--color-aurora-pink))",
+    glow: "color-mix(in srgb, var(--color-aurora-violet) 40%, transparent)",
+    iconBg:
+      "linear-gradient(135deg, var(--aurora-violet-soft), var(--aurora-pink-soft))",
+    iconColor: "var(--color-aurora-violet)",
   },
   "pink-violet": {
-    bar: "linear-gradient(180deg, #EC4899, #A855F7)",
-    glow: "rgba(236,72,153,0.4)",
-    iconBg: "linear-gradient(135deg, rgba(236,72,153,0.1), rgba(168,85,247,0.1))",
-    iconColor: "#EC4899",
+    bar: "linear-gradient(180deg, var(--color-aurora-pink), var(--color-aurora-violet))",
+    glow: "color-mix(in srgb, var(--color-aurora-pink) 40%, transparent)",
+    iconBg:
+      "linear-gradient(135deg, var(--aurora-pink-soft), var(--aurora-violet-soft))",
+    iconColor: "var(--color-aurora-pink)",
   },
 };
 
 const chipStyles: Record<ChipVariant, { color: string; background: string }> = {
-  indigo: { color: "#6366F1", background: "rgba(99,102,241,0.08)" },
-  violet: { color: "#A855F7", background: "rgba(168,85,247,0.1)" },
-  pink: { color: "#EC4899", background: "rgba(236,72,153,0.1)" },
+  indigo: {
+    color: "var(--color-aurora-indigo)",
+    background: "var(--aurora-indigo-soft)",
+  },
+  violet: {
+    color: "var(--color-aurora-violet)",
+    background: "var(--aurora-violet-soft)",
+  },
+  pink: {
+    color: "var(--color-aurora-pink)",
+    background: "var(--aurora-pink-soft)",
+  },
   dark: {
     color: "#fff",
-    background:
-      "linear-gradient(135deg, #1A1A2E 0%, #312E81 50%, #6366F1 100%)",
+    background: "var(--aurora-gradient-premium)",
   },
 };
 
@@ -73,9 +85,8 @@ export default function ToolRow({
 
   const inner = (
     <div
-      className="relative rounded-2xl bg-white pl-3.5 pr-3.5 py-3 flex items-center gap-3 overflow-hidden btn-press"
+      className="relative rounded-2xl bg-card aurora-hairline pl-3.5 pr-3.5 py-3 flex items-center gap-3 overflow-hidden btn-press"
       style={{
-        border: "1px solid rgba(99,102,241,0.06)",
         boxShadow: "0 1px 2px rgba(17,24,39,0.02)",
       }}
     >
@@ -112,7 +123,7 @@ export default function ToolRow({
             background: chipStyles[chip.variant].background,
             boxShadow:
               chip.variant === "dark"
-                ? "0 2px 6px -1px rgba(99,102,241,0.35)"
+                ? "0 2px 6px -1px color-mix(in srgb, var(--color-aurora-indigo) 35%, transparent)"
                 : undefined,
           }}
         >

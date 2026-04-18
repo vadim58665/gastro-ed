@@ -27,11 +27,11 @@ export default function AvatarStack({
   const conicStyle: CSSProperties = {
     background: `conic-gradient(
       from -90deg,
-      #6366F1 0%,
-      #A855F7 ${clamped * 0.5}%,
-      #EC4899 ${clamped}%,
-      rgba(99, 102, 241, 0.08) ${clamped}%,
-      rgba(99, 102, 241, 0.08) 100%
+      var(--color-aurora-indigo) 0%,
+      var(--color-aurora-violet) ${clamped * 0.5}%,
+      var(--color-aurora-pink) ${clamped}%,
+      var(--aurora-indigo-soft) ${clamped}%,
+      var(--aurora-indigo-soft) 100%
     )`,
     mask: "radial-gradient(circle, transparent 54%, black 54%, black 59%, transparent 59%)",
     WebkitMask: "radial-gradient(circle, transparent 54%, black 54%, black 59%, transparent 59%)",
@@ -48,7 +48,7 @@ export default function AvatarStack({
         style={{
           inset: -16,
           background:
-            "radial-gradient(circle at 30% 30%, rgba(168,85,247,0.55), rgba(99,102,241,0.4) 40%, rgba(236,72,153,0.15) 65%, transparent 80%)",
+            "radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-aurora-violet) 55%, transparent), color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent) 40%, color-mix(in srgb, var(--color-aurora-pink) 18%, transparent) 65%, transparent 80%)",
           filter: "blur(24px)",
         }}
       />
@@ -59,10 +59,11 @@ export default function AvatarStack({
           className="absolute left-1/2 -translate-x-1/2 text-[8px] tracking-[0.22em] uppercase font-semibold whitespace-nowrap px-2.5 py-1 rounded-full"
           style={{
             top: -24,
-            color: "#6366F1",
-            background: "rgba(99,102,241,0.08)",
-            border: "1px solid rgba(99,102,241,0.2)",
-            boxShadow: "0 2px 8px -2px rgba(99,102,241,0.2)",
+            color: "var(--color-aurora-indigo)",
+            background: "var(--aurora-indigo-soft)",
+            border: "1px solid var(--aurora-indigo-border)",
+            boxShadow:
+              "0 2px 8px -2px color-mix(in srgb, var(--color-aurora-indigo) 22%, transparent)",
           }}
         >
           {activityLabel}
@@ -83,7 +84,8 @@ export default function AvatarStack({
         style={{
           inset: 9,
           padding: 2,
-          background: "linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #EC4899 100%)",
+          background:
+            "linear-gradient(135deg, var(--color-aurora-indigo) 0%, var(--color-aurora-violet) 50%, var(--color-aurora-pink) 100%)",
           WebkitMask:
             "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
           mask:
@@ -93,24 +95,21 @@ export default function AvatarStack({
         }}
       />
 
-      {/* White core with aurora-text initial */}
+      {/* Card-bg core with aurora-text initial */}
       <div
         className="absolute rounded-full flex items-center justify-center"
         style={{
           inset: 11,
-          background: "linear-gradient(180deg, #fff 0%, #f4f5fa 100%)",
+          background:
+            "linear-gradient(180deg, var(--color-card) 0%, var(--color-surface) 100%)",
           boxShadow:
-            "inset 0 1px 0 rgba(255,255,255,1), 0 1px 2px rgba(17,24,39,0.06), 0 10px 28px -10px rgba(99,102,241,0.4)",
+            "inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(17,24,39,0.06), 0 10px 28px -10px color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent)",
         }}
       >
         <span
-          className="font-extralight tracking-tight"
+          className="font-extralight tracking-tight aurora-text"
           style={{
             fontSize: Math.round(size * 0.375),
-            background: "linear-gradient(135deg, #1A1A2E 0%, #6366F1 100%)",
-            WebkitBackgroundClip: "text",
-            backgroundClip: "text",
-            color: "transparent",
           }}
         >
           {initial}
@@ -127,9 +126,10 @@ export default function AvatarStack({
             bottom: 2,
             width: 28,
             height: 28,
-            background: "linear-gradient(135deg, #1A1A2E 0%, #6366F1 60%, #A855F7 100%)",
-            border: "3px solid #f8f9fc",
-            boxShadow: "0 4px 12px -2px rgba(99,102,241,0.55)",
+            background: "var(--aurora-gradient-premium)",
+            border: "3px solid var(--color-background)",
+            boxShadow:
+              "0 4px 12px -2px color-mix(in srgb, var(--color-aurora-indigo) 55%, transparent)",
           }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

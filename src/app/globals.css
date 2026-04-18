@@ -76,6 +76,14 @@
   --companion-owl-body-light: #d1b894;
   --companion-owl-body-mid: #9d7d56;
   --companion-owl-body-deep: #5a4428;
+
+  /* Companion accent (Phase 19, 2026-04-19) - живой акцент для деталей
+     (beak, nose, blush, eye-discs). Подобран контрастно к фону темы:
+     default = pink (тёплый на холодной лаванде),
+     mocha = copper (насыщенный на тёплом крем),
+     graphite = teal (холодный на нейтральном сером). */
+  --companion-accent: #EC4899;
+  --companion-accent-soft: rgba(236, 72, 153, 0.4);
 }
 
 html, body {
@@ -1093,6 +1101,18 @@ body {
 .aurora-hover-pink:hover { color: var(--color-aurora-pink); }
 @media (prefers-reduced-motion: reduce) { .aurora-hover-pink { transition: none; } }
 
+/* Aurora gradient stroke for icons (Phase 18, 2026-04-19) */
+/* Wraps inline SVG: parent gets `.icon-aurora-stroke`, child <svg> uses
+   stroke="currentColor"; we redirect stroke to the global linear-gradient
+   defined in AuroraIconDefs. */
+.icon-aurora-stroke svg {
+  stroke: url(#aurora-grad-stroke);
+}
+.icon-aurora-stroke svg circle[fill="currentColor"],
+.icon-aurora-stroke svg [fill="currentColor"] {
+  fill: url(#aurora-grad-stroke);
+}
+
 /* ===========================================================
    Theme: Mocha (warm coffee & cream)
    =========================================================== */
@@ -1108,7 +1128,7 @@ html[data-theme="mocha"] {
   --color-warning: #c7923a;
   --color-warning-light: #f2e4c2;
   --color-card: #faf4e8;
-  --color-muted: #9a8468;
+  --color-muted: #7a6444;
   --color-border: #ddccb0;
   --color-surface: #ece1c8;
 
@@ -1166,6 +1186,10 @@ html[data-theme="mocha"] {
   --companion-owl-body-light: #e8c388;
   --companion-owl-body-mid: #b4863e;
   --companion-owl-body-deep: #5a3d24;
+
+  /* Mocha accent - copper/orange (warm coral on cream) */
+  --companion-accent: #D97706;
+  --companion-accent-soft: rgba(217, 119, 6, 0.4);
 }
 html[data-theme="mocha"] body {
   background-image:
@@ -1302,7 +1326,7 @@ html[data-theme="graphite"] {
   --color-warning: #e0b66f;
   --color-warning-light: #3a2f1b;
   --color-card: #22242a;
-  --color-muted: #7c828e;
+  --color-muted: #a4adbc;
   --color-border: #2f323a;
   --color-surface: #1d1f25;
 
@@ -1358,9 +1382,13 @@ html[data-theme="graphite"] {
   --companion-mouse-fur-light: #3a3d46;
   --companion-mouse-fur-mid: #2b2e36;
   --companion-mouse-fur-deep: #0f1014;
-  --companion-owl-body-light: #a4adbc;
+  --companion-owl-body-light: #d1d6e0;
   --companion-owl-body-mid: #6b7280;
-  --companion-owl-body-deep: #2b2e36;
+  --companion-owl-body-deep: #1a1c22;
+
+  /* Graphite accent - cyan/teal (cool, contrasts with grey) */
+  --companion-accent: #22D3EE;
+  --companion-accent-soft: rgba(34, 211, 238, 0.4);
 }
 html[data-theme="graphite"] body {
   background-color: var(--color-background);
@@ -1439,18 +1467,30 @@ html[data-theme="graphite"] .input-refined:focus {
 }
 /* Translucent glass headers/navs adapt to dark surface */
 html[data-theme="graphite"] [class*="bg-white/85"],
+html[data-theme="graphite"] [class*="bg-white/82"],
 html[data-theme="graphite"] [class*="bg-white/80"],
 html[data-theme="graphite"] [class*="bg-white/75"],
 html[data-theme="graphite"] [class*="bg-white/70"],
 html[data-theme="graphite"] [class*="bg-white/60"] {
-  background-color: rgba(34, 36, 42, 0.78) !important;
+  background-color: rgba(23, 24, 28, 0.85) !important;
 }
 html[data-theme="mocha"] [class*="bg-white/85"],
+html[data-theme="mocha"] [class*="bg-white/82"],
 html[data-theme="mocha"] [class*="bg-white/80"],
 html[data-theme="mocha"] [class*="bg-white/75"],
 html[data-theme="mocha"] [class*="bg-white/70"],
 html[data-theme="mocha"] [class*="bg-white/60"] {
-  background-color: rgba(250, 244, 232, 0.85) !important;
+  background-color: rgba(243, 234, 217, 0.88) !important;
+}
+
+/* Adapt explicit bg-card / bg-white containers in graphite */
+html[data-theme="graphite"] .bg-white {
+  background-color: var(--color-card) !important;
+  color: var(--color-foreground);
+}
+html[data-theme="mocha"] .bg-white {
+  background-color: var(--color-card) !important;
+  color: var(--color-foreground);
 }
 
 /* Semantic feedback text colors adapt per theme

@@ -21,11 +21,10 @@ export default function XpProgress({
 
   return (
     <div
-      className="relative rounded-2xl bg-white px-4 py-3.5"
+      className="relative rounded-2xl bg-card aurora-hairline px-4 py-3.5"
       style={{
-        border: "1px solid rgba(99,102,241,0.08)",
         boxShadow:
-          "0 1px 2px rgba(17,24,39,0.03), 0 10px 24px -14px rgba(99,102,241,0.2)",
+          "0 1px 2px rgba(17,24,39,0.03), 0 10px 24px -14px color-mix(in srgb, var(--color-aurora-indigo) 22%, transparent)",
       }}
     >
       <div className="flex justify-between items-baseline mb-2.5">
@@ -34,13 +33,7 @@ export default function XpProgress({
             До уровня «{nextLevel}»
           </div>
           <div
-            className="text-2xl font-extralight tracking-tight"
-            style={{
-              background: "linear-gradient(135deg, #1A1A2E, #6366F1 70%, #A855F7)",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-            }}
+            className="text-2xl font-extralight tracking-tight aurora-text"
           >
             {formatNumber(current)}{" "}
             <span className="text-[11px] text-muted font-light">
@@ -56,15 +49,12 @@ export default function XpProgress({
 
       <div
         className="h-1 rounded-full overflow-hidden relative"
-        style={{ background: "rgba(99,102,241,0.08)" }}
+        style={{ background: "var(--aurora-indigo-soft)" }}
       >
         <div
           data-xp-bar
-          className="h-full rounded-full relative"
-          style={{
-            width: `${fillPercent}%`,
-            background: "linear-gradient(90deg, #6366F1 0%, #A855F7 60%, #EC4899 100%)",
-          }}
+          className="h-full rounded-full relative aurora-grad-bg"
+          style={{ width: `${fillPercent}%` }}
         >
           <div
             className="absolute rounded-full"
@@ -74,8 +64,9 @@ export default function XpProgress({
               transform: "translate(50%, -50%)",
               width: 10,
               height: 10,
-              background: "#EC4899",
-              boxShadow: "0 0 0 2px #fff, 0 0 12px rgba(236,72,153,0.6)",
+              background: "var(--color-aurora-pink)",
+              boxShadow:
+                "0 0 0 2px var(--color-card), 0 0 12px color-mix(in srgb, var(--color-aurora-pink) 60%, transparent)",
             }}
           />
         </div>
