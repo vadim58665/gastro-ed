@@ -15,7 +15,6 @@ import MedMindCard from "@/components/ui/MedMindCard";
 import ProfileSheet from "@/components/profile/ProfileSheet";
 import AuthSection from "@/components/profile/AuthSection";
 import ExamReadiness from "@/components/analytics/ExamReadiness";
-import SavedContentLibrary from "@/components/medmind/SavedContentLibrary";
 
 import { useGamification } from "@/hooks/useGamification";
 import { useAuth } from "@/contexts/AuthContext";
@@ -145,9 +144,6 @@ export default function FeedProfile() {
       </div>
 
       <div className="px-6 pt-2 pb-4 flex flex-col items-center">
-        <div className="text-[10px] tracking-[0.25em] uppercase text-muted font-medium mb-8">
-          С возвращением
-        </div>
         <AvatarStack
           initial={avatarLetter}
           size={128}
@@ -309,12 +305,7 @@ export default function FeedProfile() {
           icon={BOOK_SVG}
           title="Моя библиотека"
           sub="Сохранённые AI-объяснения"
-          chip={{ label: "2", variant: "indigo" }}
-          onClick={() =>
-            document
-              .getElementById("saved-library")
-              ?.scrollIntoView({ behavior: "smooth", block: "start" })
-          }
+          href="/library"
         />
         <ToolRow
           accent="pink-violet"
@@ -350,12 +341,6 @@ export default function FeedProfile() {
             />
           </div>
         </>
-      )}
-
-      {user && (
-        <div id="saved-library" className="px-6 mb-5 scroll-mt-24">
-          <SavedContentLibrary />
-        </div>
       )}
 
       <div className="px-6 mb-6">

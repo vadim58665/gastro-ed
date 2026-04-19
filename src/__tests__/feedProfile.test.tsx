@@ -105,11 +105,6 @@ vi.mock("@/components/analytics/ExamReadiness", () => ({
 import FeedProfile from "@/components/profile/FeedProfile";
 
 describe("FeedProfile", () => {
-  it("рендерит приветствие", () => {
-    render(<FeedProfile />);
-    expect(screen.getByText(/С возвращением/i)).toBeInTheDocument();
-  });
-
   it("рендерит никнейм", () => {
     render(<FeedProfile />);
     expect(screen.getByText("vadim58")).toBeInTheDocument();
