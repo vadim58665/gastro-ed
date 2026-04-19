@@ -167,3 +167,29 @@ export function isSpecialtyAvailable(specialtyName: string): boolean {
 export function findSpecialtyById(id: string): Specialty | undefined {
   return allSpecialties.find((s) => s.id === id);
 }
+
+/**
+ * Короткое имя категории для отображения над названием специальности
+ * в хлебной крошке-чипе: «ОРДИНАТУРА · Гастроэнтерология».
+ */
+const CATEGORY_SHORT_NAMES: Record<string, string> = {
+  ordinatura: "Ординатура",
+  specialitet: "Специалитет",
+  "spo-special": "СПО специализированная",
+  "spo-primary": "СПО",
+  profperepodgotovka: "Переподготовка",
+};
+
+export function findCategoryBySpecialtyId(
+  specialtyId: string
+): { id: string; shortName: string } | null {
+  for (const cat of accreditationCategories) {
+    if (cat.specialties.some((s) => s.id === specialtyId)) {
+      return {
+        id: cat.id,
+        shortName: CATEGORY_SHORT_NAMES[cat.id] || cat.name,
+      };
+    }
+  }
+  return null;
+}

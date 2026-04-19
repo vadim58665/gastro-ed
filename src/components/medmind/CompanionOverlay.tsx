@@ -22,6 +22,10 @@ import {
 import { buildAccreditationSnapshot } from "@/lib/accreditationSnapshot";
 import MarkdownResponse from "./MarkdownResponse";
 import { getSupabase } from "@/lib/supabase/client";
+import {
+  serializeCardForAssistant,
+  serializeQuestionForAssistant,
+} from "@/lib/cardContext";
 
 type PrebuiltAction =
   | "hint_prebuilt"
@@ -55,15 +59,6 @@ const PREBUILT_TYPE: Record<PrebuiltAction, PrebuiltContentType> = {
   plan: "learning_plan",
 };
 
-function getCardText(card: unknown): string {
-  if (!card || typeof card !== "object") return "";
-  const c = card as Record<string, unknown>;
-  if (typeof c.question === "string") return c.question;
-  if (typeof c.statement === "string") return c.statement;
-  if (typeof c.scenario === "string") return c.scenario;
-  if (typeof c.title === "string") return c.title;
-  return "";
-}
 
 // Контекстно-осмысленная вводная для разных экранов без entity.
 // Ассистент «узнаёт» раздел по-русски и сразу предлагает формат работы.
@@ -174,9 +169,9 @@ export default function CompanionOverlay() {
 
   const cardText =
     screen.kind === "feed_card"
-      ? getCardText(screen.card)
+      ? serializeCardForAssistant(screen.card)
       : screen.kind === "accred_question"
-        ? screen.question.question
+        ? serializeQuestionForAssistant(screen.question)
         : screen.kind === "daily_case_step"
           ? `${screen.stepTitle}. ${screen.stepDescription}\n\nВарианты ответа:\n${screen.options
               .map((o, i) => `${i + 1}. ${o}`)
@@ -190,6 +185,12 @@ export default function CompanionOverlay() {
         : screen.kind === "daily_case_step"
           ? screen.caseTitle
           : undefined;
+  const cardSpecialty =
+    screen.kind === "feed_card"
+      ? screen.card.specialty
+      : screen.kind === "accred_question"
+        ? screen.question.specialty
+        : undefined;
 
   const entityId =
     screen.kind === "feed_card"
@@ -341,6 +342,7 @@ export default function CompanionOverlay() {
             },
             body: JSON.stringify({
               contentType,
+              specialty: cardSpecialty,
               topic: cardTopic || "Общее",
               questionContext: cardText.slice(0, 200),
               contentRu: fullResponse,

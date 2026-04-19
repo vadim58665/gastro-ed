@@ -77,14 +77,14 @@ export default function ModesPage() {
   const examModes: ModeInfo[] = [
     {
       title: "Пробный",
-      description: "80 случайных вопросов, сразу видите верный ответ",
+      description: "80 случайных вопросов, разбор ошибок в конце",
       href: "/modes/exam?type=trial",
       available: hasQuestions,
       icon: ICON_TRIAL,
     },
     {
       title: "По изученным",
-      description: "Экзамен только по пройденным блокам",
+      description: "Экзамен по пройденным блокам, разбор в конце",
       href: "/modes/exam?type=learned",
       available: hasLearned,
       icon: ICON_LEARNED,
@@ -102,21 +102,21 @@ export default function ModesPage() {
   const trainingModes: ModeInfo[] = [
     {
       title: "Работа над ошибками",
-      description: `Вопросы, в которых вы ошиблись (${progress.mistakes.length})`,
+      description: `Ответы и разбор сразу · ${progress.mistakes.length} ${progress.mistakes.length === 1 ? "вопрос" : "вопросов"}`,
       href: "/modes/mistakes",
       available: hasMistakes,
       icon: ICON_REFRESH,
     },
     {
       title: "Случайные",
-      description: "Вопросы, которые попадались вам реже всего",
+      description: "Редкие вопросы с ответом сразу",
       href: "/modes/exam?type=random",
       available: hasQuestions,
       icon: ICON_RANDOM,
     },
     {
       title: "Марафон",
-      description: "30 секунд на вопрос, решайте до первой ошибки",
+      description: "До первой ошибки, разбор в конце",
       href: "/modes/exam?type=marathon",
       available: totalQuestions > 0,
       icon: ICON_MARATHON,

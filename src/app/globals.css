@@ -564,7 +564,10 @@ body {
   transform: rotate(-90deg);
 }
 .progress-ring-track {
-  stroke: rgba(17, 24, 39, 0.08);
+  /* Тема-адаптивный трек: в светлых темах тёмный полупрозрачный, в
+     тёмных (graphite/mocha) — светлый полупрозрачный. Чтобы блоки на
+     /tests были видны на тёмном фоне. */
+  stroke: color-mix(in srgb, var(--color-foreground) 14%, transparent);
 }
 .progress-ring-bar {
   stroke: url(#progress-ring-gradient);

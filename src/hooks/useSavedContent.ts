@@ -25,6 +25,7 @@ async function getToken(): Promise<string | null> {
 export function useSavedContent(options?: {
   type?: string;
   topic?: string;
+  specialty?: string;
   favoritesOnly?: boolean;
 }) {
   const [items, setItems] = useState<SavedContentItem[]>([]);
@@ -41,6 +42,7 @@ export function useSavedContent(options?: {
     const params = new URLSearchParams();
     if (options?.type) params.set("type", options.type);
     if (options?.topic) params.set("topic", options.topic);
+    if (options?.specialty) params.set("specialty", options.specialty);
     if (options?.favoritesOnly) params.set("favorites", "true");
 
     try {
@@ -55,7 +57,7 @@ export function useSavedContent(options?: {
       // Network error
     }
     setLoading(false);
-  }, [options?.type, options?.topic, options?.favoritesOnly]);
+  }, [options?.type, options?.topic, options?.specialty, options?.favoritesOnly]);
 
   useEffect(() => {
     fetchItems();
