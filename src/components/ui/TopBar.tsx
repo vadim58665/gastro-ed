@@ -6,6 +6,8 @@ import ModeSwitch from "./ModeSwitch";
 
 interface TopBarProps {
   showBack?: boolean;
+  /** Если передан, вызывается вместо router.back() при клике на «Назад». Для возврата в idle внутри страницы. */
+  onBack?: () => void;
   /** Если true - показывает aurora-welcome-band под topbar. Для premium-страниц (/profile, /subscription, etc). */
   premium?: boolean;
   /** Если true - показывает settings-btn справа. По умолчанию false. */
@@ -18,6 +20,7 @@ interface TopBarProps {
 
 export default function TopBar({
   showBack = false,
+  onBack,
   premium = false,
   showSettings = false,
   onSettingsClick,
@@ -51,7 +54,7 @@ export default function TopBar({
           <div className="flex justify-between items-center gap-2">
             {showBack ? (
               <button
-                onClick={() => router.back()}
+                onClick={() => (onBack ? onBack() : router.back())}
                 className="flex items-center gap-1 text-xs uppercase tracking-[0.15em] text-muted hover:text-foreground transition-colors"
                 aria-label="Назад"
               >

@@ -12,6 +12,8 @@ interface TabDef {
   href: string;
   label: string;
   icon: ReactNode;
+  /** Доп. префиксы pathname, на которых таб тоже должен быть активен. */
+  matches?: string[];
 }
 
 const gridIcon = (
@@ -72,7 +74,7 @@ const caseIcon = (
 );
 
 const feedTabs: TabDef[] = [
-  { href: "/feed", label: "Лента", icon: gridIcon },
+  { href: "/topics", label: "Лента", icon: gridIcon, matches: ["/feed"] },
   { href: "/daily-case", label: "Диагноз", icon: caseIcon },
   { href: "/mistakes", label: "Ошибки", icon: errorIcon },
   { href: "/profile", label: "Профиль", icon: userIcon },
@@ -108,7 +110,9 @@ export default function BottomNav() {
     >
       <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
         {tabs.map((tab) => {
-          const isActive = pathname.startsWith(tab.href);
+          const isActive = [tab.href, ...(tab.matches ?? [])].some((p) =>
+            pathname.startsWith(p)
+          );
           return (
             <Link
               key={tab.href}
