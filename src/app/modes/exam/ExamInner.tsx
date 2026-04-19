@@ -27,7 +27,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-type ExamType = "trial" | "learned" | "accreditation" | "mistakes" | "random" | "marathon";
+type ExamType = "trial" | "learned" | "accreditation" | "mistakes" | "random" | "marathon" | "topic";
 
 const EXAM_CONFIG: Record<ExamType, { title: string; count: number; timed: boolean; marathon: boolean }> = {
   trial:         { title: "Пробный экзамен",    count: 80,  timed: false, marathon: false },
@@ -36,6 +36,7 @@ const EXAM_CONFIG: Record<ExamType, { title: string; count: number; timed: boole
   mistakes:      { title: "Работа над ошибками", count: 999, timed: false, marathon: false },
   random:        { title: "Случайные",          count: 50,  timed: false, marathon: false },
   marathon:      { title: "Марафон",            count: 999, timed: false, marathon: true  },
+  topic:         { title: "По теме",            count: 999, timed: false, marathon: false },
 };
 
 export default function ExamInner() {
@@ -74,6 +75,15 @@ export default function ExamInner() {
   const [questions] = useState<TestQuestion[]>(() => {
     let pool: TestQuestion[];
 
+    // ?ids= — явный whitelist id-вопросов (используется для «По темам»
+    // на /tests и в режимах /accreditation/mistakes). Применяется
+    // поверх examType-фильтра если указан.
+    const idsParam = searchParams.get("ids");
+    const idWhitelist =
+      idsParam && idsParam.length > 0
+        ? new Set(idsParam.split(",").filter(Boolean))
+        : null;
+
     switch (examType) {
       case "learned": {
         const learnedBlocks = new Set(
@@ -91,8 +101,21 @@ export default function ExamInner() {
         );
         break;
       }
+      case "topic": {
+        // «По теме» = строгий набор id-вопросов из ?ids=
+        pool = idWhitelist
+          ? allQuestions.filter((q) => idWhitelist.has(q.id))
+          : allQuestions;
+        break;
+      }
       default:
         pool = allQuestions;
+    }
+
+    // Применяем ids-whitelist поверх уже отфильтрованного пула (актуально
+    // для type=mistakes + ids=, если нужна тема внутри ошибок).
+    if (idWhitelist && examType !== "topic") {
+      pool = pool.filter((q) => idWhitelist.has(q.id));
     }
 
     const shuffled = shuffle(pool);
@@ -211,10 +234,16 @@ export default function ExamInner() {
   const current = questions[currentIndex];
   // Режимы из раздела «Экзамен» (+ марафон) — строгий экзамен: ответы
   // и разбор только в конце. Режимы из раздела «Тренировки» (mistakes,
-  // random) показывают верный ответ сразу, чтобы на ошибках можно было
-  // учиться по ходу.
+  // random, topic) показывают верный ответ сразу, чтобы на ошибках/темах
+  // можно было учиться по ходу. Параметр ?strict=1 форсит exam-режим
+  // (ответы в конце) — используется из /accreditation/mistakes когда
+  // пользователь выбирает «Экзамен» вместо «Тренировка».
+  const strictParam = searchParams.get("strict");
   const mode =
-    examType === "mistakes" || examType === "random" ? "test" : "exam";
+    (examType === "mistakes" || examType === "random" || examType === "topic") &&
+    strictParam !== "1"
+      ? "test"
+      : "exam";
 
   return (
     <div className="h-screen flex flex-col">

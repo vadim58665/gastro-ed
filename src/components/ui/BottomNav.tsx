@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMode } from "@/contexts/ModeContext";
 import { useProgress } from "@/hooks/useProgress";
+import { useSpecialty } from "@/contexts/SpecialtyContext";
+import { useAccreditation } from "@/hooks/useAccreditation";
 import { getFeedMistakes } from "@/lib/mistakes";
 import { demoCards } from "@/data/cards";
 import { useMemo, type ReactNode } from "react";
@@ -83,7 +85,14 @@ const feedTabs: TabDef[] = [
 const prepTabs: TabDef[] = [
   { href: "/tests", label: "Тесты", icon: listIcon },
   { href: "/cases", label: "Задачи", icon: checkIcon },
-  { href: "/mistakes", label: "Ошибки", icon: errorIcon },
+  {
+    href: "/accreditation/mistakes",
+    label: "Ошибки",
+    icon: errorIcon,
+    // Включаем подсветку таба и на legacy /mistakes, и на /modes/mistakes —
+    // на случай прямых ссылок из других мест prep-режима.
+    matches: ["/mistakes", "/modes/mistakes"],
+  },
   { href: "/stations", label: "Станции", icon: stationIcon },
   { href: "/profile", label: "Профиль", icon: userIcon },
 ];
@@ -92,10 +101,20 @@ export default function BottomNav() {
   const pathname = usePathname();
   const { progress } = useProgress();
   const { mode } = useMode();
-  const mistakeCount = useMemo(
+  const { activeSpecialty } = useSpecialty();
+  const { progress: accreditationProgress } = useAccreditation(
+    activeSpecialty?.id ?? ""
+  );
+
+  const feedMistakeCount = useMemo(
     () => getFeedMistakes(progress, demoCards).length,
     [progress]
   );
+  const prepMistakeCount = accreditationProgress.mistakes.length;
+
+  // В prep-режиме счётчик показывает ошибки аккредитационных вопросов
+  // активной специальности — так число совпадает с /accreditation/mistakes.
+  const mistakeCount = mode === "feed" ? feedMistakeCount : prepMistakeCount;
 
   const tabs = mode === "feed" ? feedTabs : prepTabs;
 
@@ -143,7 +162,7 @@ export default function BottomNav() {
                 }}
               >
                 {tab.icon}
-                {tab.href === "/mistakes" && mistakeCount > 0 && (
+                {(tab.href === "/mistakes" || tab.href === "/accreditation/mistakes") && mistakeCount > 0 && (
                   <span
                     className="absolute -top-1 -right-1 min-w-[14px] h-[14px] flex items-center justify-center text-white text-[8px] font-bold rounded-full px-0.5"
                     style={{

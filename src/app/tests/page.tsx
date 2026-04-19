@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import MagicCard from "@/components/ui/MagicCard";
@@ -15,6 +16,7 @@ import {
   getTotalQuestionCount,
 } from "@/data/accreditation/index";
 import { accreditationCategories } from "@/data/specialties";
+import { clusterQuestionsByTopic } from "@/lib/accreditationTopics";
 
 // Per-category SVG icons (gradient stroke via parent .icon-aurora-stroke)
 const CATEGORY_ICONS: Record<number, JSX.Element> = {
@@ -243,9 +245,10 @@ function SpecialtyListView({
   );
 }
 
-type BlocksViewMode = "circles" | "list";
+type BlocksViewMode = "circles" | "list" | "topics";
 
 function BlocksView({ specialtyId }: { specialtyId: string }) {
+  const router = useRouter();
   const { progress, totalLearned } = useAccreditation(specialtyId);
   const [viewMode, setViewMode] = useState<BlocksViewMode>("circles");
 
@@ -255,6 +258,41 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
   );
 
   const blockCount = useMemo(() => getBlockCount(specialtyId), [specialtyId]);
+
+  // Кластеризация вопросов по темам (ключевые слова из текста вопросов),
+  // поскольку в TestQuestion нет явного поля topic. Считается один раз
+  // на основе всех вопросов специальности.
+  const topics = useMemo(
+    () =>
+      clusterQuestionsByTopic(questions, {
+        maxClusters: 20,
+        minClusterSize: 3,
+      }),
+    [questions]
+  );
+
+  // Для каждой темы — сколько изучено (хоть раз правильно).
+  const topicProgress = useMemo(() => {
+    const learnedSet = new Set<string>();
+    for (const [qId, stats] of Object.entries(progress.questionStats)) {
+      if (stats.wasEverCorrect) learnedSet.add(qId);
+    }
+    return topics.map((t) => {
+      const learned = t.questionIds.filter((id) => learnedSet.has(id)).length;
+      return {
+        ...t,
+        learned,
+        pct: t.count > 0 ? Math.round((learned / t.count) * 100) : 0,
+      };
+    });
+  }, [topics, progress.questionStats]);
+
+  function launchTopic(questionIds: string[]) {
+    const params = new URLSearchParams();
+    params.set("type", "topic");
+    params.set("ids", questionIds.join(","));
+    router.push(`/modes/exam?${params.toString()}`);
+  }
 
   const blocks = useMemo(() => {
     return Array.from({ length: blockCount }, (_, i) => {
@@ -326,6 +364,11 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
               label="Блоки"
             />
             <ViewModePill
+              active={viewMode === "topics"}
+              onClick={() => setViewMode("topics")}
+              label="Темы"
+            />
+            <ViewModePill
               active={viewMode === "list"}
               onClick={() => setViewMode("list")}
               label="Список"
@@ -356,7 +399,67 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
           </div>
         </div>
 
-        {viewMode === "circles" ? (
+        {viewMode === "topics" ? (
+          /* Topics view — clusters of related questions */
+          <div className="px-6 pb-8">
+            {topicProgress.length === 0 ? (
+              <p className="text-xs text-muted text-center max-w-[280px] mx-auto leading-relaxed">
+                Тем пока недостаточно для группировки. Начните с блоков.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {topicProgress.map((t) => (
+                  <button
+                    key={t.topic}
+                    onClick={() => launchTopic(t.questionIds)}
+                    className="btn-press text-left rounded-2xl aurora-hairline px-4 py-3 transition-colors"
+                    style={{ background: "var(--color-card)" }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <GradientRing value={t.pct} size={40} thickness={3} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline justify-between mb-1">
+                          <span className="text-sm font-medium text-foreground truncate pr-3">
+                            {t.label}
+                          </span>
+                          <span
+                            className="text-[10px] tabular-nums shrink-0"
+                            style={{
+                              color:
+                                t.pct >= 70
+                                  ? "var(--color-aurora-indigo)"
+                                  : t.pct > 0
+                                    ? "var(--color-aurora-violet)"
+                                    : "var(--color-muted)",
+                            }}
+                          >
+                            {t.learned}/{t.count}
+                          </span>
+                        </div>
+                        <div
+                          className="h-1 rounded-full overflow-hidden"
+                          style={{
+                            background:
+                              "color-mix(in srgb, var(--color-border) 60%, transparent)",
+                          }}
+                        >
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${t.pct}%`,
+                              background:
+                                "linear-gradient(90deg, var(--color-aurora-indigo), var(--color-aurora-violet), var(--color-aurora-pink))",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : viewMode === "circles" ? (
           /* Circle grid view - aurora GradientRing per block */
           <div className="px-4 pb-8">
             <div className="flex flex-wrap justify-center gap-3">
