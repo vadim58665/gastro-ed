@@ -42,7 +42,7 @@ const EXAM_CONFIG: Record<ExamType, { title: string; count: number; timed: boole
 export default function ExamInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { activeSpecialty } = useSpecialty();
+  const { activeSpecialty, hydrated } = useSpecialty();
   const specialtyId = activeSpecialty?.id || "";
   const { progress, recordAnswer, saveExamResult, markQuestionLearned } = useAccreditation(specialtyId);
 
@@ -123,8 +123,12 @@ export default function ExamInner() {
   });
 
   useEffect(() => {
+    // Wait for SpecialtyContext to rehydrate; otherwise direct deep links
+    // (/modes/exam?type=trial) bounce to /topics before the saved specialty
+    // is restored from localStorage.
+    if (!hydrated) return;
     if (!activeSpecialty) router.push("/topics");
-  }, [activeSpecialty, router]);
+  }, [activeSpecialty, hydrated, router]);
 
   const handleAnswer = useCallback(
     (isCorrect: boolean, selectedIndex: number) => {
@@ -170,7 +174,7 @@ export default function ExamInner() {
     }
   }, [currentIndex, questions.length, startTime, correctCount, saveExamResult, marathonFailed]);
 
-  if (!activeSpecialty) return null;
+  if (!hydrated || !activeSpecialty) return null;
 
   if (questions.length === 0) {
     return (

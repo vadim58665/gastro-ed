@@ -27,7 +27,7 @@ function FeedContent() {
   const searchParams = useSearchParams();
   const topicFilter = searchParams.get("topic");
   const modeParam = searchParams.get("mode");
-  const { activeSpecialty, clearSpecialty } = useSpecialty();
+  const { activeSpecialty, hydrated, clearSpecialty } = useSpecialty();
   const { progress } = useProgress();
   const router = useRouter();
   const recentAnswers = progress.recentAnswers || [];
@@ -35,11 +35,15 @@ function FeedContent() {
   const rank = useMemo(() => getRankForAccuracy(recentAnswers), [recentAnswers]);
 
   useEffect(() => {
+    // Wait for SpecialtyContext to rehydrate from localStorage before
+    // deciding to bounce — direct URLs with a saved specialty would
+    // otherwise flicker to /topics.
+    if (!hydrated) return;
     const isStandalone = modeParam && STANDALONE_MODES.has(modeParam);
     if (!isStandalone && !activeSpecialty) {
       router.push("/topics");
     }
-  }, [activeSpecialty, modeParam, router]);
+  }, [activeSpecialty, hydrated, modeParam, router]);
 
   function handleExit() {
     clearSpecialty();
