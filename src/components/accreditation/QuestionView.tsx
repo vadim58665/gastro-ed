@@ -192,21 +192,23 @@ export default function QuestionView({
 
       {/* В режиме просмотра кнопок навигации нет — ожидается, что родитель
           рендерит все вопросы в виде ленты, а пользователь листает скроллом.
-          В экзамене/зачёте возврат к предыдущему вопросу запрещён — иначе
-          пользователь мог бы пересматривать и менять ответы, что нарушает
-          имитацию реальной аккредитации. */}
+          В экзамене/зачёте возврат к предыдущему вопросу запрещён — кнопка
+          «Предыдущий» вообще не рендерится, чтобы не было серой disabled-
+          заглушки. Разбор виден только в ExamResult в конце сессии. */}
       {!isBrowse && (
         <div className="flex items-center gap-2 mt-5">
-          <button
-            onClick={handlePrevious}
-            disabled={!canGoPrevious || mode === "exam"}
-            className="btn-press shrink-0 w-14 h-14 rounded-2xl bg-surface border border-border text-foreground flex items-center justify-center disabled:opacity-30 disabled:cursor-default hover:bg-card transition-colors"
-            aria-label="Предыдущий вопрос"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
-          </button>
+          {mode !== "exam" && (
+            <button
+              onClick={handlePrevious}
+              disabled={!canGoPrevious}
+              className="btn-press shrink-0 w-14 h-14 rounded-2xl bg-surface border border-border text-foreground flex items-center justify-center disabled:opacity-30 disabled:cursor-default hover:bg-card transition-colors"
+              aria-label="Предыдущий вопрос"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+          )}
 
           {showNextButton && (
             <button
