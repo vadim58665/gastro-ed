@@ -229,7 +229,9 @@ export default function BlockPage() {
               onAnswer={handleAnswer}
               onNext={testMode.nextQuestion}
               onPrevious={testMode.previousQuestion}
-              canGoPrevious={testMode.currentIndex > 0}
+              // В Экзамене возврат запрещён (жёсткая имитация аккредитации).
+              // В Зачёте, Тренировке и остальных режимах — можно вернуться.
+              canGoPrevious={testMode.currentIndex > 0 && testMode.mode !== "exam"}
               existingSelectedIndex={existingAnswer?.selectedIndex ?? null}
             />
           </div>
