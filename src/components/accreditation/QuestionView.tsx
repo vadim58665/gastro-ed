@@ -135,8 +135,16 @@ export default function QuestionView({
         })}
       </div>
 
-      {mode !== "exam" && selected === null && !hasExisting && (
-        <HintButton entityId={question.id} entityType="accreditation_question" />
+      {mode !== "exam" && (
+        // Подсказка доступна всё время работы с вопросом (до и после
+        // ответа), кроме экзамена. Пользователь может вернуться к
+        // пройденному вопросу и перечитать подсказку.
+        <HintButton
+          entityId={question.id}
+          entityType="accreditation_question"
+          context={question.question}
+          topic={specialtyId ? `${specialtyId}:${question.id}` : question.id}
+        />
       )}
 
       {showResult && question.explanation && selected !== null && (
@@ -147,17 +155,18 @@ export default function QuestionView({
         </div>
       )}
 
-      {/* Auto-explain for subscribers after a WRONG answer (not in exam mode). */}
-      {mode !== "exam" &&
-        showResult &&
-        selected !== null &&
-        selected !== question.correctIndex && (
-          <AutoExplain
-            entityId={question.id}
-            entityType="accreditation_question"
-            trigger={true}
-          />
-        )}
+      {/* Auto-explain для подписчиков после ЛЮБОГО ответа (не только
+          ошибочного). В exam-режиме не раскрываем правильный вариант
+          до конца экзамена. */}
+      {mode !== "exam" && showResult && selected !== null && (
+        <AutoExplain
+          entityId={question.id}
+          entityType="accreditation_question"
+          trigger={true}
+          context={question.question}
+          topic={specialtyId ? `${specialtyId}:${question.id}` : question.id}
+        />
+      )}
 
       <div className="flex items-center gap-2 mt-5">
         <button

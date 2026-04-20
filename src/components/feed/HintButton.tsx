@@ -10,6 +10,19 @@ type EntityType = "card" | "accreditation_question";
 interface Props {
   entityId: string;
   entityType?: EntityType;
+  /**
+   * Текст вопроса/карточки. Используется как контекст для Claude
+   * при on-demand генерации подсказки, если в общем кэше (prebuilt_content)
+   * её ещё нет. Без контекста fallback не делается — показываем
+   * сообщение «подсказка скоро появится».
+   */
+  context?: string;
+  /**
+   * Короткая тема (раздел / специальность) — попадает в user_saved_content
+   * после успешной генерации. Нужна, чтобы подсказка была сгруппирована
+   * в библиотеке пользователя.
+   */
+  topic?: string;
 }
 
 async function getAuthToken(): Promise<string> {
@@ -19,7 +32,29 @@ async function getAuthToken(): Promise<string> {
   return process.env.NEXT_PUBLIC_DEV_MODE === "true" ? "dev-test-token" : "";
 }
 
-export default function HintButton({ entityId, entityType = "card" }: Props) {
+/**
+ * Достаёт из результата /api/medmind/generate полезную строку подсказки.
+ * Промпт типа `tip` просит JSON `{ tip: "..." }`, но Claude иногда
+ * возвращает plain-text или весь объект JSON в `content_ru`. Аккуратно
+ * вытаскиваем строку; если не получилось — возвращаем исходник.
+ */
+function extractTip(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (typeof parsed === "string") return parsed;
+    if (parsed && typeof parsed === "object") {
+      const candidate = parsed.tip ?? parsed.hint ?? parsed.explanation ?? parsed.content;
+      if (typeof candidate === "string") return candidate;
+    }
+  } catch {
+    /* not JSON, fall through */
+  }
+  return trimmed;
+}
+
+export default function HintButton({ entityId, entityType = "card", context, topic }: Props) {
   const { isPro } = useSubscription();
   const router = useRouter();
   const [hint, setHint] = useState<string | null>(null);
@@ -42,24 +77,100 @@ export default function HintButton({ entityId, entityType = "card" }: Props) {
         entityId,
         contentType: "hint",
       });
-      const res = await fetch(`/api/medmind/prebuilt?${params.toString()}`, {
+      const cacheRes = await fetch(`/api/medmind/prebuilt?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) {
-        const data = await res.json();
+      if (cacheRes.ok) {
+        const data = await cacheRes.json();
         setHint(data.content);
-      } else if (res.status === 404) {
-        setError("Подсказка скоро появится");
-      } else if (res.status === 403) {
-        setShowPaywall(true);
-      } else {
-        setError("Не удалось загрузить подсказку");
+        setLoading(false);
+        return;
       }
+      if (cacheRes.status === 403) {
+        setShowPaywall(true);
+        setLoading(false);
+        return;
+      }
+      if (cacheRes.status !== 404) {
+        setError("Не удалось загрузить подсказку");
+        setLoading(false);
+        return;
+      }
+
+      // Cache miss. Если мы знаем контекст вопроса/карточки — просим
+      // Claude сгенерировать подсказку и одновременно засеиваем общий
+      // кэш, чтобы следующие пользователи получили её бесплатно.
+      if (!context) {
+        setError("Подсказка скоро появится");
+        setLoading(false);
+        return;
+      }
+
+      const topicForClaude = topic ?? context.slice(0, 60);
+      const genRes = await fetch("/api/medmind/generate", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "tip",
+          topic: topicForClaude,
+          cardId: entityType === "card" ? entityId : undefined,
+          context,
+        }),
+      });
+
+      if (genRes.status === 403) {
+        setShowPaywall(true);
+        setLoading(false);
+        return;
+      }
+      if (genRes.status === 429) {
+        setError("Слишком много запросов, попробуйте позже");
+        setLoading(false);
+        return;
+      }
+      if (!genRes.ok) {
+        setError("Не удалось сгенерировать подсказку");
+        setLoading(false);
+        return;
+      }
+
+      const genData = await genRes.json();
+      const tip = extractTip(genData.contentRu);
+      if (!tip) {
+        setError("Пустой ответ, попробуйте ещё раз");
+        setLoading(false);
+        return;
+      }
+
+      setHint(tip);
+
+      // Fire-and-forget: сохраняем в общий кэш, чтобы следующие
+      // пользователи не тратили токены. Ошибку глушим — для пользователя
+      // подсказка уже показана.
+      void fetch("/api/medmind/content", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contentType: "hint",
+          topic: topicForClaude,
+          contentRu: tip,
+          entityType,
+          entityId,
+          questionContext: context,
+          modelUsed: genData.model ?? "runtime",
+        }),
+      }).catch(() => undefined);
     } catch {
       setError("Ошибка соединения");
     }
     setLoading(false);
-  }, [isPro, hint, loading, entityId, entityType]);
+  }, [isPro, hint, loading, entityId, entityType, context, topic]);
 
   if (showPaywall) {
     return (
@@ -136,7 +247,7 @@ export default function HintButton({ entityId, entityType = "card" }: Props) {
         <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" />
         <line x1="9" y1="21" x2="15" y2="21" />
       </svg>
-      <span>{loading ? "Загружаю..." : error ?? "Подсказка"}</span>
+      <span>{loading ? "Генерирую подсказку..." : error ?? "Подсказка"}</span>
     </button>
   );
 }

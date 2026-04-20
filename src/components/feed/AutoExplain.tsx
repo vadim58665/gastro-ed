@@ -11,6 +11,14 @@ interface Props {
   entityType?: EntityType;
   /** Only load when this flips true. */
   trigger: boolean;
+  /**
+   * Текст вопроса/карточки. Если задан, при cache-miss мы сгенерируем
+   * короткое объяснение через Claude и засеем общий кэш — следующим
+   * пользователям оно будет бесплатным.
+   */
+  context?: string;
+  /** Короткая тема (для user_saved_content). */
+  topic?: string;
 }
 
 async function getAuthToken(): Promise<string> {
@@ -20,14 +28,35 @@ async function getAuthToken(): Promise<string> {
   return process.env.NEXT_PUBLIC_DEV_MODE === "true" ? "dev-test-token" : "";
 }
 
+function extractExplanation(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (typeof parsed === "string") return parsed;
+    if (parsed && typeof parsed === "object") {
+      const candidate = parsed.explanation ?? parsed.content ?? parsed.tip;
+      if (typeof candidate === "string") return candidate;
+    }
+  } catch {
+    /* not JSON */
+  }
+  return trimmed;
+}
+
 /**
- * Auto-expands explain_short from prebuilt_content after a wrong answer
- * for subscribers. Silently no-ops if:
- *   - user is free tier (hide entirely),
- *   - prebuilt content doesn't exist yet (404 → hide, don't spend tokens),
- *   - network error (hide).
+ * Auto-expands explain_short from prebuilt_content after an answer for
+ * subscribers. При cache-miss с заданным `context` делаем один
+ * on-demand запрос к Claude (type=`explanation`) и засеиваем общий
+ * кэш. Без `context` — silent no-op (старое поведение).
  */
-export default function AutoExplain({ entityId, entityType = "card", trigger }: Props) {
+export default function AutoExplain({
+  entityId,
+  entityType = "card",
+  trigger,
+  context,
+  topic,
+}: Props) {
   const { isPro } = useSubscription();
   const [text, setText] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -47,19 +76,64 @@ export default function AutoExplain({ entityId, entityType = "card", trigger }: 
         const res = await fetch(`/api/medmind/prebuilt?${params.toString()}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!cancelled && res.ok) {
+        if (cancelled) return;
+        if (res.ok) {
           const data = await res.json();
           setText(data.content);
+          return;
         }
+        // Cache miss: пытаемся on-demand генерацию только если нам
+        // передали контекст. Без него тихо выходим — старое поведение.
+        if (res.status !== 404 || !context) return;
+
+        const topicForClaude = topic ?? context.slice(0, 60);
+        const genRes = await fetch("/api/medmind/generate", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "explanation",
+            topic: topicForClaude,
+            cardId: entityType === "card" ? entityId : undefined,
+            context,
+          }),
+        });
+        if (cancelled || !genRes.ok) return;
+        const genData = await genRes.json();
+        const explanation = extractExplanation(genData.contentRu);
+        if (!explanation) return;
+        setText(explanation);
+
+        // Fire-and-forget: seed общий кэш. Claude вернул короткое
+        // объяснение — кладём его как `explain_short`.
+        void fetch("/api/medmind/content", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contentType: "explain_short",
+            topic: topicForClaude,
+            contentRu: explanation,
+            entityType,
+            entityId,
+            questionContext: context,
+            modelUsed: genData.model ?? "runtime",
+          }),
+        }).catch(() => undefined);
       } catch {
         /* silent */
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      if (!cancelled) setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [isPro, trigger, entityId, entityType, text]);
+  }, [isPro, trigger, entityId, entityType, text, context, topic]);
 
   if (!isPro || !trigger) return null;
   if (loading) {
