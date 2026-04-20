@@ -13,7 +13,7 @@ import {
 import { computeFrequentErrors } from "@/lib/accreditationErrors";
 import { clusterMistakesByTopic } from "@/lib/accreditationTopics";
 
-type SessionMode = "training" | "exam";
+type SessionMode = "training" | "exam" | "browse";
 
 function pluralize(n: number, one: string, few: string, many: string): string {
   const abs = Math.abs(n) % 100;
@@ -116,6 +116,7 @@ export default function AccreditationMistakesPage() {
     const params = new URLSearchParams();
     params.set("type", "mistakes");
     if (sessionMode === "exam") params.set("strict", "1");
+    if (sessionMode === "browse") params.set("mode", "browse");
     if (opts.block) params.set("block", String(opts.block));
     if (opts.ids && opts.ids.length > 0) params.set("ids", opts.ids.join(","));
     router.push(`/modes/exam?${params.toString()}`);
@@ -188,43 +189,37 @@ export default function AccreditationMistakesPage() {
             </p>
           </div>
 
-          {/* Session mode toggle */}
+          {/* Session mode toggle — 3 опции */}
           <div className="flex justify-center mb-6">
             <div
               className="inline-flex rounded-full p-0.5 aurora-hairline text-[10px] uppercase tracking-[0.2em] font-semibold"
               style={{ background: "var(--color-card)" }}
               role="tablist"
             >
-              <button
-                role="tab"
-                aria-selected={sessionMode === "training"}
-                onClick={() => setSessionMode("training")}
-                className="px-4 py-1.5 rounded-full transition-colors"
-                style={{
-                  background:
-                    sessionMode === "training"
-                      ? "var(--aurora-gradient-primary)"
-                      : "transparent",
-                  color: sessionMode === "training" ? "#fff" : "var(--color-muted)",
-                }}
-              >
-                Тренировка
-              </button>
-              <button
-                role="tab"
-                aria-selected={sessionMode === "exam"}
-                onClick={() => setSessionMode("exam")}
-                className="px-4 py-1.5 rounded-full transition-colors"
-                style={{
-                  background:
-                    sessionMode === "exam"
-                      ? "var(--aurora-gradient-primary)"
-                      : "transparent",
-                  color: sessionMode === "exam" ? "#fff" : "var(--color-muted)",
-                }}
-              >
-                Экзамен
-              </button>
+              {(
+                [
+                  { key: "training", label: "Тренировка" },
+                  { key: "exam", label: "Экзамен" },
+                  { key: "browse", label: "Просмотр" },
+                ] as { key: SessionMode; label: string }[]
+              ).map(({ key, label }) => (
+                <button
+                  key={key}
+                  role="tab"
+                  aria-selected={sessionMode === key}
+                  onClick={() => setSessionMode(key)}
+                  className="px-4 py-1.5 rounded-full transition-colors"
+                  style={{
+                    background:
+                      sessionMode === key
+                        ? "var(--aurora-gradient-primary)"
+                        : "transparent",
+                    color: sessionMode === key ? "#fff" : "var(--color-muted)",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -234,7 +229,9 @@ export default function AccreditationMistakesPage() {
           >
             {sessionMode === "training"
               ? "Ответ и разбор показываются сразу после каждого вопроса"
-              : "Ответы скрыты до конца сессии, разбор в финале"}
+              : sessionMode === "exam"
+                ? "Ответы скрыты до конца сессии, разбор в финале"
+                : "Лента всех вопросов с подсвеченными правильными ответами"}
           </p>
 
           <p className="text-[9px] uppercase tracking-[0.25em] font-semibold mb-3 text-muted">

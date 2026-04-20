@@ -14,9 +14,11 @@ interface Props {
   questions?: TestQuestion[];
   answers?: ExamAnswer[];
   onRestart?: () => void;
+  /** Открыть лентy всех вопросов с правильными ответами (режим Просмотр). */
+  onBrowseAll?: () => void;
 }
 
-export default function ExamResultView({ result, questions, answers, onRestart }: Props) {
+export default function ExamResultView({ result, questions, answers, onRestart, onBrowseAll }: Props) {
   const minutes = Math.floor(result.duration / 60);
   const mistakes =
     questions && answers
@@ -94,6 +96,19 @@ export default function ExamResultView({ result, questions, answers, onRestart }
 
       {/* Actions */}
       <div className="space-y-2 pt-2">
+        {onBrowseAll && (
+          <button
+            onClick={onBrowseAll}
+            className="block w-full py-3 rounded-xl text-xs uppercase tracking-[0.15em] font-semibold transition-colors"
+            style={{
+              color: "var(--color-aurora-violet)",
+              border: "1px solid var(--aurora-violet-border)",
+              background: "var(--aurora-violet-soft)",
+            }}
+          >
+            Просмотреть тест с ответами
+          </button>
+        )}
         {onRestart && (
           <button
             onClick={onRestart}
