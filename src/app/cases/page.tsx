@@ -7,9 +7,12 @@ import GradientRing from "@/components/ui/GradientRing";
 import IconBadge from "@/components/ui/IconBadge";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 
-const sampleTopics: Array<{ name: string; count: number; icon: JSX.Element }> = [
+// React 19 убрал глобальный namespace JSX; используем явный ReactElement,
+// иначе `next build` падает на type-check с «Cannot find namespace 'JSX'»
+// (Vercel production build ловил это каждый раз).
+const sampleTopics: Array<{ name: string; count: number; icon: ReactElement }> = [
   {
     name: "Гастроэнтерология",
     count: 0,

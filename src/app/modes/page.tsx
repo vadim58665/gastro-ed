@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactElement } from "react";
 import Link from "next/link";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
@@ -166,7 +166,7 @@ interface ModeInfo {
   description: string;
   href: string;
   available: boolean;
-  icon: JSX.Element;
+  icon: ReactElement;
   featured?: boolean;
 }
 
