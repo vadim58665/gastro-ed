@@ -9,11 +9,10 @@ interface MedMindCardProps {
 export default function MedMindCard({ title, tier, stats }: MedMindCardProps) {
   return (
     <div
-      className="aurora-hairline relative rounded-2xl bg-white p-3.5 overflow-hidden"
+      className="aurora-hairline relative rounded-2xl bg-card p-3.5 overflow-hidden"
       style={{
-        border: "1px solid rgba(99,102,241,0.12)",
         boxShadow:
-          "0 1px 2px rgba(17,24,39,0.03), 0 14px 30px -16px rgba(99,102,241,0.3)",
+          "0 1px 2px rgba(17,24,39,0.03), 0 14px 30px -16px color-mix(in srgb, var(--color-aurora-indigo) 30%, transparent)",
       }}
     >
       <div
@@ -24,17 +23,16 @@ export default function MedMindCard({ title, tier, stats }: MedMindCardProps) {
           width: 160,
           height: 160,
           background:
-            "radial-gradient(circle at 100% 0%, rgba(236,72,153,0.15), rgba(168,85,247,0.12) 40%, transparent 70%)",
+            "radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-aurora-pink) 16%, transparent), color-mix(in srgb, var(--color-aurora-violet) 12%, transparent) 40%, transparent 70%)",
         }}
       />
 
       <div className="relative flex items-center gap-2.5 mb-2.5">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0 aurora-grad-bg"
           style={{
-            background:
-              "linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #EC4899 100%)",
-            boxShadow: "0 4px 12px -2px rgba(168,85,247,0.5)",
+            boxShadow:
+              "0 4px 12px -2px color-mix(in srgb, var(--color-aurora-violet) 50%, transparent)",
           }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -46,7 +44,7 @@ export default function MedMindCard({ title, tier, stats }: MedMindCardProps) {
           <div className="text-xs text-foreground font-medium">{title}</div>
           <div
             className="text-[9px] tracking-wide mt-0.5 font-medium"
-            style={{ color: "#A855F7" }}
+            style={{ color: "var(--color-aurora-violet)" }}
           >
             {tier}
           </div>
@@ -55,7 +53,7 @@ export default function MedMindCard({ title, tier, stats }: MedMindCardProps) {
 
       <div
         className="relative grid grid-cols-2 gap-2.5 pt-2.5"
-        style={{ borderTop: "1px solid rgba(99,102,241,0.08)" }}
+        style={{ borderTop: "1px solid var(--aurora-indigo-border)" }}
       >
         {stats.map((s) => (
           <div key={s.label}>

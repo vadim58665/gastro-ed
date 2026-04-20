@@ -1,66 +1,48 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase/client";
+import ConsiliumHero from "@/components/consilium/ConsiliumHero";
+import ConsiliumChat, { type ChatMessage } from "@/components/consilium/ConsiliumChat";
+import ConsiliumReview, { type Evaluation } from "@/components/consilium/ConsiliumReview";
 
-interface Message {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
+type Phase = "idle" | "chat" | "evaluating" | "review";
 
-const SYSTEM_PROMPT = `Ты AI-пациент на приёме у врача-гастроэнтеролога. Играй роль пациента с гастроэнтерологической патологией (выбери случайное заболевание).
-
-Правила:
-- Отвечай как реальный пациент: используй бытовой язык, не медицинские термины
-- Не раскрывай диагноз - врач должен его установить сам
-- Отвечай только на заданные вопросы, не давай лишней информации
-- Если врач спрашивает о симптомах, описывай их так, как описал бы обычный человек
-- Будь последовательным в своих ответах
-- Начни с краткой жалобы (1-2 предложения)
-
-После того как врач поставит диагноз, оцени его работу: правильность диагноза, полноту сбора анамнеза, качество вопросов.`;
+const INTRO_MESSAGE =
+  "Начни приём. Представься как пациент и опиши свою жалобу в 1-2 предложениях.";
 
 export default function ConsiliumPage() {
   const router = useRouter();
   const { isPro } = useSubscription();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
+
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [startedAt, setStartedAt] = useState<number>(0);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [started, setStarted] = useState(false);
-  const [diagnosed, setDiagnosed] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [userDiagnosis, setUserDiagnosis] = useState<string>("");
+  const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const canDiagnose = messages.filter((m) => m.role === "assistant").length >= 2;
 
   if (!isPro) {
     return (
-      <div className="h-screen flex flex-col">
-        <TopBar />
-        <main className="flex-1 pt-24 pb-20 flex items-center justify-center px-6">
-          <div className="text-center max-w-xs">
-            <p
-              className="text-xs uppercase tracking-[0.2em] font-medium mb-6"
-              style={{ color: "var(--color-aurora-violet)" }}
-            >
-              Консилиум
-            </p>
-            <p className="text-sm text-foreground mb-2">Ведите приём AI-пациента</p>
-            <p className="text-xs text-muted mb-8 leading-relaxed">
-              Собирайте анамнез, задавайте вопросы, назначайте обследования и поставьте диагноз. AI оценит вашу работу.
-            </p>
-            <button
-              onClick={() => router.push("/subscription")}
-              className="px-8 py-3 rounded-xl btn-premium-dark text-sm font-medium"
-            >
-              Подключить подписку
-            </button>
+      <div className="min-h-screen flex flex-col">
+        <TopBar showBack />
+        <main className="flex-1 pt-24 pb-20 flex items-center justify-center px-6 relative">
+          <div className="aurora-welcome-band absolute top-20 left-0 right-0" />
+          <div className="relative">
+            <ConsiliumHero
+              eyebrow="Консилиум"
+              title="AI-пациент ждёт приёма"
+              description="Собирайте анамнез, задавайте вопросы, назначайте обследования и поставьте диагноз. AI оценит вашу работу."
+              ctaLabel="Подключить подписку"
+              onCta={() => router.push("/subscription")}
+            />
           </div>
         </main>
         <BottomNav />
@@ -68,58 +50,46 @@ export default function ConsiliumPage() {
     );
   }
 
+  async function fetchAuthHeaders(): Promise<Record<string, string>> {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    const session = await getSupabase().auth.getSession();
+    const token = session.data.session?.access_token;
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    return headers;
+  }
+
   async function startSession() {
-    setStarted(true);
     setMessages([]);
-    setDiagnosed(false);
-
-    const systemMsg: Message = { role: "system", content: SYSTEM_PROMPT };
-    const userInit: Message = { role: "user", content: "Начни приём. Представься как пациент и опиши свою жалобу." };
-
-    await streamResponse([systemMsg, userInit]);
+    setEvaluation(null);
+    setUserDiagnosis("");
+    setStartedAt(Date.now());
+    setPhase("chat");
+    await streamPatient([], INTRO_MESSAGE, { trackUserMsg: false });
   }
 
-  async function sendDiagnosis() {
-    if (!input.trim()) return;
-    const userMsg: Message = {
-      role: "user",
-      content: `Мой диагноз: ${input.trim()}\n\nОцени правильность диагноза, полноту сбора анамнеза и качество моих вопросов. Раскрой, каким заболеванием страдал пациент.`,
-    };
-    setInput("");
-    setDiagnosed(true);
-    await streamResponse([...messages, userMsg], userMsg);
+  async function sendQuestion(text: string) {
+    const userMsg: ChatMessage = { role: "user", content: text };
+    await streamPatient(messages, text, { trackUserMsg: true, newMsg: userMsg });
   }
 
-  async function handleSend() {
-    if (!input.trim() || isStreaming) return;
-    const userMsg: Message = { role: "user", content: input.trim() };
-    setInput("");
-    await streamResponse([...messages, userMsg], userMsg);
-  }
-
-  async function streamResponse(history: Message[], newUserMsg?: Message) {
+  async function streamPatient(
+    history: ChatMessage[],
+    message: string,
+    opts: { trackUserMsg: boolean; newMsg?: ChatMessage }
+  ) {
     setIsStreaming(true);
-    if (newUserMsg) {
-      setMessages((prev) => [...prev, newUserMsg]);
+    if (opts.trackUserMsg && opts.newMsg) {
+      setMessages((prev) => [...prev, opts.newMsg!]);
     }
 
     try {
       abortRef.current = new AbortController();
-      const session = await getSupabase().auth.getSession();
-      const token = session.data.session?.access_token;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-      const res = await fetch("/api/medmind/chat", {
+      const headers = await fetchAuthHeaders();
+
+      const res = await fetch("/api/medmind/consilium", {
         method: "POST",
         headers,
-        body: JSON.stringify({
-          message: history[history.length - 1].content,
-          contextTopic: "Консилиум",
-          history: history.slice(0, -1).map((m) => ({
-            role: m.role === "system" ? "user" : m.role,
-            content: m.content,
-          })),
-        }),
+        body: JSON.stringify({ action: "patient", history, message }),
         signal: abortRef.current.signal,
       });
 
@@ -131,8 +101,7 @@ export default function ConsiliumPage() {
       const decoder = new TextDecoder();
       let buffer = "";
       let accumulated = "";
-
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      let assistantAdded = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -148,12 +117,16 @@ export default function ConsiliumPage() {
           if (data === "[DONE]") continue;
           try {
             const parsed = JSON.parse(data);
-            if (parsed.text) {
+            if (typeof parsed.text === "string") {
+              if (!assistantAdded) {
+                setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+                assistantAdded = true;
+              }
               accumulated += parsed.text;
-              const text = accumulated;
+              const snapshot = accumulated;
               setMessages((prev) => {
                 const copy = [...prev];
-                copy[copy.length - 1] = { role: "assistant", content: text };
+                copy[copy.length - 1] = { role: "assistant", content: snapshot };
                 return copy;
               });
             }
@@ -173,27 +146,66 @@ export default function ConsiliumPage() {
     }
   }
 
-  if (!started) {
+  async function submitDiagnosis(diagnosis: string) {
+    setUserDiagnosis(diagnosis);
+    setPhase("evaluating");
+    try {
+      const headers = await fetchAuthHeaders();
+      const res = await fetch("/api/medmind/consilium", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "evaluate", history: messages, message: diagnosis }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as Evaluation;
+      setEvaluation(data);
+      setPhase("review");
+    } catch {
+      setEvaluation({
+        correct: false,
+        actualDiagnosis: "",
+        anamnesisScore: 0,
+        questionsScore: 0,
+        diagnosticsScore: 0,
+        missed: [],
+        advice: "Ошибка соединения. Попробуйте ещё раз позже.",
+      });
+      setPhase("review");
+    }
+  }
+
+  function handleBack() {
+    if (phase === "chat") {
+      if (messages.length <= 1 || window.confirm("Прервать приём?")) {
+        abortRef.current?.abort();
+        setPhase("idle");
+        setMessages([]);
+      }
+      return;
+    }
+    if (phase === "review") {
+      setPhase("idle");
+      setMessages([]);
+      setEvaluation(null);
+      return;
+    }
+    router.back();
+  }
+
+  if (phase === "idle") {
     return (
-      <div className="h-screen flex flex-col">
-        <TopBar />
-        <main className="flex-1 pt-24 pb-20 flex items-center justify-center px-6">
-          <div className="text-center max-w-xs">
-            <p className="text-xs uppercase tracking-[0.2em] font-medium mb-6" style={{ color: "var(--color-aurora-violet)" }}>
-              Консилиум
-            </p>
-            <p className="text-sm text-foreground mb-2">
-              Ведите приём AI-пациента
-            </p>
-            <p className="text-xs text-muted mb-8 leading-relaxed">
-              Собирайте анамнез, задавайте вопросы, назначайте обследования и поставьте диагноз. AI оценит вашу работу.
-            </p>
-            <button
-              onClick={startSession}
-              className="px-8 py-3 rounded-xl btn-premium-dark text-sm font-medium"
-            >
-              Начать приём
-            </button>
+      <div className="min-h-screen flex flex-col">
+        <TopBar showBack onBack={handleBack} />
+        <main className="flex-1 pt-24 pb-24 flex items-center justify-center px-6 relative">
+          <div className="aurora-welcome-band absolute top-20 left-0 right-0" />
+          <div className="relative">
+            <ConsiliumHero
+              eyebrow="Консилиум"
+              title="Ведите приём AI-пациента"
+              description="Собирайте анамнез, задавайте вопросы, назначайте обследования и поставьте диагноз. AI оценит вашу работу."
+              ctaLabel="Начать приём"
+              onCta={startSession}
+            />
           </div>
         </main>
         <BottomNav />
@@ -201,115 +213,71 @@ export default function ConsiliumPage() {
     );
   }
 
-  return (
-    <div className="h-screen flex flex-col">
-      <TopBar />
-      <main className="flex-1 pt-24 pb-4 overflow-y-auto">
-        <div className="px-4 pt-4">
-          <p
-            className="text-[10px] uppercase tracking-[0.2em] font-semibold mb-4 text-center"
-            style={{ color: "var(--color-aurora-violet)" }}
-          >
-            Консилиум - приём пациента
-          </p>
-
-          <div className="space-y-3">
-            {messages
-              .filter((m) => m.role !== "system")
-              .map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                      msg.role === "user"
-                        ? "text-white rounded-br-md"
-                        : "bg-surface text-foreground border border-border rounded-bl-md"
-                    }`}
-                    style={
-                      msg.role === "user"
-                        ? { background: "var(--aurora-gradient-primary)" }
-                        : undefined
-                    }
-                  >
-                    <div className="whitespace-pre-wrap">{msg.content}</div>
-                  </div>
-                </div>
-              ))}
-
-            {isStreaming && messages[messages.length - 1]?.content === "" && (
-              <div className="flex justify-start">
-                <div className="px-4 py-3 rounded-2xl bg-surface border border-border rounded-bl-md">
-                  <span className="inline-flex gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-muted animate-pulse" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-muted animate-pulse" style={{ animationDelay: "0.15s" }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-muted animate-pulse" style={{ animationDelay: "0.3s" }} />
-                  </span>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
-      </main>
-
-      {/* Input */}
-      <div className="px-4 py-3 border-t border-border bg-background">
-        {diagnosed ? (
-          <div className="text-center space-y-3">
-            <button
-              onClick={startSession}
-              className="w-full py-2.5 rounded-xl btn-premium-dark text-sm font-medium"
+  if (phase === "evaluating") {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <TopBar showBack onBack={handleBack} />
+        <main className="flex-1 pt-24 pb-24 flex items-center justify-center px-6">
+          <div className="text-center">
+            <p
+              className="text-[10px] uppercase tracking-[0.28em] font-semibold mb-3"
+              style={{ color: "var(--color-aurora-violet)" }}
             >
-              Новый пациент
-            </button>
-            <button
-              onClick={() => router.push("/topics")}
-              className="text-xs text-muted hover:text-foreground transition-colors"
-            >
-              К учёбе
-            </button>
+              Анализ приёма
+            </p>
+            <h2 className="text-xl font-extralight aurora-text tracking-tight mb-5">
+              AI оценивает вашу работу
+            </h2>
+            <div className="flex justify-center">
+              <div
+                className="w-12 h-12 rounded-full animate-spin"
+                style={{
+                  borderWidth: "3px",
+                  borderStyle: "solid",
+                  borderColor: "var(--aurora-indigo-border)",
+                  borderTopColor: "var(--color-aurora-violet)",
+                }}
+                aria-label="Загрузка"
+              />
+            </div>
           </div>
-        ) : (
-          <div className="flex gap-2">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder="Задайте вопрос пациенту..."
-              disabled={isStreaming}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-surface text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary/40 transition-colors"
-            />
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || isStreaming}
-              className="px-4 py-2.5 rounded-xl btn-premium-dark text-xs font-medium disabled:opacity-30 transition-opacity"
-            >
-              OK
-            </button>
-          </div>
-        )}
-        {!diagnosed && messages.length > 4 && (
-          <button
-            onClick={() => {
-              if (!input.trim()) {
-                setInput("");
-              }
-              sendDiagnosis();
-            }}
-            className="w-full mt-2 py-2 rounded-lg text-[10px] uppercase tracking-widest transition-colors hover:bg-[var(--aurora-violet-soft)]"
-            style={{ color: "var(--color-aurora-violet)" }}
-          >
-            Поставить диагноз
-          </button>
-        )}
+        </main>
+        <BottomNav />
       </div>
+    );
+  }
+
+  if (phase === "review" && evaluation) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <TopBar showBack onBack={handleBack} />
+        <main className="flex-1 pt-24 pb-24 overflow-y-auto">
+          <ConsiliumReview
+            evaluation={evaluation}
+            userDiagnosis={userDiagnosis}
+            onNewPatient={startSession}
+            onGoToStudy={() => router.push("/topics")}
+          />
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-[100dvh] flex flex-col">
+      <TopBar showBack onBack={handleBack} />
+      <main className="flex-1 flex flex-col min-h-0 pt-[72px] pb-[72px]">
+        <ConsiliumChat
+          messages={messages}
+          isStreaming={isStreaming}
+          startedAt={startedAt}
+          canDiagnose={canDiagnose}
+          onSend={sendQuestion}
+          onDiagnose={submitDiagnosis}
+        />
+      </main>
+      <BottomNav />
     </div>
   );
 }

@@ -63,7 +63,7 @@ export const accreditationCategories: AccreditationCategory[] = [
       { id: "serdechno-sosudistaya-hirurgiya", name: "Сердечно-сосудистая хирургия" },
       { id: "skoraya-pomoshch", name: "Скорая медицинская помощь" },
       { id: "sportivnaya-medicina", name: "Спортивная медицина" },
-      { id: "stomatologiya", name: "Стоматология" },
+      { id: "stomatologiya", name: "Стоматология (ординатура)" },
       { id: "sudebno-meditsinskaya-ekspertiza", name: "Судебно-медицинская экспертиза" },
       { id: "terapiya", name: "Терапия" },
       { id: "toksikologiya", name: "Токсикология" },
@@ -89,7 +89,7 @@ export const accreditationCategories: AccreditationCategory[] = [
     specialties: [
       { id: "lechebnoe-delo", name: "Лечебное дело" },
       { id: "pediatriya", name: "Педиатрия" },
-      { id: "stomatologiya-spec", name: "Стоматология" },
+      { id: "stomatologiya-spec", name: "Стоматология (специалитет)" },
       { id: "farmaciya", name: "Фармация" },
       { id: "medprofilaktika", name: "Медико-профилактическое дело" },
       { id: "meditsinskaya-biohimiya", name: "Медицинская биохимия" },
@@ -166,4 +166,30 @@ export function isSpecialtyAvailable(specialtyName: string): boolean {
 // Найти специальность по id
 export function findSpecialtyById(id: string): Specialty | undefined {
   return allSpecialties.find((s) => s.id === id);
+}
+
+/**
+ * Короткое имя категории для отображения над названием специальности
+ * в хлебной крошке-чипе: «ОРДИНАТУРА · Гастроэнтерология».
+ */
+const CATEGORY_SHORT_NAMES: Record<string, string> = {
+  ordinatura: "Ординатура",
+  specialitet: "Специалитет",
+  "spo-special": "СПО специализированная",
+  "spo-primary": "СПО",
+  profperepodgotovka: "Переподготовка",
+};
+
+export function findCategoryBySpecialtyId(
+  specialtyId: string
+): { id: string; shortName: string } | null {
+  for (const cat of accreditationCategories) {
+    if (cat.specialties.some((s) => s.id === specialtyId)) {
+      return {
+        id: cat.id,
+        shortName: CATEGORY_SHORT_NAMES[cat.id] || cat.name,
+      };
+    }
+  }
+  return null;
 }

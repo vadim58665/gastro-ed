@@ -7,10 +7,18 @@ import BottomNav from "@/components/ui/BottomNav";
 import CardRenderer from "@/components/feed/CardRenderer";
 import { useGamification } from "@/hooks/useGamification";
 import { demoCards } from "@/data/cards";
-import { getFeedMistakes, groupBySpecialty, groupByTopic } from "@/lib/mistakes";
+import {
+  getFeedMistakes,
+  getStuckMistakes,
+  getFreshMistakes,
+  getTopFails,
+  groupBySpecialty,
+  groupByTopic,
+} from "@/lib/mistakes";
 import { hapticCorrect, hapticWrong } from "@/lib/feedback";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
 import { allSpecialties } from "@/data/specialties";
+import type { Card } from "@/types/card";
 
 type PageState = "idle" | "session" | "summary";
 type FilterMode = "all" | "specialty" | "topic";
@@ -29,9 +37,27 @@ function pluralize(n: number, one: string, few: string, many: string): string {
   return many;
 }
 
+const LIGHTNING_SVG = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+  </svg>
+);
+const FLAME_SVG = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+  </svg>
+);
+const TARGET_SVG = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" fill="currentColor" />
+  </svg>
+);
+
 export default function MistakesPage() {
   const { progress, recordAnswerWithGamification } = useGamification();
-  const { activeSpecialty, setActiveSpecialty, clearSpecialty } = useSpecialty();
+  const { activeSpecialty, setActiveSpecialty } = useSpecialty();
 
   const [pageState, setPageState] = useState<PageState>("idle");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
@@ -43,6 +69,7 @@ export default function MistakesPage() {
       setFilterMode("specialty");
     }
   }, [activeSpecialty]);
+
   const [showSpecialtyPicker, setShowSpecialtyPicker] = useState(false);
   const [showTopicPicker, setShowTopicPicker] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -52,20 +79,13 @@ export default function MistakesPage() {
   const [sessionResults, setSessionResults] = useState<SessionResult[]>([]);
   const nextRef = useRef<HTMLButtonElement>(null);
 
-  // Все «живые» ошибки пользователя на основе cardHistory.
-  // Реактивно обновляется при изменении progress (после ответа).
-  const allMistakes = useMemo(
-    () => getFeedMistakes(progress, demoCards),
-    [progress]
-  );
+  const allMistakes = useMemo(() => getFeedMistakes(progress, demoCards), [progress]);
+  const stuckMistakes = useMemo(() => getStuckMistakes(progress, allMistakes, 3), [progress, allMistakes]);
+  const freshMistakes = useMemo(() => getFreshMistakes(progress, allMistakes, 24), [progress, allMistakes]);
+  const topFails = useMemo(() => getTopFails(progress, allMistakes, 3), [progress, allMistakes]);
 
-  const specialtyGroups = useMemo(
-    () => groupBySpecialty(allMistakes),
-    [allMistakes]
-  );
+  const specialtyGroups = useMemo(() => groupBySpecialty(allMistakes), [allMistakes]);
 
-  // Темы всегда считаем в рамках выбранной специальности (если есть),
-  // иначе - по всем ошибкам.
   const topicGroups = useMemo(() => {
     const scoped = specialtyFilter
       ? allMistakes.filter((c) => c.specialty === specialtyFilter)
@@ -73,37 +93,20 @@ export default function MistakesPage() {
     return groupByTopic(scoped);
   }, [allMistakes, specialtyFilter]);
 
-  // Отфильтрованный список карточек для текущего режима.
-  const filteredMistakes = useMemo(() => {
-    let list = allMistakes;
-    if (filterMode === "specialty" && specialtyFilter) {
-      list = list.filter((c) => c.specialty === specialtyFilter);
-    }
-    if (filterMode === "topic") {
-      if (specialtyFilter) {
-        list = list.filter((c) => c.specialty === specialtyFilter);
-      }
-      if (topicFilter) {
-        list = list.filter((c) => c.topic === topicFilter);
-      }
-    }
-    return list;
-  }, [allMistakes, filterMode, specialtyFilter, topicFilter]);
-
   useEffect(() => {
     if (answered && nextRef.current) {
       nextRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [answered]);
 
-  const handleStartSession = useCallback(() => {
-    if (filteredMistakes.length === 0) return;
-    setSessionCards([...filteredMistakes]);
+  const startSessionWithCards = useCallback((cards: Card[]) => {
+    if (cards.length === 0) return;
+    setSessionCards([...cards]);
     setCurrentIndex(0);
     setSessionResults([]);
     setAnswered(false);
     setPageState("session");
-  }, [filteredMistakes]);
+  }, []);
 
   const currentCard = pageState === "session" ? sessionCards[currentIndex] : null;
 
@@ -113,9 +116,6 @@ export default function MistakesPage() {
       setLastCorrect(isCorrect);
       isCorrect ? hapticCorrect() : hapticWrong();
       if (currentCard) {
-        // Важно: skipReviewSchedule=true - не добавляем карточку в FSRS-очередь
-        // при неверном ответе, чтобы она не всплывала через день в /review.
-        // Правильный ответ обнулит consecutiveFails, и карточка исчезнет из /mistakes.
         recordAnswerWithGamification(
           isCorrect,
           currentCard.id,
@@ -130,10 +130,7 @@ export default function MistakesPage() {
 
   const handleNext = useCallback(() => {
     if (!currentCard) return;
-    const results = [
-      ...sessionResults,
-      { cardId: currentCard.id, isCorrect: lastCorrect },
-    ];
+    const results = [...sessionResults, { cardId: currentCard.id, isCorrect: lastCorrect }];
     setSessionResults(results);
     setAnswered(false);
     if (currentIndex + 1 >= sessionCards.length) {
@@ -169,8 +166,8 @@ export default function MistakesPage() {
             </p>
             <div className="w-12 h-px bg-border mx-auto mb-8" />
             <p className="text-sm text-muted leading-relaxed max-w-[280px] mx-auto">
-              Отвечайте на карточки в ленте. Те, на которые вы ответите неверно,
-              попадут сюда, и вы сможете проработать их по специальностям и темам.
+              Отвечайте на карточки в ленте. Те, на которые вы ответите неверно, попадут сюда,
+              и вы сможете проработать их по специальностям и темам.
             </p>
           </div>
         </main>
@@ -190,7 +187,7 @@ export default function MistakesPage() {
 
     return (
       <div className="h-screen flex flex-col">
-        <TopBar showBack />
+        <TopBar showBack onBack={handleBackToIdle} />
         <main className="flex-1 pt-24 pb-20 overflow-y-auto">
           <div className="px-6 max-w-lg mx-auto">
             <div className="text-center pt-8 pb-6">
@@ -203,9 +200,7 @@ export default function MistakesPage() {
               <div
                 className="text-7xl font-extralight tracking-tight leading-none tabular-nums"
                 style={{
-                  color: isGood
-                    ? "var(--color-aurora-indigo)"
-                    : "var(--color-aurora-pink)",
+                  color: isGood ? "var(--color-aurora-indigo)" : "var(--color-aurora-pink)",
                 }}
               >
                 {accuracy}%
@@ -219,10 +214,7 @@ export default function MistakesPage() {
 
             <div className="flex justify-center gap-8 mb-8">
               <div className="text-center">
-                <div
-                  className="text-2xl font-extralight"
-                  style={{ color: "var(--color-aurora-indigo)" }}
-                >
+                <div className="text-2xl font-extralight" style={{ color: "var(--color-aurora-indigo)" }}>
                   {correct}
                 </div>
                 <div
@@ -233,10 +225,7 @@ export default function MistakesPage() {
                 </div>
               </div>
               <div className="text-center">
-                <div
-                  className="text-2xl font-extralight"
-                  style={{ color: "var(--color-aurora-pink)" }}
-                >
+                <div className="text-2xl font-extralight" style={{ color: "var(--color-aurora-pink)" }}>
                   {wrong}
                 </div>
                 <div
@@ -247,9 +236,7 @@ export default function MistakesPage() {
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-extralight text-foreground">
-                  {allMistakes.length}
-                </div>
+                <div className="text-2xl font-extralight text-foreground">{allMistakes.length}</div>
                 <div
                   className="text-[9px] uppercase tracking-[0.15em] font-semibold"
                   style={{ color: "var(--color-aurora-violet)" }}
@@ -279,7 +266,7 @@ export default function MistakesPage() {
 
     return (
       <div className="h-screen flex flex-col">
-        <TopBar showBack />
+        <TopBar showBack onBack={handleBackToIdle} />
         <main className="flex-1 pt-24 pb-20 overflow-y-auto">
           <div className="px-5 pt-4">
             <div className="flex justify-between items-center mb-1.5">
@@ -312,11 +299,7 @@ export default function MistakesPage() {
                 </span>
                 <span className="text-[9px] text-muted">{currentCard.specialty}</span>
               </div>
-              <CardRenderer
-                key={currentCard.id}
-                card={currentCard}
-                onAnswer={handleAnswer}
-              />
+              <CardRenderer key={currentCard.id} card={currentCard} onAnswer={handleAnswer} />
             </div>
           </div>
 
@@ -340,9 +323,7 @@ export default function MistakesPage() {
                       }
                 }
               >
-                {lastCorrect
-                  ? "Далее — ошибка закрыта"
-                  : "Далее — ошибка остаётся"}
+                {lastCorrect ? "Далее, ошибка закрыта" : "Далее, ошибка остаётся"}
               </button>
               <p className="text-[10px] text-muted text-center mt-2">
                 {lastCorrect
@@ -357,282 +338,333 @@ export default function MistakesPage() {
     );
   }
 
-  // ============ IDLE STATE ============
+  // ============ IDLE STATE (mode-focused layout) ============
   return (
     <div className="h-screen flex flex-col">
       <TopBar showBack />
       <main className="flex-1 pt-24 pb-20 overflow-y-auto">
         <div className="px-6 max-w-lg mx-auto">
-          <div className="text-center pt-8 pb-6">
+          {/* Hero */}
+          <div className="text-center pt-4 pb-6">
             <p
-              className="text-[10px] uppercase tracking-[0.25em] font-semibold mb-1"
+              className="text-[10px] uppercase tracking-[0.28em] font-semibold mb-2"
               style={{ color: "var(--color-aurora-violet)" }}
             >
               Ошибки
             </p>
-            <div className="text-6xl font-extralight tracking-tight leading-none aurora-text tabular-nums">
+            <div className="text-[64px] font-extralight tracking-tight leading-none aurora-text tabular-nums">
               {allMistakes.length}
             </div>
-            <p
-              className="text-[11px] uppercase tracking-[0.15em] mt-2 font-medium"
-              style={{ color: "var(--color-aurora-violet)" }}
-            >
+            <p className="text-[10px] uppercase tracking-[0.18em] mt-2 font-medium text-muted">
               {pluralize(allMistakes.length, "карточка", "карточки", "карточек")}
             </p>
+            <div className="w-12 h-px bg-border mx-auto mt-6" />
           </div>
 
-          <div className="w-12 h-px bg-border mx-auto mb-6" />
+          <p className="text-[9px] uppercase tracking-[0.25em] font-semibold mb-3 text-muted">
+            Режимы проработки
+          </p>
 
-          {/* Режимы */}
-          <div className="mb-5">
-            <p
-              className="text-[10px] uppercase tracking-[0.2em] font-semibold mb-3"
-              style={{ color: "var(--color-aurora-violet)" }}
+          <div className="flex flex-col gap-2.5">
+            {/* Все ошибки */}
+            <button
+              onClick={() => startSessionWithCards(allMistakes)}
+              disabled={allMistakes.length === 0}
+              className="btn-press relative rounded-2xl px-5 py-4 text-white overflow-hidden text-left disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: "var(--aurora-gradient-dark-bg)",
+                boxShadow:
+                  "0 2px 6px color-mix(in srgb, var(--color-aurora-indigo) 30%, transparent), 0 18px 40px -12px color-mix(in srgb, var(--color-aurora-violet) 50%, transparent)",
+              }}
             >
-              Режим проработки
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setFilterMode("all");
-                  clearSpecialty();
-                  setTopicFilter(null);
+              <div
+                className="absolute pointer-events-none"
+                style={{
+                  right: -40,
+                  top: -40,
+                  width: 160,
+                  height: 160,
+                  borderRadius: "50%",
+                  background:
+                    "radial-gradient(circle, color-mix(in srgb, var(--color-aurora-pink) 28%, transparent), transparent 70%)",
                 }}
-                className={`flex-1 py-3 rounded-xl text-xs font-medium transition-all ${
-                  filterMode === "all"
-                    ? "text-white relative"
-                    : "bg-surface text-foreground border border-border hover:bg-card"
-                }`}
-                style={
-                  filterMode === "all"
-                    ? {
-                        background: "var(--aurora-gradient-premium)",
-                        boxShadow:
-                          "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 24px -10px color-mix(in srgb, var(--color-aurora-indigo) 55%, transparent)",
-                      }
-                    : undefined
-                }
-              >
-                Все
-              </button>
-              <button
-                onClick={() => {
-                  setFilterMode("specialty");
-                  setTopicFilter(null);
-                }}
-                className={`flex-1 py-3 rounded-xl text-xs font-medium transition-all ${
-                  filterMode === "specialty"
-                    ? "text-white relative"
-                    : "bg-surface text-foreground border border-border hover:bg-card"
-                }`}
-                style={
-                  filterMode === "specialty"
-                    ? {
-                        background: "var(--aurora-gradient-premium)",
-                        boxShadow:
-                          "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 24px -10px color-mix(in srgb, var(--color-aurora-indigo) 55%, transparent)",
-                      }
-                    : undefined
-                }
-              >
-                Специальность
-              </button>
-              <button
-                onClick={() => setFilterMode("topic")}
-                className={`flex-1 py-3 rounded-xl text-xs font-medium transition-all ${
-                  filterMode === "topic"
-                    ? "text-white relative"
-                    : "bg-surface text-foreground border border-border hover:bg-card"
-                }`}
-                style={
-                  filterMode === "topic"
-                    ? {
-                        background: "var(--aurora-gradient-premium)",
-                        boxShadow:
-                          "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 24px -10px color-mix(in srgb, var(--color-aurora-indigo) 55%, transparent)",
-                      }
-                    : undefined
-                }
-              >
-                Тема
-              </button>
-            </div>
-          </div>
+              />
+              <div className="relative flex items-center justify-between">
+                <div>
+                  <div className="text-[15px] font-medium tracking-tight">Все ошибки</div>
+                  <div className="text-[11px] text-white/60 mt-0.5">Подряд одной сессией</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="text-[28px] font-extralight tabular-nums leading-none">
+                    {allMistakes.length}
+                  </div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-white/60">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </div>
+              </div>
+            </button>
 
-          {/* Picker специальности */}
-          {(filterMode === "specialty" || filterMode === "topic") && (
-            <div className="mb-4">
+            {/* Застрявшие */}
+            <button
+              onClick={() => startSessionWithCards(stuckMistakes)}
+              disabled={stuckMistakes.length === 0}
+              className="btn-press relative rounded-2xl px-5 py-4 aurora-hairline bg-card overflow-hidden text-left disabled:opacity-50"
+              style={{ boxShadow: "0 1px 2px rgba(17,24,39,0.04)" }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: "linear-gradient(135deg, var(--color-aurora-violet), var(--color-aurora-pink))",
+                      color: "#fff",
+                      boxShadow:
+                        "0 4px 10px -3px color-mix(in srgb, var(--color-aurora-pink) 40%, transparent)",
+                    }}
+                  >
+                    {FLAME_SVG}
+                  </div>
+                  <div>
+                    <div className="text-[15px] font-medium text-foreground">Застрявшие</div>
+                    <div className="text-[11px] text-muted mt-0.5">3+ неверных ответа подряд</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="text-[20px] font-light tabular-nums leading-none"
+                    style={{ color: "var(--color-aurora-pink)" }}
+                  >
+                    {stuckMistakes.length}
+                  </div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </div>
+              </div>
+            </button>
+
+            {/* Свежие */}
+            <button
+              onClick={() => startSessionWithCards(freshMistakes)}
+              disabled={freshMistakes.length === 0}
+              className="btn-press relative rounded-2xl px-5 py-4 aurora-hairline bg-card overflow-hidden text-left disabled:opacity-50"
+              style={{ boxShadow: "0 1px 2px rgba(17,24,39,0.04)" }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: "linear-gradient(135deg, var(--color-aurora-indigo), var(--color-aurora-violet))",
+                      color: "#fff",
+                      boxShadow:
+                        "0 4px 10px -3px color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent)",
+                    }}
+                  >
+                    {LIGHTNING_SVG}
+                  </div>
+                  <div>
+                    <div className="text-[15px] font-medium text-foreground">Свежие</div>
+                    <div className="text-[11px] text-muted mt-0.5">За последние 24 часа</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="text-[20px] font-light tabular-nums leading-none"
+                    style={{ color: "var(--color-aurora-indigo)" }}
+                  >
+                    {freshMistakes.length}
+                  </div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </div>
+              </div>
+            </button>
+
+            {/* Боль-точки */}
+            <button
+              onClick={() => startSessionWithCards(topFails.map((t) => t.card))}
+              disabled={topFails.length === 0}
+              className="btn-press relative rounded-2xl px-5 py-4 aurora-hairline bg-card overflow-hidden text-left disabled:opacity-50"
+              style={{ boxShadow: "0 1px 2px rgba(17,24,39,0.04)" }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: "linear-gradient(135deg, var(--color-aurora-indigo), var(--color-aurora-pink))",
+                      color: "#fff",
+                      boxShadow:
+                        "0 4px 10px -3px color-mix(in srgb, var(--color-aurora-violet) 40%, transparent)",
+                    }}
+                  >
+                    {TARGET_SVG}
+                  </div>
+                  <div>
+                    <div className="text-[15px] font-medium text-foreground">Боль-точки</div>
+                    <div className="text-[11px] text-muted mt-0.5">Самые провальные карточки</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="text-[20px] font-light tabular-nums leading-none"
+                    style={{ color: "var(--color-aurora-violet)" }}
+                  >
+                    {topFails.length}
+                  </div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </div>
+              </div>
+            </button>
+
+            {/* По специальности */}
+            <div>
               <button
                 onClick={() => setShowSpecialtyPicker(!showSpecialtyPicker)}
-                className="btn-press w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-surface"
+                disabled={specialtyGroups.length === 0}
+                className="btn-press relative rounded-2xl px-5 py-4 aurora-hairline bg-card overflow-hidden text-left w-full disabled:opacity-50"
+                style={{ boxShadow: "0 1px 2px rgba(17,24,39,0.04)" }}
               >
-                <span className="text-sm font-medium text-foreground">
-                  {specialtyFilter || "Все специальности"}
-                </span>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  className={`text-muted transition-transform duration-200 ${
-                    showSpecialtyPicker ? "rotate-180" : ""
-                  }`}
-                >
-                  <path
-                    d="M3 5l4 4 4-4"
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[15px] font-medium text-foreground">По специальности</div>
+                    <div className="text-[11px] text-muted mt-0.5">
+                      {specialtyGroups.length} {pluralize(specialtyGroups.length, "раздел", "раздела", "разделов")}
+                    </div>
+                  </div>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
                     stroke="currentColor"
-                    strokeWidth="1.5"
+                    strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              {showSpecialtyPicker && (
-                <div className="mt-1 flex flex-col gap-0.5 bg-surface rounded-2xl overflow-hidden border border-border/40 max-h-64 overflow-y-auto">
-                  <button
-                    onClick={() => {
-                      clearSpecialty();
-                      setTopicFilter(null);
-                      setShowSpecialtyPicker(false);
-                    }}
-                    className={`flex items-center justify-between px-4 py-3 text-left ${
-                      !specialtyFilter ? "bg-primary/10" : ""
+                    className={`text-muted transition-transform duration-200 ${
+                      showSpecialtyPicker ? "rotate-90" : ""
                     }`}
                   >
-                    <span
-                      className={`text-sm font-medium ${
-                        !specialtyFilter ? "text-primary" : "text-foreground"
-                      }`}
-                    >
-                      Все специальности
-                    </span>
-                    <span className="text-xs text-muted">{allMistakes.length}</span>
-                  </button>
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </div>
+              </button>
+              {showSpecialtyPicker && specialtyGroups.length > 0 && (
+                <div className="mt-1.5 flex flex-col gap-1">
                   {specialtyGroups.map((g) => (
                     <button
                       key={g.key}
                       onClick={() => {
                         const spec = allSpecialties.find((s) => s.name === g.key);
                         if (spec) setActiveSpecialty(spec.id);
+                        setFilterMode("specialty");
                         setTopicFilter(null);
                         setShowSpecialtyPicker(false);
+                        startSessionWithCards(allMistakes.filter((c) => c.specialty === g.key));
                       }}
-                      className={`flex items-center justify-between px-4 py-3 text-left ${
-                        specialtyFilter === g.key ? "bg-primary/10" : ""
-                      }`}
+                      className="btn-press flex items-center justify-between px-4 py-2.5 rounded-xl bg-surface hover:bg-card transition-colors text-left"
                     >
+                      <span className="text-[13px] font-medium text-foreground">{g.label}</span>
                       <span
-                        className={`text-sm font-medium ${
-                          specialtyFilter === g.key ? "text-primary" : "text-foreground"
-                        }`}
+                        className="text-[11px] font-semibold tabular-nums"
+                        style={{ color: "var(--color-aurora-indigo)" }}
                       >
-                        {g.label}
+                        {g.count}
                       </span>
-                      <span className="text-xs font-semibold text-muted">{g.count}</span>
                     </button>
                   ))}
                 </div>
               )}
             </div>
-          )}
 
-          {/* Picker темы */}
-          {filterMode === "topic" && topicGroups.length > 0 && (
-            <div className="mb-4">
+            {/* По теме */}
+            <div>
               <button
                 onClick={() => setShowTopicPicker(!showTopicPicker)}
-                className="btn-press w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-surface"
+                disabled={topicGroups.length === 0}
+                className="btn-press relative rounded-2xl px-5 py-4 aurora-hairline bg-card overflow-hidden text-left w-full disabled:opacity-50"
+                style={{ boxShadow: "0 1px 2px rgba(17,24,39,0.04)" }}
               >
-                <span className="text-sm font-medium text-foreground">
-                  {topicFilter || "Все темы"}
-                </span>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  className={`text-muted transition-transform duration-200 ${
-                    showTopicPicker ? "rotate-180" : ""
-                  }`}
-                >
-                  <path
-                    d="M3 5l4 4 4-4"
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[15px] font-medium text-foreground">По теме</div>
+                    <div className="text-[11px] text-muted mt-0.5">
+                      {topicGroups.length} {pluralize(topicGroups.length, "тема", "темы", "тем")}
+                    </div>
+                  </div>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
                     stroke="currentColor"
-                    strokeWidth="1.5"
+                    strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              {showTopicPicker && (
-                <div className="mt-1 flex flex-col gap-0.5 bg-surface rounded-2xl overflow-hidden border border-border/40 max-h-64 overflow-y-auto">
-                  <button
-                    onClick={() => {
-                      setTopicFilter(null);
-                      setShowTopicPicker(false);
-                    }}
-                    className={`flex items-center justify-between px-4 py-3 text-left ${
-                      !topicFilter ? "bg-primary/10" : ""
+                    className={`text-muted transition-transform duration-200 ${
+                      showTopicPicker ? "rotate-90" : ""
                     }`}
                   >
-                    <span
-                      className={`text-sm font-medium ${
-                        !topicFilter ? "text-primary" : "text-foreground"
-                      }`}
-                    >
-                      Все темы
-                    </span>
-                    <span className="text-xs text-muted">
-                      {topicGroups.reduce((s, g) => s + g.count, 0)}
-                    </span>
-                  </button>
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </div>
+              </button>
+              {showTopicPicker && topicGroups.length > 0 && (
+                <div className="mt-1.5 flex flex-col gap-1">
                   {topicGroups.map((g) => (
                     <button
                       key={g.key}
                       onClick={() => {
                         setTopicFilter(g.key);
+                        setFilterMode("topic");
                         setShowTopicPicker(false);
+                        startSessionWithCards(
+                          allMistakes.filter(
+                            (c) =>
+                              c.topic === g.key &&
+                              (!specialtyFilter || c.specialty === specialtyFilter)
+                          )
+                        );
                       }}
-                      className={`flex items-center justify-between px-4 py-3 text-left ${
-                        topicFilter === g.key ? "bg-primary/10" : ""
-                      }`}
+                      className="btn-press flex items-center justify-between px-4 py-2.5 rounded-xl bg-surface hover:bg-card transition-colors text-left"
                     >
+                      <span className="text-[13px] font-medium text-foreground">{g.label}</span>
                       <span
-                        className={`text-sm font-medium ${
-                          topicFilter === g.key ? "text-primary" : "text-foreground"
-                        }`}
+                        className="text-[11px] font-semibold tabular-nums"
+                        style={{ color: "var(--color-aurora-violet)" }}
                       >
-                        {g.label}
+                        {g.count}
                       </span>
-                      <span className="text-xs font-semibold text-muted">{g.count}</span>
                     </button>
                   ))}
                 </div>
               )}
             </div>
-          )}
 
-          <button
-            onClick={handleStartSession}
-            disabled={filteredMistakes.length === 0}
-            className="btn-press btn-premium-dark w-full py-4 rounded-2xl text-xs uppercase tracking-[0.2em] font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {filteredMistakes.length > 0
-              ? `Начать · ${filteredMistakes.length} ${pluralize(filteredMistakes.length, "карточка", "карточки", "карточек")}`
-              : "Нет ошибок в выборке"}
-          </button>
-
-          <Link
-            href="/review"
-            className="block mt-6 relative rounded-xl aurora-hairline bg-white/60 hover:bg-white/80 transition-colors p-4"
-          >
-            <div className="text-xs font-medium text-foreground relative z-10">
-              Интервальное повторение →
-            </div>
-            <p className="text-[10px] text-muted mt-0.5 leading-snug relative z-10">
-              Закрепление выученных карточек по расписанию, чтобы не забыть
-            </p>
-          </Link>
+            {/* Интервальное повторение */}
+            <Link
+              href="/review"
+              className="btn-press relative rounded-2xl px-5 py-4 aurora-hairline bg-card overflow-hidden block"
+              style={{ boxShadow: "0 1px 2px rgba(17,24,39,0.04)" }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[15px] font-medium text-foreground">
+                    Интервальное повторение
+                  </div>
+                  <div className="text-[11px] text-muted mt-0.5">FSRS · по расписанию</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
+            </Link>
+          </div>
         </div>
       </main>
       <BottomNav />

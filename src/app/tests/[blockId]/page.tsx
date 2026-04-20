@@ -16,7 +16,7 @@ import { getBlockQuestions } from "@/data/accreditation/index";
 export default function BlockPage() {
   const params = useParams();
   const router = useRouter();
-  const { activeSpecialty } = useSpecialty();
+  const { activeSpecialty, hydrated } = useSpecialty();
   const specialtyId = activeSpecialty?.id || "";
   const blockNumber = Number(params.blockId);
   const { progress, markQuestionLearned, recordAnswer } =
@@ -52,6 +52,24 @@ export default function BlockPage() {
   const handleReviewMistakes = useCallback(() => {
     testMode.startTest(allQuestions, progress.mistakes, "mistakes");
   }, [allQuestions, progress.mistakes, testMode]);
+
+  // Wait for SpecialtyContext to restore the saved id from localStorage.
+  // Without this, a direct URL (e.g. reload on /tests/1) bounces to /tests
+  // before `activeSpecialty` is set, breaking shareable links.
+  if (!hydrated) {
+    return (
+      <div className="h-screen flex flex-col">
+        <TopBar showBack />
+        <main className="flex-1 pt-20 pb-20 flex items-center justify-center">
+          <div
+            className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+            style={{ borderColor: "var(--color-aurora-violet)", borderTopColor: "transparent" }}
+          />
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
 
   if (!activeSpecialty || isNaN(blockNumber)) {
     router.push("/tests");

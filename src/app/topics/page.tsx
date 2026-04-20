@@ -8,6 +8,8 @@ import Greeting from "@/components/ui/Greeting";
 import DailyCaseCTA from "@/components/ui/DailyCaseCTA";
 import ToolRow from "@/components/ui/ToolRow";
 import SpecialtyCard from "@/components/ui/SpecialtyCard";
+import DailyGoalRingWeek from "@/components/ui/DailyGoalRingWeek";
+import FactOfTheDay from "@/components/ui/FactOfTheDay";
 import { demoCards } from "@/data/cards";
 import { allSpecialties, getCardCount, isSpecialtyAvailable } from "@/data/specialties";
 import { useReview } from "@/hooks/useReview";
@@ -67,30 +69,6 @@ const ALL_SVG = (
     <rect x="3" y="4" width="14" height="16" rx="2" />
     <path d="M7 4v16" />
     <path d="M20 7v13a1 1 0 0 1-1 1h-2" />
-  </svg>
-);
-const STETHOSCOPE_SVG = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 4v6a5 5 0 0 0 10 0V4" />
-    <path d="M4 4h3" />
-    <path d="M11 4h3" />
-    <circle cx="19" cy="14" r="2" />
-    <path d="M9 15v2a4 4 0 0 0 8 0v-1" />
-  </svg>
-);
-const SPARKLE_CHAT_SVG = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 12a8 8 0 1 1 3.3 6.5L3 20l1.5-4.2A7.95 7.95 0 0 1 4 12z" />
-    <path d="M12 9v2" />
-    <path d="M10 10h4" />
-    <path d="M11 14h2" />
-  </svg>
-);
-const SPARK_BOOK_SVG = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5V5.5z" />
-    <path d="M4 20.5V18h15" />
-    <path d="M16 7l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" />
   </svg>
 );
 
@@ -165,6 +143,31 @@ export default function TopicsPage() {
     () => allSpecialties.filter((s) => isSpecialtyAvailable(s.name)),
     []
   );
+
+  // Активность за последние 7 дней по дню недели (Пн..Вс).
+  const weekActivity = useMemo(() => {
+    const buckets = new Array(7).fill(0) as number[];
+    const history = progress.cardHistory ?? {};
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    for (const h of Object.values(history)) {
+      const seen = new Date(h.lastSeen);
+      if (isNaN(seen.getTime())) continue;
+      const seenStart = new Date(seen);
+      seenStart.setHours(0, 0, 0, 0);
+      const dayDiff = Math.floor(
+        (todayStart.getTime() - seenStart.getTime()) / 86400000
+      );
+      if (dayDiff < 0 || dayDiff > 6) continue;
+      const weekdayIdx = (seen.getDay() + 6) % 7;
+      buckets[weekdayIdx] += h.attempts ?? 1;
+    }
+    const todayIdx = (new Date().getDay() + 6) % 7;
+    if ((progress.todayCardsSeen ?? 0) > 0) {
+      buckets[todayIdx] = Math.max(buckets[todayIdx], progress.todayCardsSeen);
+    }
+    return buckets;
+  }, [progress]);
 
   const nickname = profile?.nickname || user?.email?.split("@")[0] || "Доктор";
   const { current: currentLevel } = getLevel(progress.xp ?? 0);
@@ -248,6 +251,15 @@ export default function TopicsPage() {
             <Greeting nickname={nickname} level={currentLevel} xp={progress.xp ?? 0} />
 
             <div className="px-6 mb-4">
+              <DailyGoalRingWeek
+                cardsToday={progress.todayCardsSeen ?? 0}
+                goal={progress.dailyGoal ?? 10}
+                streakCurrent={progress.streakCurrent ?? 0}
+                weekActivity={weekActivity}
+              />
+            </div>
+
+            <div className="px-6 mb-4">
               <DailyCaseCTA
                 caseDate={todayFmt}
                 caseId="hard-002"
@@ -256,6 +268,10 @@ export default function TopicsPage() {
                 active
                 onStart={() => router.push("/daily-case")}
               />
+            </div>
+
+            <div className="px-6 mb-5">
+              <FactOfTheDay />
             </div>
 
             <SectionHead title="Быстрые режимы" />
@@ -315,32 +331,6 @@ export default function TopicsPage() {
                 sub="Все карточки вперемешку"
                 chip={{ label: totalCards, variant: "indigo" }}
                 onClick={handleAllClick}
-              />
-            </div>
-
-            <SectionHead title="AI-помощник" />
-            <div className="px-6 flex flex-col gap-1.5 mb-5">
-              <ToolRow
-                accent="indigo-violet"
-                icon={STETHOSCOPE_SVG}
-                title="Консилиум"
-                sub="AI-пациент для приёма"
-                chip={{ label: "Pro", variant: "dark" }}
-                href="/consilium"
-              />
-              <ToolRow
-                accent="violet-pink"
-                icon={SPARKLE_CHAT_SVG}
-                title="Ассистент"
-                sub="Спроси по учёбе"
-                href="/companion"
-              />
-              <ToolRow
-                accent="pink-violet"
-                icon={SPARK_BOOK_SVG}
-                title="Объяснения и мнемоники"
-                sub="AI разберёт сложную тему"
-                href="/companion?action=explain"
               />
             </div>
 

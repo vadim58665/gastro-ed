@@ -10,6 +10,7 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const type = url.searchParams.get("type");
     const topic = url.searchParams.get("topic");
+    const specialty = url.searchParams.get("specialty");
     const favoritesOnly = url.searchParams.get("favorites") === "true";
     const limit = Math.min(Number(url.searchParams.get("limit") ?? 50), 100);
 
@@ -24,6 +25,7 @@ export async function GET(req: Request) {
 
     if (type) query = query.eq("content_type", type);
     if (topic) query = query.eq("topic", topic);
+    if (specialty) query = query.eq("specialty", specialty);
     if (favoritesOnly) query = query.eq("is_favorite", true);
 
     const { data, error } = await query;

@@ -18,13 +18,16 @@ export default function AccuracyRing({
 
   return (
     <div
-      className="aurora-hairline relative rounded-3xl bg-white px-3 py-4 flex flex-col items-center overflow-hidden"
+      className="aurora-hairline relative rounded-3xl bg-card px-3 py-4 flex flex-col items-center overflow-hidden"
       style={{
         boxShadow:
-          "inset 0 1px 0 rgba(255,255,255,1), 0 1px 2px rgba(17,24,39,0.04), 0 18px 36px -18px rgba(168,85,247,0.28)",
+          "inset 0 1px 0 rgba(255,255,255,1), 0 1px 2px rgba(17,24,39,0.04), 0 18px 36px -18px color-mix(in srgb, var(--color-aurora-violet) 28%, transparent)",
       }}
     >
-      <div className="text-[9px] tracking-[0.22em] uppercase font-medium" style={{ color: "#A855F7" }}>
+      <div
+        className="text-[9px] tracking-[0.22em] uppercase font-medium"
+        style={{ color: "var(--color-aurora-violet)" }}
+      >
         Точность
       </div>
 
@@ -36,14 +39,14 @@ export default function AccuracyRing({
           padding: 5,
           background: `conic-gradient(
             from -90deg,
-            #6366F1 0%,
-            #A855F7 ${clamped * 0.75}%,
-            #EC4899 ${clamped}%,
-            rgba(99,102,241,0.08) ${clamped}%
+            var(--color-aurora-indigo) 0%,
+            var(--color-aurora-violet) ${clamped * 0.75}%,
+            var(--color-aurora-pink) ${clamped}%,
+            var(--aurora-indigo-soft) ${clamped}%
           )`,
         }}
       >
-        <div className="w-full h-full rounded-full bg-white flex flex-col items-center justify-center">
+        <div className="w-full h-full rounded-full bg-card flex flex-col items-center justify-center">
           <div className="text-[22px] font-extralight tracking-tight text-foreground">
             {clamped}%
           </div>
@@ -58,7 +61,7 @@ export default function AccuracyRing({
       {trend && (
         <div
           className="flex items-center gap-1 mt-2 text-[9px] font-semibold tracking-wide"
-          style={{ color: "#6366F1" }}
+          style={{ color: "var(--color-aurora-indigo)" }}
         >
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             {trend.delta >= 0 ? (

@@ -70,17 +70,17 @@ export default function QuestionView({
     setSelected(index);
 
     if (mode !== "learn") {
-      setShowResult(true);
+      // В «test» режиме сразу показываем верный ответ и разбор.
+      // В «exam» режиме результат скрыт до конца экзамена — виден только
+      // нейтральный индикатор выбора, но не правильный/неправильный вариант.
+      if (mode === "test") {
+        setShowResult(true);
+      }
       const isCorrect = index === question.correctIndex;
       onAnswer?.(isCorrect, index);
-
-      // Auto-advance in "test" mode (Тренировка/Зачёт с ответами)
-      if (mode === "test") {
-        const delay = isCorrect ? 900 : 1800;
-        autoAdvanceRef.current = setTimeout(() => {
-          handleNext();
-        }, delay);
-      }
+      // Без auto-advance: пользователь видит результат и разбор, нажимает
+      // «Следующий вопрос» сам. Так можно зафиксировать ответ и прочитать
+      // объяснение без спешки.
     }
   };
 
@@ -91,8 +91,9 @@ export default function QuestionView({
     };
   }, []);
 
-  const showNextButton =
-    (mode !== "exam" && selected !== null) || mode === "learn" || hasExisting;
+  // После ответа всегда показываем «Следующий вопрос» — пользователь
+  // нажимает сам, когда готов двигаться дальше (авто-переход убран).
+  const showNextButton = selected !== null || mode === "learn" || hasExisting;
 
   return (
     <div className="px-6 py-5">
@@ -134,8 +135,17 @@ export default function QuestionView({
         })}
       </div>
 
-      {mode !== "exam" && selected === null && !hasExisting && (
-        <HintButton entityId={question.id} entityType="accreditation_question" />
+      {mode !== "exam" && (
+        // Подсказка доступна всё время работы с вопросом (до и после
+        // ответа), кроме экзамена. Пользователь может вернуться к
+        // пройденному вопросу и перечитать подсказку.
+        <HintButton
+          entityId={question.id}
+          entityType="accreditation_question"
+          context={question.question}
+          topic={specialtyId ? `${specialtyId}:${question.id}` : question.id}
+          specialty={question.specialty}
+        />
       )}
 
       {showResult && question.explanation && selected !== null && (
@@ -146,17 +156,19 @@ export default function QuestionView({
         </div>
       )}
 
-      {/* Auto-explain for subscribers after a WRONG answer (not in exam mode). */}
-      {mode !== "exam" &&
-        showResult &&
-        selected !== null &&
-        selected !== question.correctIndex && (
-          <AutoExplain
-            entityId={question.id}
-            entityType="accreditation_question"
-            trigger={true}
-          />
-        )}
+      {/* Auto-explain для подписчиков после ЛЮБОГО ответа (не только
+          ошибочного). В exam-режиме не раскрываем правильный вариант
+          до конца экзамена. */}
+      {mode !== "exam" && showResult && selected !== null && (
+        <AutoExplain
+          entityId={question.id}
+          entityType="accreditation_question"
+          trigger={true}
+          context={question.question}
+          topic={specialtyId ? `${specialtyId}:${question.id}` : question.id}
+          specialty={question.specialty}
+        />
+      )}
 
       <div className="flex items-center gap-2 mt-5">
         <button

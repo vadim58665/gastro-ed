@@ -358,28 +358,50 @@ export default function ProfileSheet({ open, kind, onClose }: Props) {
                     onClick={() => setTheme(t.id)}
                     className={`btn-press w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left ${
                       active
-                        ? "border-foreground/40 bg-surface shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-6px_rgba(17,24,39,0.18)]"
+                        ? "aurora-hairline shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_16px_-6px_rgba(17,24,39,0.18)]"
                         : "border-border hover:border-foreground/20 bg-card"
                     }`}
+                    style={
+                      active
+                        ? {
+                            background:
+                              "linear-gradient(180deg, var(--color-card) 0%, var(--aurora-violet-soft) 100%)",
+                          }
+                        : undefined
+                    }
                   >
-                    {/* Swatches */}
-                    <div className="flex -space-x-2 shrink-0">
+                    {/* Aurora-glow swatch trio */}
+                    <div className="relative flex -space-x-2 shrink-0">
                       {t.swatches.map((c, i) => (
                         <span
                           key={i}
-                          className="w-8 h-8 rounded-full border-2 border-card shadow-sm"
-                          style={{ backgroundColor: c }}
+                          className="w-9 h-9 rounded-full border-2 border-card"
+                          style={{
+                            backgroundColor: c,
+                            boxShadow:
+                              i === 1
+                                ? "0 4px 14px -4px color-mix(in srgb, var(--color-aurora-violet) 45%, transparent)"
+                                : "0 1px 3px rgba(17,24,39,0.1)",
+                          }}
                         />
                       ))}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-foreground">{t.name}</div>
+                      <div
+                        className={`text-sm font-semibold ${active ? "aurora-text" : "text-foreground"}`}
+                      >
+                        {t.name}
+                      </div>
                       <div className="text-[11px] text-muted mt-0.5">{t.description}</div>
                     </div>
                     {active && (
                       <div
-                        className="shrink-0 w-6 h-6 rounded-full text-white flex items-center justify-center"
-                        style={{ background: "var(--aurora-gradient-primary)" }}
+                        className="shrink-0 w-7 h-7 rounded-full text-white flex items-center justify-center"
+                        style={{
+                          background: "var(--aurora-gradient-primary)",
+                          boxShadow:
+                            "inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px -4px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent)",
+                        }}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
@@ -452,7 +474,7 @@ function MenuRow({
   return (
     <button
       onClick={onClick}
-      className="btn-press w-full flex items-center gap-4 p-4 rounded-2xl border border-border bg-card hover:border-foreground/20 transition-all text-left"
+      className="btn-press aurora-hairline w-full flex items-center gap-4 p-4 rounded-2xl bg-card hover:shadow-[var(--shadow-aurora-sm)] transition-all text-left"
     >
       <div className="shrink-0 w-12 h-12 rounded-2xl bg-surface border border-border flex items-center justify-center text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
         {icon}

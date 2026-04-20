@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { DailyCase, StepResult, DailyCaseStep } from "@/types/dailyCase";
 import NumberTicker from "@/components/ui/NumberTicker";
 import DailyLeaderboard from "./DailyLeaderboard";
@@ -93,7 +94,9 @@ function StepRing({ isCorrect, points, label }: { isCorrect: boolean; points: nu
   );
 }
 
-// Step 7: BreakdownAccordion - translucent rows, aurora-pink cross, aurora-violet correct
+// Step 7: BreakdownAccordion — все этапы, с разбором. Ошибочные — розовый
+// крестик, верные — индиго-галочка и +points. Пользователь может открыть
+// любой этап и перечитать правильный ответ и объяснение.
 function BreakdownAccordion({
   dailyCase,
   stepResults,
@@ -107,21 +110,10 @@ function BreakdownAccordion({
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const wrongSteps = dailyCase.steps
-    .map((s, i) => ({ s, i, r: stepResults[i] }))
-    .filter(({ r }) => !r.isCorrect);
-
-  if (wrongSteps.length === 0) {
-    return (
-      <div className="text-center py-4 text-[12px] text-white/55">
-        Все этапы пройдены верно
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col divide-y divide-white/10 border border-white/15 rounded-2xl overflow-hidden bg-white/[0.04]">
-      {wrongSteps.map(({ s, i, r }) => {
+      {dailyCase.steps.map((s, i) => {
+        const r = stepResults[i];
         const selectedOpt = r.selectedIndex >= 0 ? s.options[r.selectedIndex] : null;
         const correctOpt = s.options.find((o) => o.isCorrect)!;
         const isOpen = openIndex === i;
@@ -133,10 +125,41 @@ function BreakdownAccordion({
           >
             <div className="flex items-center justify-between px-4 py-3.5">
               <div className="flex items-center gap-3">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-aurora-pink)" strokeWidth="2" strokeLinecap="round" className="shrink-0">
-                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+                {r.isCorrect ? (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-aurora-violet)"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="shrink-0"
+                    aria-label="Верно"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-aurora-pink)"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    className="shrink-0"
+                    aria-label="Ошибка"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                )}
                 <span className="text-[13px] font-medium text-white/85">{stepLabels[s.type]}</span>
+                {r.isCorrect && r.points > 0 && (
+                  <span className="text-[10px] text-white/60 tabular-nums">+{r.points}</span>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-[10px] text-white/45">{formatTime(r.timeMs)}</span>
@@ -147,10 +170,15 @@ function BreakdownAccordion({
             </div>
             {isOpen && (
               <div className="px-4 pb-4 flex flex-col gap-2 text-left border-t border-white/10">
-                {selectedOpt && (
+                {!r.isCorrect && selectedOpt && (
                   <p className="text-[12px] text-white/40 line-through pt-3">{selectedOpt.text}</p>
                 )}
-                <p className="text-[13px] font-medium" style={{ color: "var(--color-aurora-violet)" }}>{correctOpt.text}</p>
+                <p
+                  className="text-[13px] font-medium"
+                  style={{ color: "var(--color-aurora-violet)", paddingTop: r.isCorrect ? "0.75rem" : 0 }}
+                >
+                  {correctOpt.text}
+                </p>
                 {correctOpt.explanation && (
                   <p className="text-[12px] text-white/65 leading-relaxed">{correctOpt.explanation}</p>
                 )}
@@ -165,6 +193,7 @@ function BreakdownAccordion({
 
 export default function DailyCaseResult({ dailyCase, stepResults, dateStr }: Props) {
   const [showDetails, setShowDetails] = useState(false);
+  const router = useRouter();
 
   const totalPoints = stepResults.reduce((s, r) => s + r.points, 0);
   const maxPoints = dailyCase.steps.length * 500;
@@ -298,6 +327,41 @@ export default function DailyCaseResult({ dailyCase, stepResults, dateStr }: Pro
 
       {/* Leaderboard - always visible below toggle button */}
       {dateStr && <DailyLeaderboard date={dateStr} />}
+
+      {/* Actions — «На главную» первично, «Начать заново» как второстепенное
+          действие (страница /daily-case?reset=1 удаляет локальный результат
+          и незавершённую сессию, см. src/app/daily-case/page.tsx:31-51). */}
+      <div className="mt-8 flex flex-col gap-3">
+        <button
+          onClick={() => router.push("/topics")}
+          className="btn-press w-full py-3.5 rounded-2xl text-[12px] font-semibold uppercase tracking-[0.22em]"
+          style={{
+            background: "var(--aurora-gradient-primary)",
+            color: "#fff",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 24px -10px color-mix(in srgb, var(--color-aurora-indigo) 55%, transparent)",
+          }}
+        >
+          На главную
+        </button>
+        <button
+          onClick={() => {
+            // router.push не триггерит перезагрузку, а страница /daily-case
+            // читает ?reset=1 и делает window.location.reload() после очистки
+            // localStorage — используем прямой переход, чтобы всё
+            // отработало без флага, который сохранился бы в URL.
+            window.location.href = "/daily-case?reset=1";
+          }}
+          className="btn-press w-full py-3 rounded-2xl border text-[11px] font-semibold uppercase tracking-[0.22em]"
+          style={{
+            borderColor: "rgba(255,255,255,0.18)",
+            color: "rgba(255,255,255,0.75)",
+            background: "rgba(255,255,255,0.04)",
+          }}
+        >
+          Начать заново
+        </button>
+      </div>
     </div>
   );
 }

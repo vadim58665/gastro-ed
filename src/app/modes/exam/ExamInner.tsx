@@ -12,6 +12,12 @@ import { useAccreditation } from "@/hooks/useAccreditation";
 import { getQuestionsForSpecialty } from "@/data/accreditation/index";
 import type { TestQuestion, ExamResult } from "@/types/accreditation";
 
+interface ExamAnswer {
+  questionId: string;
+  selectedIndex: number;
+  isCorrect: boolean;
+}
+
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -21,7 +27,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-type ExamType = "trial" | "learned" | "accreditation" | "mistakes" | "random" | "marathon";
+type ExamType = "trial" | "learned" | "accreditation" | "mistakes" | "random" | "marathon" | "topic";
 
 const EXAM_CONFIG: Record<ExamType, { title: string; count: number; timed: boolean; marathon: boolean }> = {
   trial:         { title: "Пробный экзамен",    count: 80,  timed: false, marathon: false },
@@ -30,14 +36,15 @@ const EXAM_CONFIG: Record<ExamType, { title: string; count: number; timed: boole
   mistakes:      { title: "Работа над ошибками", count: 999, timed: false, marathon: false },
   random:        { title: "Случайные",          count: 50,  timed: false, marathon: false },
   marathon:      { title: "Марафон",            count: 999, timed: false, marathon: true  },
+  topic:         { title: "По теме",            count: 999, timed: false, marathon: false },
 };
 
 export default function ExamInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { activeSpecialty } = useSpecialty();
+  const { activeSpecialty, hydrated } = useSpecialty();
   const specialtyId = activeSpecialty?.id || "";
-  const { progress, recordAnswer, saveExamResult } = useAccreditation(specialtyId);
+  const { progress, recordAnswer, saveExamResult, markQuestionLearned } = useAccreditation(specialtyId);
 
   const examType = (searchParams.get("type") || "trial") as ExamType;
   const blockFilter = useMemo(() => {
@@ -52,14 +59,30 @@ export default function ExamInner() {
   const [finished, setFinished] = useState(false);
   const [startTime] = useState(Date.now());
   const [marathonFailed, setMarathonFailed] = useState(false);
+  const [examAnswers, setExamAnswers] = useState<ExamAnswer[]>([]);
 
   const allQuestions = useMemo(
     () => getQuestionsForSpecialty(specialtyId),
     [specialtyId]
   );
 
-  const questions: TestQuestion[] = useMemo(() => {
+  // Снапшот набора вопросов фиксируется один раз при монтировании —
+  // иначе recordAnswer/markQuestionLearned в handleAnswer меняют
+  // progress.blocks/mistakes → useMemo перезапускает shuffle →
+  // questions[currentIndex] подменяется на другой вопрос, хотя индекс
+  // тот же. Визуально это выглядит как «клик по ответу → другой вопрос,
+  // счётчик тот же».
+  const [questions] = useState<TestQuestion[]>(() => {
     let pool: TestQuestion[];
+
+    // ?ids= — явный whitelist id-вопросов (используется для «По темам»
+    // на /tests и в режимах /accreditation/mistakes). Применяется
+    // поверх examType-фильтра если указан.
+    const idsParam = searchParams.get("ids");
+    const idWhitelist =
+      idsParam && idsParam.length > 0
+        ? new Set(idsParam.split(",").filter(Boolean))
+        : null;
 
     switch (examType) {
       case "learned": {
@@ -78,29 +101,57 @@ export default function ExamInner() {
         );
         break;
       }
+      case "topic": {
+        // «По теме» = строгий набор id-вопросов из ?ids=
+        pool = idWhitelist
+          ? allQuestions.filter((q) => idWhitelist.has(q.id))
+          : allQuestions;
+        break;
+      }
       default:
         pool = allQuestions;
     }
 
+    // Применяем ids-whitelist поверх уже отфильтрованного пула (актуально
+    // для type=mistakes + ids=, если нужна тема внутри ошибок).
+    if (idWhitelist && examType !== "topic") {
+      pool = pool.filter((q) => idWhitelist.has(q.id));
+    }
+
     const shuffled = shuffle(pool);
     return shuffled.slice(0, config.count);
-  }, [examType, allQuestions, progress.blocks, progress.mistakes, config.count, blockFilter]);
+  });
 
   useEffect(() => {
+    // Wait for SpecialtyContext to rehydrate; otherwise direct deep links
+    // (/modes/exam?type=trial) bounce to /topics before the saved specialty
+    // is restored from localStorage.
+    if (!hydrated) return;
     if (!activeSpecialty) router.push("/topics");
-  }, [activeSpecialty, router]);
+  }, [activeSpecialty, hydrated, router]);
 
   const handleAnswer = useCallback(
-    (isCorrect: boolean) => {
+    (isCorrect: boolean, selectedIndex: number) => {
       const q = questions[currentIndex];
       if (isCorrect) {
         setCorrectCount((c) => c + 1);
       } else if (config.marathon) {
         setMarathonFailed(true);
       }
-      if (q) recordAnswer(q.id, isCorrect);
+      if (q) {
+        setExamAnswers((prev) => [
+          ...prev,
+          { questionId: q.id, selectedIndex, isCorrect },
+        ]);
+        recordAnswer(q.id, isCorrect);
+        // Засчитываем правильно отвеченный вопрос в прогресс по блоку —
+        // так пробный экзамен тоже двигает % готовности специальности.
+        if (isCorrect) {
+          markQuestionLearned(q.blockNumber, q.id);
+        }
+      }
     },
-    [currentIndex, questions, recordAnswer, config.marathon]
+    [currentIndex, questions, recordAnswer, markQuestionLearned, config.marathon]
   );
 
   const handleNext = useCallback(() => {
@@ -123,12 +174,12 @@ export default function ExamInner() {
     }
   }, [currentIndex, questions.length, startTime, correctCount, saveExamResult, marathonFailed]);
 
-  if (!activeSpecialty) return null;
+  if (!hydrated || !activeSpecialty) return null;
 
   if (questions.length === 0) {
     return (
       <div className="h-screen flex flex-col">
-        <TopBar />
+        <TopBar showBack />
         <main className="flex-1 pt-20 pb-20 flex flex-col items-center justify-center px-6">
           <p className="text-sm text-muted text-center mb-4">
             Недостаточно вопросов для этого режима
@@ -160,7 +211,7 @@ export default function ExamInner() {
 
     return (
       <div className="h-screen flex flex-col">
-        <TopBar />
+        <TopBar showBack />
         <main className="flex-1 pt-20 pb-20 flex flex-col">
           {config.marathon && marathonFailed && (
             <div className="text-center px-6 pt-6 pb-2">
@@ -172,7 +223,12 @@ export default function ExamInner() {
               </p>
             </div>
           )}
-          <ExamResultView result={result} />
+          <ExamResultView
+            result={result}
+            questions={questions.slice(0, total)}
+            answers={examAnswers}
+            onRestart={() => router.refresh()}
+          />
         </main>
         <BottomNav />
       </div>
@@ -180,11 +236,22 @@ export default function ExamInner() {
   }
 
   const current = questions[currentIndex];
-  const mode = examType === "accreditation" ? "exam" : examType === "trial" ? "test" : "test";
+  // Режимы из раздела «Экзамен» (+ марафон) — строгий экзамен: ответы
+  // и разбор только в конце. Режимы из раздела «Тренировки» (mistakes,
+  // random, topic) показывают верный ответ сразу, чтобы на ошибках/темах
+  // можно было учиться по ходу. Параметр ?strict=1 форсит exam-режим
+  // (ответы в конце) — используется из /accreditation/mistakes когда
+  // пользователь выбирает «Экзамен» вместо «Тренировка».
+  const strictParam = searchParams.get("strict");
+  const mode =
+    (examType === "mistakes" || examType === "random" || examType === "topic") &&
+    strictParam !== "1"
+      ? "test"
+      : "exam";
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar />
+      <TopBar showBack />
       <main className="flex-1 pt-20 pb-20 overflow-y-auto">
         {/* Заголовок */}
         <div className="px-6 pt-4 pb-2 text-center">

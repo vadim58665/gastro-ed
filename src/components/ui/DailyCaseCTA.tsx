@@ -27,10 +27,9 @@ export default function DailyCaseCTA({
     <div
       className="relative rounded-3xl px-4 pt-4 pb-4 text-white overflow-hidden"
       style={{
-        background:
-          "linear-gradient(135deg, #0F0F1A 0%, #1E1B4B 40%, #312E81 70%, #6366F1 100%)",
+        background: "var(--aurora-gradient-dark-bg)",
         boxShadow:
-          "0 2px 6px rgba(49,46,129,0.4), 0 18px 40px -12px rgba(99,102,241,0.6)",
+          "0 2px 6px color-mix(in srgb, var(--color-aurora-indigo) 30%, transparent), 0 18px 40px -12px color-mix(in srgb, var(--color-aurora-violet) 50%, transparent)",
       }}
     >
       <div
@@ -42,7 +41,7 @@ export default function DailyCaseCTA({
           height: 200,
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, rgba(236,72,153,0.4), rgba(168,85,247,0.2) 50%, transparent 70%)",
+            "radial-gradient(circle, color-mix(in srgb, var(--color-aurora-pink) 38%, transparent), color-mix(in srgb, var(--color-aurora-violet) 18%, transparent) 50%, transparent 70%)",
         }}
       />
       <div
@@ -53,29 +52,30 @@ export default function DailyCaseCTA({
           width: 140,
           height: 140,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(99,102,241,0.35), transparent 70%)",
+          background:
+            "radial-gradient(circle, color-mix(in srgb, var(--color-aurora-indigo) 32%, transparent), transparent 70%)",
         }}
       />
 
       <div className="relative flex justify-between items-center mb-2">
         <div
           className="text-[9px] tracking-[0.22em] uppercase font-medium"
-          style={{ color: "#C4B5FD" }}
+          style={{ color: "color-mix(in srgb, var(--color-aurora-violet) 60%, white)" }}
         >
           Диагноз дня · {caseDate}
         </div>
         {active && (
           <div
             className="flex items-center gap-1.5 text-[8px] tracking-[0.15em] uppercase font-medium"
-            style={{ color: "#F9A8D4" }}
+            style={{ color: "color-mix(in srgb, var(--color-aurora-pink) 60%, white)" }}
           >
             <span
               className="rounded-full"
               style={{
                 width: 6,
                 height: 6,
-                background: "#EC4899",
-                boxShadow: "0 0 8px #EC4899",
+                background: "var(--color-aurora-pink)",
+                boxShadow: "0 0 8px var(--color-aurora-pink)",
               }}
             />
             Активно
@@ -100,7 +100,8 @@ export default function DailyCaseCTA({
               className="h-full rounded-full"
               style={{
                 width: `${fillPercent}%`,
-                background: "linear-gradient(90deg, #A855F7, #EC4899)",
+                background:
+                  "linear-gradient(90deg, var(--color-aurora-violet), var(--color-aurora-pink))",
               }}
             />
           </div>
@@ -112,7 +113,10 @@ export default function DailyCaseCTA({
           onClick={onStart}
           aria-label="Начать диагноз дня"
           className="inline-flex items-center gap-1 bg-white text-foreground text-[9px] tracking-[0.18em] uppercase font-semibold px-3.5 py-2 rounded-full btn-press"
-          style={{ boxShadow: "0 4px 12px -2px rgba(236,72,153,0.35)" }}
+          style={{
+            boxShadow:
+              "0 4px 12px -2px color-mix(in srgb, var(--color-aurora-pink) 35%, transparent)",
+          }}
         >
           Начать
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

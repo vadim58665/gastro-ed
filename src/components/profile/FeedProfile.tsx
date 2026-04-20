@@ -15,7 +15,6 @@ import MedMindCard from "@/components/ui/MedMindCard";
 import ProfileSheet from "@/components/profile/ProfileSheet";
 import AuthSection from "@/components/profile/AuthSection";
 import ExamReadiness from "@/components/analytics/ExamReadiness";
-import SavedContentLibrary from "@/components/medmind/SavedContentLibrary";
 
 import { useGamification } from "@/hooks/useGamification";
 import { useAuth } from "@/contexts/AuthContext";
@@ -134,8 +133,8 @@ export default function FeedProfile() {
         <button
           onClick={() => setSheetKind("settings")}
           aria-label="Настройки"
-          className="w-9 h-9 rounded-full bg-white border flex items-center justify-center text-muted btn-press"
-          style={{ borderColor: "rgba(99,102,241,0.1)", boxShadow: "0 1px 2px rgba(17,24,39,0.04)" }}
+          className="w-9 h-9 rounded-full bg-card aurora-hairline flex items-center justify-center text-muted btn-press"
+          style={{ boxShadow: "0 1px 2px rgba(17,24,39,0.04)" }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
@@ -145,9 +144,6 @@ export default function FeedProfile() {
       </div>
 
       <div className="px-6 pt-2 pb-4 flex flex-col items-center">
-        <div className="text-[10px] tracking-[0.25em] uppercase text-muted font-medium mb-8">
-          С возвращением
-        </div>
         <AvatarStack
           initial={avatarLetter}
           size={128}
@@ -163,7 +159,7 @@ export default function FeedProfile() {
         {pageData.cardsToday > 0 && (
           <div
             className="mt-2 text-[9px] tracking-[0.22em] uppercase font-semibold"
-            style={{ color: "#6366F1" }}
+            style={{ color: "var(--color-aurora-indigo)" }}
           >
             {pageData.cardsToday} сегодня
           </div>
@@ -173,20 +169,23 @@ export default function FeedProfile() {
             <span
               className="text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 rounded-full text-white font-medium"
               style={{
-                background: "linear-gradient(135deg, #1A1A2E 0%, #312E81 50%, #6366F1 100%)",
-                boxShadow: "0 2px 6px rgba(49,46,129,0.3), 0 8px 18px -6px rgba(99,102,241,0.45)",
+                background: "var(--aurora-gradient-premium)",
+                boxShadow:
+                  "0 2px 6px color-mix(in srgb, var(--color-aurora-indigo) 35%, transparent), 0 8px 18px -6px color-mix(in srgb, var(--color-aurora-violet) 50%, transparent)",
               }}
             >
               PRO · {tierLabel}
             </span>
           )}
           <span
-            className="inline-flex items-center gap-1.5 text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 rounded-full bg-white text-foreground font-medium"
-            style={{ border: "1px solid rgba(99,102,241,0.15)", boxShadow: "0 1px 2px rgba(17,24,39,0.04)" }}
+            className="inline-flex items-center gap-1.5 text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 rounded-full bg-card aurora-hairline text-foreground font-medium"
+            style={{ boxShadow: "0 1px 2px rgba(17,24,39,0.04)" }}
           >
             <span
               className="inline-block w-1.5 h-1.5 rounded-full"
-              style={{ background: "linear-gradient(135deg, #6366F1, #A855F7)" }}
+              style={{
+                background: "linear-gradient(135deg, var(--color-aurora-indigo), var(--color-aurora-violet))",
+              }}
             />
             {currentLevel}
           </span>
@@ -306,12 +305,7 @@ export default function FeedProfile() {
           icon={BOOK_SVG}
           title="Моя библиотека"
           sub="Сохранённые AI-объяснения"
-          chip={{ label: "2", variant: "indigo" }}
-          onClick={() =>
-            document
-              .getElementById("saved-library")
-              ?.scrollIntoView({ behavior: "smooth", block: "start" })
-          }
+          href="/library"
         />
         <ToolRow
           accent="pink-violet"
@@ -347,12 +341,6 @@ export default function FeedProfile() {
             />
           </div>
         </>
-      )}
-
-      {user && (
-        <div id="saved-library" className="px-6 mb-5 scroll-mt-24">
-          <SavedContentLibrary />
-        </div>
       )}
 
       <div className="px-6 mb-6">

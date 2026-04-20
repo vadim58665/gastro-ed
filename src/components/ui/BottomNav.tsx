@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMode } from "@/contexts/ModeContext";
 import { useProgress } from "@/hooks/useProgress";
+import { useSpecialty } from "@/contexts/SpecialtyContext";
+import { useAccreditation } from "@/hooks/useAccreditation";
 import { getFeedMistakes } from "@/lib/mistakes";
 import { demoCards } from "@/data/cards";
 import { useMemo, type ReactNode } from "react";
@@ -12,6 +14,8 @@ interface TabDef {
   href: string;
   label: string;
   icon: ReactNode;
+  /** Доп. префиксы pathname, на которых таб тоже должен быть активен. */
+  matches?: string[];
 }
 
 const gridIcon = (
@@ -72,7 +76,7 @@ const caseIcon = (
 );
 
 const feedTabs: TabDef[] = [
-  { href: "/feed", label: "Лента", icon: gridIcon },
+  { href: "/topics", label: "Лента", icon: gridIcon, matches: ["/feed"] },
   { href: "/daily-case", label: "Диагноз", icon: caseIcon },
   { href: "/mistakes", label: "Ошибки", icon: errorIcon },
   { href: "/profile", label: "Профиль", icon: userIcon },
@@ -81,7 +85,14 @@ const feedTabs: TabDef[] = [
 const prepTabs: TabDef[] = [
   { href: "/tests", label: "Тесты", icon: listIcon },
   { href: "/cases", label: "Задачи", icon: checkIcon },
-  { href: "/mistakes", label: "Ошибки", icon: errorIcon },
+  {
+    href: "/accreditation/mistakes",
+    label: "Ошибки",
+    icon: errorIcon,
+    // Включаем подсветку таба и на legacy /mistakes, и на /modes/mistakes —
+    // на случай прямых ссылок из других мест prep-режима.
+    matches: ["/mistakes", "/modes/mistakes"],
+  },
   { href: "/stations", label: "Станции", icon: stationIcon },
   { href: "/profile", label: "Профиль", icon: userIcon },
 ];
@@ -90,51 +101,74 @@ export default function BottomNav() {
   const pathname = usePathname();
   const { progress } = useProgress();
   const { mode } = useMode();
-  const mistakeCount = useMemo(
+  const { activeSpecialty } = useSpecialty();
+  const { progress: accreditationProgress } = useAccreditation(
+    activeSpecialty?.id ?? ""
+  );
+
+  const feedMistakeCount = useMemo(
     () => getFeedMistakes(progress, demoCards).length,
     [progress]
   );
+  const prepMistakeCount = accreditationProgress.mistakes.length;
+
+  // В prep-режиме счётчик показывает ошибки аккредитационных вопросов
+  // активной специальности — так число совпадает с /accreditation/mistakes.
+  const mistakeCount = mode === "feed" ? feedMistakeCount : prepMistakeCount;
 
   const tabs = mode === "feed" ? feedTabs : prepTabs;
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/85"
       style={{
-        background: "rgba(255,255,255,0.85)",
-        borderTop: "1px solid rgba(99,102,241,0.08)",
+        borderTop: "1px solid var(--aurora-indigo-border)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
       }}
     >
       <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
         {tabs.map((tab) => {
-          const isActive = pathname.startsWith(tab.href);
+          const isActive = [tab.href, ...(tab.matches ?? [])].some((p) =>
+            pathname.startsWith(p)
+          );
           return (
             <Link
               key={tab.href}
               href={tab.href}
-              className="flex flex-col items-center gap-1 px-2 py-1 btn-press"
+              className="flex flex-col items-center gap-1 px-2 py-1 btn-press relative"
             >
+              {/* Top indicator line for active tab */}
+              {isActive && (
+                <span
+                  className="absolute top-[-1px] left-1/2 -translate-x-1/2 h-0.5 rounded-full"
+                  style={{
+                    width: 22,
+                    background: "var(--aurora-gradient-primary)",
+                    boxShadow: "0 0 8px color-mix(in srgb, var(--color-aurora-violet) 60%, transparent)",
+                  }}
+                />
+              )}
               <span
                 className="relative flex items-center justify-center rounded-[9px]"
                 style={{
                   width: 34,
                   height: 26,
-                  background: isActive
-                    ? "linear-gradient(135deg, #6366F1 0%, #A855F7 55%, #EC4899 100%)"
-                    : "transparent",
-                  color: isActive ? "#fff" : "#94a3b8",
+                  background: isActive ? "var(--aurora-gradient-primary)" : "transparent",
+                  color: isActive ? "#fff" : "var(--color-muted)",
                   boxShadow: isActive
-                    ? "inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px rgba(99,102,241,0.4), 0 8px 18px -6px rgba(168,85,247,0.55)"
+                    ? "inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 6px color-mix(in srgb, var(--color-aurora-indigo) 40%, transparent), 0 8px 18px -6px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent)"
                     : "none",
                 }}
               >
                 {tab.icon}
-                {tab.href === "/mistakes" && mistakeCount > 0 && (
+                {(tab.href === "/mistakes" || tab.href === "/accreditation/mistakes") && mistakeCount > 0 && (
                   <span
                     className="absolute -top-1 -right-1 min-w-[14px] h-[14px] flex items-center justify-center text-white text-[8px] font-bold rounded-full px-0.5"
-                    style={{ background: "#EC4899" }}
+                    style={{
+                      background: "var(--color-aurora-pink)",
+                      boxShadow: "0 0 8px color-mix(in srgb, var(--color-aurora-pink) 60%, transparent)",
+                    }}
                   >
                     {mistakeCount > 99 ? "99+" : mistakeCount}
                   </span>
@@ -142,7 +176,9 @@ export default function BottomNav() {
               </span>
               <span
                 className="text-[8.5px] font-semibold tracking-wide"
-                style={{ color: isActive ? "#A855F7" : "#94a3b8" }}
+                style={{
+                  color: isActive ? "var(--color-aurora-violet)" : "var(--color-muted)",
+                }}
               >
                 {tab.label}
               </span>
