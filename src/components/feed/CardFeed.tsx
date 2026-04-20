@@ -236,7 +236,12 @@ export default function CardFeed({ cards }: Props) {
               <CardRenderer card={card} onAnswer={(isCorrect) => handleAnswer(card, isCorrect)} cardHistory={history} />
               {answeredCardId !== card.id && (
                 <div className="px-6 pb-2">
-                  <HintButton entityId={card.id} entityType="card" />
+                  <HintButton
+                    entityId={card.id}
+                    entityType="card"
+                    topic={card.topic}
+                    specialty={card.specialty}
+                  />
                 </div>
               )}
               {wrongCardId === card.id && (
@@ -245,6 +250,8 @@ export default function CardFeed({ cards }: Props) {
                     entityId={card.id}
                     entityType="card"
                     trigger={true}
+                    topic={card.topic}
+                    specialty={card.specialty}
                   />
                 </div>
               )}

@@ -23,6 +23,12 @@ interface Props {
    * в библиотеке пользователя.
    */
   topic?: string;
+  /**
+   * Человекочитаемое имя специальности (как оно у карточки/вопроса).
+   * Необходимо, чтобы конспект на /accreditation/notes фильтровался по
+   * активной специальности пользователя.
+   */
+  specialty?: string;
 }
 
 async function getAuthToken(): Promise<string> {
@@ -54,7 +60,7 @@ function extractTip(raw: string | null | undefined): string | null {
   return trimmed;
 }
 
-export default function HintButton({ entityId, entityType = "card", context, topic }: Props) {
+export default function HintButton({ entityId, entityType = "card", context, topic, specialty }: Props) {
   const { isPro } = useSubscription();
   const router = useRouter();
   const [hint, setHint] = useState<string | null>(null);
@@ -158,6 +164,7 @@ export default function HintButton({ entityId, entityType = "card", context, top
         },
         body: JSON.stringify({
           contentType: "hint",
+          specialty,
           topic: topicForClaude,
           contentRu: tip,
           entityType,
@@ -170,7 +177,7 @@ export default function HintButton({ entityId, entityType = "card", context, top
       setError("Ошибка соединения");
     }
     setLoading(false);
-  }, [isPro, hint, loading, entityId, entityType, context, topic]);
+  }, [isPro, hint, loading, entityId, entityType, context, topic, specialty]);
 
   if (showPaywall) {
     return (

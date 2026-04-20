@@ -144,6 +144,7 @@ export default function QuestionView({
           entityType="accreditation_question"
           context={question.question}
           topic={specialtyId ? `${specialtyId}:${question.id}` : question.id}
+          specialty={question.specialty}
         />
       )}
 
@@ -165,6 +166,7 @@ export default function QuestionView({
           trigger={true}
           context={question.question}
           topic={specialtyId ? `${specialtyId}:${question.id}` : question.id}
+          specialty={question.specialty}
         />
       )}
 

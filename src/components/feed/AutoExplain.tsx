@@ -19,6 +19,12 @@ interface Props {
   context?: string;
   /** Короткая тема (для user_saved_content). */
   topic?: string;
+  /**
+   * Человекочитаемое имя специальности карточки/вопроса. Проставляется
+   * в user_saved_content.specialty, чтобы /accreditation/notes мог
+   * корректно отфильтровать материалы по активной специальности.
+   */
+  specialty?: string;
 }
 
 async function getAuthToken(): Promise<string> {
@@ -56,6 +62,7 @@ export default function AutoExplain({
   trigger,
   context,
   topic,
+  specialty,
 }: Props) {
   const { isPro } = useSubscription();
   const [text, setText] = useState<string | null>(null);
@@ -116,6 +123,7 @@ export default function AutoExplain({
           },
           body: JSON.stringify({
             contentType: "explain_short",
+            specialty,
             topic: topicForClaude,
             contentRu: explanation,
             entityType,
@@ -133,7 +141,7 @@ export default function AutoExplain({
     return () => {
       cancelled = true;
     };
-  }, [isPro, trigger, entityId, entityType, text, context, topic]);
+  }, [isPro, trigger, entityId, entityType, text, context, topic, specialty]);
 
   if (!isPro || !trigger) return null;
   if (loading) {
