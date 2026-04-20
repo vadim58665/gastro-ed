@@ -256,6 +256,13 @@ export default function ExamInner() {
             questions={questions.slice(0, total)}
             answers={examAnswers}
             onRestart={() => router.refresh()}
+            // Открываем ту же сессию в режиме Просмотр: добавляем
+            // ?mode=browse к текущему URL (type, block, ids сохраняются).
+            onBrowseAll={() => {
+              const params = new URLSearchParams(searchParams.toString());
+              params.set("mode", "browse");
+              router.push(`/modes/exam?${params.toString()}`);
+            }}
           />
         </main>
         <BottomNav />

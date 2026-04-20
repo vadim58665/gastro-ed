@@ -9,6 +9,8 @@ interface BlockResultsProps {
   onRestart: () => void;
   onBack: () => void;
   onReviewMistakes?: () => void;
+  /** Открыть ленту всех вопросов с правильными ответами (режим Просмотр). */
+  onBrowseAll?: () => void;
 }
 
 export default function BlockResults({
@@ -17,6 +19,7 @@ export default function BlockResults({
   onRestart,
   onBack,
   onReviewMistakes,
+  onBrowseAll,
 }: BlockResultsProps) {
   const correct = answers.filter((a) => a.isCorrect).length;
   const total = questions.length;
@@ -101,6 +104,19 @@ export default function BlockResults({
             className="block w-full py-3 text-xs uppercase tracking-[0.15em] font-semibold text-primary hover:text-primary/80 transition-colors border border-primary/20 rounded-xl"
           >
             Работа над ошибками
+          </button>
+        )}
+        {onBrowseAll && (
+          <button
+            onClick={onBrowseAll}
+            className="block w-full py-3 text-xs uppercase tracking-[0.15em] font-semibold transition-colors rounded-xl"
+            style={{
+              color: "var(--color-aurora-violet)",
+              border: "1px solid var(--aurora-violet-border)",
+              background: "var(--aurora-violet-soft)",
+            }}
+          >
+            Просмотреть тест с ответами
           </button>
         )}
         <button

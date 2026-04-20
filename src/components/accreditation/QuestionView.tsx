@@ -37,7 +37,13 @@ export default function QuestionView({
   const hasExisting = existingSelectedIndex !== null && existingSelectedIndex !== undefined;
   const isBrowse = mode === "browse";
   const [selected, setSelected] = useState<number | null>(hasExisting ? existingSelectedIndex! : null);
-  const [showResult, setShowResult] = useState(mode === "learn" || isBrowse || hasExisting);
+  // В режиме exam/quiz (mode === "exam") правильный ответ НЕ раскрываем до
+  // конца сессии — даже если пользователь возвращается к уже отвеченному
+  // вопросу через «Предыдущий». Видим только нейтральную подсветку его
+  // собственного выбора. Разбор показывается только в ExamResult/BlockResults.
+  const [showResult, setShowResult] = useState(
+    mode === "learn" || isBrowse || (hasExisting && mode !== "exam")
+  );
   const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { setScreen } = useMedMind();
 
@@ -185,12 +191,15 @@ export default function QuestionView({
       )}
 
       {/* В режиме просмотра кнопок навигации нет — ожидается, что родитель
-          рендерит все вопросы в виде ленты, а пользователь листает скроллом. */}
+          рендерит все вопросы в виде ленты, а пользователь листает скроллом.
+          В экзамене/зачёте возврат к предыдущему вопросу запрещён — иначе
+          пользователь мог бы пересматривать и менять ответы, что нарушает
+          имитацию реальной аккредитации. */}
       {!isBrowse && (
         <div className="flex items-center gap-2 mt-5">
           <button
             onClick={handlePrevious}
-            disabled={!canGoPrevious}
+            disabled={!canGoPrevious || mode === "exam"}
             className="btn-press shrink-0 w-14 h-14 rounded-2xl bg-surface border border-border text-foreground flex items-center justify-center disabled:opacity-30 disabled:cursor-default hover:bg-card transition-colors"
             aria-label="Предыдущий вопрос"
           >

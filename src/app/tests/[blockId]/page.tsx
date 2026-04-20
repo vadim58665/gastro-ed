@@ -160,6 +160,9 @@ export default function BlockPage() {
                 ? handleReviewMistakes
                 : undefined
             }
+            // Просмотр всего блока (того же набора вопросов) с уже
+            // подсвеченными правильными ответами, без прорешивания.
+            onBrowseAll={() => handleSelectMode("browse")}
           />
         </main>
         <BottomNav />
