@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactElement } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
@@ -19,7 +19,7 @@ import { accreditationCategories } from "@/data/specialties";
 import { clusterQuestionsByTopic } from "@/lib/accreditationTopics";
 
 // Per-category SVG icons (gradient stroke via parent .icon-aurora-stroke)
-const CATEGORY_ICONS: Record<number, JSX.Element> = {
+const CATEGORY_ICONS: Record<number, ReactElement> = {
   0: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 4v6a5 5 0 0 0 10 0V4" />

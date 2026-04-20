@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactElement } from "react";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import MagicCard from "@/components/ui/MagicCard";
@@ -8,7 +9,7 @@ import IconBadge from "@/components/ui/IconBadge";
 const stationTypes: Array<{
   name: string;
   count: number;
-  icon: JSX.Element;
+  icon: ReactElement;
 }> = [
   {
     name: "Сбор жалоб и анамнеза",
