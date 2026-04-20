@@ -190,18 +190,17 @@ export default function QuestionView({
         />
       )}
 
-      {/* В режиме просмотра кнопок навигации нет — ожидается, что родитель
-          рендерит все вопросы в виде ленты, а пользователь листает скроллом.
-          В экзамене/зачёте возврат к предыдущему вопросу запрещён — кнопка
-          «Предыдущий» вообще не рендерится, чтобы не было серой disabled-
-          заглушки. Разбор виден только в ExamResult в конце сессии. */}
+      {/* В режиме просмотра кнопок навигации нет — родитель рендерит
+          все вопросы в ленте. Решение «можно ли назад» теперь полностью
+          на родителе через `canGoPrevious`: в настоящем экзамене он
+          передаст false (кнопка не появится), в Зачёте / Тренировке —
+          true на 2-м и далее вопросе. */}
       {!isBrowse && (
         <div className="flex items-center gap-2 mt-5">
-          {mode !== "exam" && (
+          {canGoPrevious && (
             <button
               onClick={handlePrevious}
-              disabled={!canGoPrevious}
-              className="btn-press shrink-0 w-14 h-14 rounded-2xl bg-surface border border-border text-foreground flex items-center justify-center disabled:opacity-30 disabled:cursor-default hover:bg-card transition-colors"
+              className="btn-press shrink-0 w-14 h-14 rounded-2xl bg-surface border border-border text-foreground flex items-center justify-center hover:bg-card transition-colors"
               aria-label="Предыдущий вопрос"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
