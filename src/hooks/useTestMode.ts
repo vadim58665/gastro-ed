@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import type { TestQuestion } from "@/types/accreditation";
 
 export type TestMode =
+  | "browse"         // Просмотр: ответы сразу видны, без прорешивания и прогресса
   | "training"       // Тренировка: подсказки + ответы сразу
   | "quiz_answers"   // Зачёт с ответами: нет подсказок, ответы сразу
   | "quiz"           // Зачёт: нет подсказок, ответы в конце
@@ -17,9 +18,16 @@ export interface TestModeConfig {
   showAnswersImmediately: boolean;
   timerSeconds: number | null;   // null = no timer
   questionCount: number | null;  // null = all questions
+  /**
+   * Браузер-режим: ответы видны сразу, выбор заблокирован, ответ не
+   * засчитывается в прогресс и не попадает в ошибки. Подсказки и разбор
+   * доступны на каждом вопросе.
+   */
+  readOnly?: boolean;
 }
 
 export const TEST_MODE_CONFIGS: Record<TestMode, TestModeConfig> = {
+  browse:       { hintsEnabled: true,  showAnswersImmediately: true,  timerSeconds: null, questionCount: null, readOnly: true },
   training:     { hintsEnabled: true,  showAnswersImmediately: true,  timerSeconds: null, questionCount: null },
   quiz_answers: { hintsEnabled: false, showAnswersImmediately: true,  timerSeconds: null, questionCount: null },
   quiz:         { hintsEnabled: false, showAnswersImmediately: false, timerSeconds: null, questionCount: null },
@@ -37,6 +45,7 @@ export interface TestModeInfo {
 }
 
 export const TEST_MODES: TestModeInfo[] = [
+  { id: "browse",       label: "Просмотр",             description: "Ответы сразу, без прорешивания",    icon: "book-open" },
   { id: "training",     label: "Тренировка",           description: "Подсказки и ответы сразу",          icon: "book" },
   { id: "quiz_answers", label: "Зачёт с ответами",     description: "Без подсказок, ответы сразу",       icon: "check" },
   { id: "quiz",         label: "Зачёт",                description: "Без подсказок, ответы в конце",     icon: "clipboard" },

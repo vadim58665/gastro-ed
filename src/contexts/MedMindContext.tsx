@@ -17,7 +17,7 @@ export type ScreenContext =
       kind: "accred_question";
       question: TestQuestion;
       specialtyId: string;
-      mode: "learn" | "test" | "exam";
+      mode: "learn" | "test" | "exam" | "browse";
       isAnswered: boolean;
       selectedIndex?: number;
     }

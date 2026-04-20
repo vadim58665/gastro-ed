@@ -8,7 +8,14 @@ import { useMedMind } from "@/contexts/MedMindContext";
 
 interface Props {
   question: TestQuestion;
-  mode: "learn" | "test" | "exam";
+  /**
+   * `learn` — правильный показывается сразу, можно кликать (обучающий режим).
+   * `test` — после ответа подсветка правильного + разбор.
+   * `exam` — результат скрыт до конца экзамена, виден только выбранный вариант.
+   * `browse` — просмотр без прорешивания: правильный подсвечен индиго сразу,
+   *   варианты нельзя выбрать, onAnswer не вызывается, прогресс не трогается.
+   */
+  mode: "learn" | "test" | "exam" | "browse";
   specialtyId?: string;
   onAnswer?: (isCorrect: boolean, selectedIndex: number) => void;
   onNext?: () => void;
@@ -28,8 +35,9 @@ export default function QuestionView({
   existingSelectedIndex = null,
 }: Props) {
   const hasExisting = existingSelectedIndex !== null && existingSelectedIndex !== undefined;
+  const isBrowse = mode === "browse";
   const [selected, setSelected] = useState<number | null>(hasExisting ? existingSelectedIndex! : null);
-  const [showResult, setShowResult] = useState(mode === "learn" || hasExisting);
+  const [showResult, setShowResult] = useState(mode === "learn" || isBrowse || hasExisting);
   const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { setScreen } = useMedMind();
 
@@ -52,7 +60,8 @@ export default function QuestionView({
       autoAdvanceRef.current = null;
     }
     setSelected(null);
-    setShowResult(mode === "learn");
+    // browse: правильный снова подсвечен сразу при переходе к следующему.
+    setShowResult(mode === "learn" || isBrowse);
     onNext?.();
   };
 
@@ -65,6 +74,9 @@ export default function QuestionView({
   };
 
   const handleSelect = (index: number) => {
+    // В режиме просмотра варианты нельзя выбрать — правильный уже подсвечен,
+    // прогресс не трогается.
+    if (isBrowse) return;
     if (hasExisting) return; // already answered, locked in review mode
     if (selected !== null && mode !== "learn") return;
     setSelected(index);
@@ -93,7 +105,8 @@ export default function QuestionView({
 
   // После ответа всегда показываем «Следующий вопрос» — пользователь
   // нажимает сам, когда готов двигаться дальше (авто-переход убран).
-  const showNextButton = selected !== null || mode === "learn" || hasExisting;
+  // В browse — кнопка доступна всегда, чтобы листать без выбора.
+  const showNextButton = selected !== null || mode === "learn" || isBrowse || hasExisting;
 
   return (
     <div className="px-6 py-5">
@@ -125,7 +138,7 @@ export default function QuestionView({
             <button
               key={index}
               onClick={() => handleSelect(index)}
-              disabled={(selected !== null && mode !== "learn") || hasExisting}
+              disabled={isBrowse || (selected !== null && mode !== "learn") || hasExisting}
               className="w-full text-left px-4 py-3 rounded-xl border border-border bg-card transition-all text-sm"
               style={style}
             >
@@ -158,8 +171,9 @@ export default function QuestionView({
 
       {/* Auto-explain для подписчиков после ЛЮБОГО ответа (не только
           ошибочного). В exam-режиме не раскрываем правильный вариант
-          до конца экзамена. */}
-      {mode !== "exam" && showResult && selected !== null && (
+          до конца экзамена. В browse — показываем сразу, без ожидания
+          ответа: режим и есть просмотр с полным разбором. */}
+      {mode !== "exam" && (showResult || isBrowse) && (selected !== null || isBrowse) && (
         <AutoExplain
           entityId={question.id}
           entityType="accreditation_question"
@@ -170,27 +184,31 @@ export default function QuestionView({
         />
       )}
 
-      <div className="flex items-center gap-2 mt-5">
-        <button
-          onClick={handlePrevious}
-          disabled={!canGoPrevious}
-          className="btn-press shrink-0 w-14 h-14 rounded-2xl bg-surface border border-border text-foreground flex items-center justify-center disabled:opacity-30 disabled:cursor-default hover:bg-card transition-colors"
-          aria-label="Предыдущий вопрос"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-          </svg>
-        </button>
-
-        {showNextButton && (
+      {/* В режиме просмотра кнопок навигации нет — ожидается, что родитель
+          рендерит все вопросы в виде ленты, а пользователь листает скроллом. */}
+      {!isBrowse && (
+        <div className="flex items-center gap-2 mt-5">
           <button
-            onClick={handleNext}
-            className="btn-press btn-premium-dark flex-1 h-14 rounded-2xl text-xs uppercase tracking-[0.2em] font-semibold"
+            onClick={handlePrevious}
+            disabled={!canGoPrevious}
+            className="btn-press shrink-0 w-14 h-14 rounded-2xl bg-surface border border-border text-foreground flex items-center justify-center disabled:opacity-30 disabled:cursor-default hover:bg-card transition-colors"
+            aria-label="Предыдущий вопрос"
           >
-            Следующий вопрос
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
           </button>
-        )}
-      </div>
+
+          {showNextButton && (
+            <button
+              onClick={handleNext}
+              className="btn-press btn-premium-dark flex-1 h-14 rounded-2xl text-xs uppercase tracking-[0.2em] font-semibold"
+            >
+              Следующий вопрос
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

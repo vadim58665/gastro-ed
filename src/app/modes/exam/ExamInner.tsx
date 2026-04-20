@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import QuestionView from "@/components/accreditation/QuestionView";
+import BrowseFeed from "@/components/accreditation/BrowseFeed";
 import ExamTimer from "@/components/accreditation/ExamTimer";
 import ExamResultView from "@/components/accreditation/ExamResult";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
@@ -175,6 +176,33 @@ export default function ExamInner() {
   }, [currentIndex, questions.length, startTime, correctCount, saveExamResult, marathonFailed]);
 
   if (!hydrated || !activeSpecialty) return null;
+
+  // Режим просмотра (`?mode=browse`) — лента всех подобранных вопросов с
+  // подсвеченными правильными ответами, без прорешивания. Родительский
+  // entity (блок / тема / ошибки) задаёт пул через examType; browse —
+  // это layer сверху, переключатель представления.
+  const viewMode = searchParams.get("mode");
+  if (viewMode === "browse" && questions.length > 0) {
+    const label =
+      examType === "mistakes"
+        ? blockFilter
+          ? `Ошибки · блок ${blockFilter}`
+          : "Все ошибки"
+        : config.title;
+    return (
+      <div className="h-screen flex flex-col">
+        <TopBar showBack />
+        <main className="flex-1 pt-20 pb-20 overflow-y-auto">
+          <BrowseFeed
+            questions={questions}
+            specialtyId={specialtyId}
+            label={label}
+          />
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
 
   if (questions.length === 0) {
     return (

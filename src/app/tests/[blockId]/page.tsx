@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import QuestionView from "@/components/accreditation/QuestionView";
+import BrowseFeed from "@/components/accreditation/BrowseFeed";
 import TestModeSelector from "@/components/tests/TestModeSelector";
 import ExamTimer from "@/components/tests/ExamTimer";
 import BlockResults from "@/components/tests/BlockResults";
@@ -118,6 +119,24 @@ export default function BlockPage() {
           <TestModeSelector
             onSelect={handleSelectMode}
             mistakeCount={progress.mistakes.length}
+          />
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // Browse mode: лента всех вопросов с подсвеченными правильными
+  // ответами. Ничего не прорешивается, прогресс не меняется.
+  if (testMode.mode === "browse") {
+    return (
+      <div className="h-screen flex flex-col">
+        <TopBar showBack />
+        <main className="flex-1 pt-20 pb-20 overflow-y-auto">
+          <BrowseFeed
+            questions={testMode.questions}
+            specialtyId={specialtyId}
+            label={`Блок ${blockNumber}`}
           />
         </main>
         <BottomNav />
