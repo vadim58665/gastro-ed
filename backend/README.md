@@ -11,8 +11,8 @@ FastAPI-сервис, на который поэтапно переезжает 
 | 0 | Инфраструктура: FastAPI скелет, JWT, Docker, pytest, CI | ✅ готово |
 | 1 | AI-pipeline: генерация подсказок и объяснений через RQ | ✅ готово |
 | 2 | Readiness: формула P(pass) | ✅ готово |
-| 3 | Синхронизация progress (user_answers, fsrs_state) - backend | ✅ в работе |
-| 4 | Аналитика: /mistakes, leaderboard, графики | планируется |
+| 3 | Синхронизация progress (user_answers, fsrs_state) - backend | ✅ готово |
+| 4 | Аналитика: /mistakes, leaderboard, графики | ✅ в работе |
 | 5 | Уборка дубликатов на клиенте | планируется |
 
 Полный план: `docs/superpowers/specs/*-python-backend-design.md` (после утверждения брифа).
@@ -210,9 +210,22 @@ FSRS math остаётся на клиенте (Web Worker). Сервер хра
 
 Миграция: `supabase/migrations/012_user_answers_and_fsrs.sql` создаёт таблицы с RLS под `auth.uid() = user_id`. Применяется через `supabase migration up` или Supabase Dashboard.
 
+## Analytics (Фаза 4)
+
+Endpoints (все требуют JWT):
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| GET | `/api/analytics/mistakes?period_days=30&entity_type=card&limit=50` | Топ-N ошибок пользователя |
+| GET | `/api/analytics/leaderboard/daily-case?case_date=2026-04-20` | Лидерборд дня с nickname |
+| GET | `/api/analytics/stats/monthly?year=2026&month=4` | Time series по дням за месяц |
+
+Источник данных - `user_answers` (Фаза 3) и `daily_case_results` (миграция 007).
+Для 100-1000 пользователей агрегация в Python ок; при росте заменяется SQL RPC.
+
 ## Что дальше
 
-Когда Фазы 0-3 пройдут review и merge в main:
+Когда Фазы 0-4 пройдут review и merge в main:
 1. Поднимаем Railway-проект и подключаем GitHub auto-deploy
-2. Клиентская сторона Фазы 3 (Service Worker + BackgroundSync + IndexedDB) - отдельный PR на фронт
-3. Фаза 4: аналитика `/mistakes`, leaderboard, `/stats/monthly` как server-side aggregation
+2. Клиентская сторона (Service Worker, BackgroundSync, замена хуков на fetch) - Фаза 5 отдельным PR на фронт
+3. Первый реальный прогон AI pipeline на 10-50 карт для валидации качества подсказок
