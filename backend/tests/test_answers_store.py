@@ -73,6 +73,10 @@ def test_upsert_answers_counts_duplicates(mocker):
     sent_rows = upsert_args.args[0]
     assert len(sent_rows) == 3
     assert all(r["user_id"] == USER_ID for r in sent_rows)
+    # Существующая БД: поле card_id, а не entity_id. entity_type - отдельная колонка.
+    assert sent_rows[0]["card_id"] == "c1"
+    assert sent_rows[0]["entity_type"] == "card"
+    assert sent_rows[0]["source"] == "feed"
     assert upsert_args.kwargs["on_conflict"] == "user_id,idempotency_key"
     assert upsert_args.kwargs["ignore_duplicates"] is True
 
@@ -85,9 +89,10 @@ def test_upsert_answers_serializes_timestamp(mocker):
 
     row = sb.table.return_value.upsert.call_args.args[0][0]
     assert row["answered_at"].startswith("2023-11-14T22:13:20")
+    assert "card_id" in row and "entity_id" not in row
 
 
-def test_upsert_fsrs_state(mocker):
+def test_upsert_fsrs_state_targets_review_cards(mocker):
     sb = _supabase_mock_for_upsert(inserted_rows=[{"id": 1}, {"id": 2}])
     mocker.patch.object(answers_store, "get_supabase", return_value=sb)
 
@@ -97,10 +102,50 @@ def test_upsert_fsrs_state(mocker):
     )
     assert count == 2
 
+    sb.table.assert_called_with("review_cards")
+
     args = sb.table.return_value.upsert.call_args
     rows = args.args[0]
-    assert rows[0]["state"]["stability"] == 4.2
-    assert args.kwargs["on_conflict"] == "user_id,entity_id,source"
+    assert rows[0]["card_id"] == "c1"
+    # FSRS state сохраняется в jsonb-колонку fsrs_state (существующая схема БД).
+    assert rows[0]["fsrs_state"]["stability"] == 4.2
+    # _source заворачивается внутрь jsonb, т.к. в review_cards нет отдельной колонки source.
+    assert rows[0]["fsrs_state"]["_source"] == "feed"
+    assert args.kwargs["on_conflict"] == "user_id,card_id"
+
+
+def test_upsert_fsrs_state_extracts_due_from_state(mocker):
+    sb = _supabase_mock_for_upsert(inserted_rows=[{"id": 1}])
+    mocker.patch.object(answers_store, "get_supabase", return_value=sb)
+
+    delta = FsrsStateDelta(
+        entity_id="c1",
+        source=FsrsSource.FEED,
+        state={"stability": 2.0, "due": 1_800_000_000_000, "last_review": 1_700_000_000_000},
+        updated_at_ms=1_700_000_000_000,
+    )
+    answers_store.upsert_fsrs_state(USER_ID, [delta])
+
+    row = sb.table.return_value.upsert.call_args.args[0][0]
+    assert row["due"].startswith("2027-01-15")  # 1_800_000_000_000 ms
+    assert row["last_review"].startswith("2023-11-14")
+
+
+def test_upsert_fsrs_state_fallbacks_due_when_missing(mocker):
+    sb = _supabase_mock_for_upsert(inserted_rows=[{"id": 1}])
+    mocker.patch.object(answers_store, "get_supabase", return_value=sb)
+
+    delta = FsrsStateDelta(
+        entity_id="c1",
+        source=FsrsSource.FEED,
+        state={"stability": 2.0},  # без due и last_review
+        updated_at_ms=1_700_000_000_000,
+    )
+    answers_store.upsert_fsrs_state(USER_ID, [delta])
+
+    row = sb.table.return_value.upsert.call_args.args[0][0]
+    assert row["due"] is not None  # fallback на updated_at_ms
+    assert row["last_review"] is None
 
 
 def test_upsert_fsrs_state_empty(mocker):
@@ -141,12 +186,11 @@ def _supabase_mock_for_get(pages: list[list[dict]]):
     return sb
 
 
-def test_get_fsrs_state_filters_by_user_and_since(mocker):
+def test_get_fsrs_state_reads_review_cards(mocker):
     page = [
         {
-            "entity_id": "c1",
-            "source": "feed",
-            "state": {"stability": 4.2, "difficulty": 5.1},
+            "card_id": "c1",
+            "fsrs_state": {"stability": 4.2, "difficulty": 5.1, "_source": "feed"},
             "updated_at": "2023-11-14T22:13:20+00:00",
         },
     ]
@@ -157,9 +201,34 @@ def test_get_fsrs_state_filters_by_user_and_since(mocker):
 
     assert len(rows) == 1
     assert rows[0].entity_id == "c1"
+    assert rows[0].source == FsrsSource.FEED
     assert rows[0].updated_at_ms == 1_700_000_000_000
+    # _source удаляется из state при сериализации наружу
+    assert "_source" not in rows[0].state
+    assert rows[0].state["stability"] == 4.2
 
-    sb.table.return_value.select.return_value.eq.assert_any_call("user_id", USER_ID)
+    sb.table.assert_called_with("review_cards")
+
+
+def test_get_fsrs_state_filters_by_source_post_fetch(mocker):
+    page = [
+        {
+            "card_id": "c1",
+            "fsrs_state": {"stability": 1.0, "_source": "feed"},
+            "updated_at": "2023-11-14T22:13:20+00:00",
+        },
+        {
+            "card_id": "c2",
+            "fsrs_state": {"stability": 2.0, "_source": "prep"},
+            "updated_at": "2023-11-14T22:13:20+00:00",
+        },
+    ]
+    sb = _supabase_mock_for_get([page])
+    mocker.patch.object(answers_store, "get_supabase", return_value=sb)
+
+    rows = answers_store.get_fsrs_state(USER_ID, source=FsrsSource.PREP)
+    assert len(rows) == 1
+    assert rows[0].entity_id == "c2"
 
 
 def test_get_fsrs_state_empty(mocker):
@@ -170,11 +239,11 @@ def test_get_fsrs_state_empty(mocker):
     assert rows == []
 
 
-def test_get_answers_since_limits_and_orders(mocker):
+def test_get_answers_since_maps_card_id(mocker):
     page = [
         {
+            "card_id": "c1",
             "entity_type": "card",
-            "entity_id": "c1",
             "is_correct": True,
             "answered_at": "2023-11-14T22:13:20+00:00",
             "time_spent_ms": 4000,
@@ -188,6 +257,24 @@ def test_get_answers_since_limits_and_orders(mocker):
 
     assert len(rows) == 1
     assert rows[0].entity_id == "c1"
+    assert rows[0].entity_type == EntityType.CARD
     assert rows[0].is_correct is True
 
     sb.table.return_value.select.return_value.order.assert_called_with("answered_at", desc=True)
+
+
+def test_get_answers_since_defaults_for_legacy_rows(mocker):
+    """Старые записи могут не иметь entity_type/source - используем default."""
+    page = [
+        {
+            "card_id": "c-old",
+            "is_correct": False,
+            "answered_at": "2023-11-14T22:13:20+00:00",
+        },
+    ]
+    sb = _supabase_mock_for_get([page])
+    mocker.patch.object(answers_store, "get_supabase", return_value=sb)
+
+    rows = answers_store.get_answers_since(USER_ID)
+    assert rows[0].entity_type == EntityType.CARD
+    assert rows[0].source == AnswerSource.FEED
