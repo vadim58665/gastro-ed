@@ -15,7 +15,13 @@ interface SpecialtyContextValue {
    * before the saved specialty is restored.
    */
   hydrated: boolean;
-  setActiveSpecialty: (id: string) => void;
+  /**
+   * Установить активную специальность. Принимает либо строку-id (тогда
+   * ищем в локальном реестре `accreditationCategories`), либо полный объект
+   * Specialty (для специальностей из Supabase, которых нет в статическом
+   * списке).
+   */
+  setActiveSpecialty: (idOrSpec: string | Specialty) => void;
   clearSpecialty: () => void;
 }
 
@@ -29,9 +35,18 @@ const SpecialtyContext = createContext<SpecialtyContextValue>({
 function readSavedSpecialty(): Specialty | null {
   if (typeof window === "undefined") return null;
   try {
-    const savedId = localStorage.getItem(STORAGE_KEY);
-    if (!savedId) return null;
-    return findSpecialtyById(savedId) ?? null;
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return null;
+    // Новый формат — JSON {id, name}. Старый — голая строка-id.
+    if (saved.startsWith("{")) {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed.id === "string" && typeof parsed.name === "string") {
+        return { id: parsed.id, name: parsed.name };
+      }
+      return null;
+    }
+    // Legacy: строка-id, ищем в статическом реестре.
+    return findSpecialtyById(saved) ?? null;
   } catch {
     return null;
   }
@@ -44,14 +59,9 @@ export function SpecialtyProvider({ children }: { children: ReactNode }) {
     () => readSavedSpecialty()
   );
   // `hydrated` starts false during SSR/first paint and flips true on mount.
-  // React's SSR emits with useState's initial `false`, and client sync after
-  // hydration flips it — this matches the contract consumers expect without
-  // breaking SSR.
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    // Re-read on mount in case SSR produced null but the client has the saved
-    // id (SSR `typeof window === 'undefined'` branch).
     if (activeSpecialty === null) {
       const found = readSavedSpecialty();
       if (found) setActiveSpecialtyState(found);
@@ -60,14 +70,18 @@ export function SpecialtyProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const setActiveSpecialty = useCallback((id: string) => {
-    const found = findSpecialtyById(id);
-    if (found) {
-      setActiveSpecialtyState(found);
-      try {
-        localStorage.setItem(STORAGE_KEY, id);
-      } catch {}
+  const setActiveSpecialty = useCallback((idOrSpec: string | Specialty) => {
+    let spec: Specialty | null = null;
+    if (typeof idOrSpec === "string") {
+      spec = findSpecialtyById(idOrSpec) ?? null;
+    } else {
+      spec = { id: idOrSpec.id, name: idOrSpec.name };
     }
+    if (!spec) return;
+    setActiveSpecialtyState(spec);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(spec));
+    } catch {}
   }, []);
 
   const clearSpecialty = useCallback(() => {

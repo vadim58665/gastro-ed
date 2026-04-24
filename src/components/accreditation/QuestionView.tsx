@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import type { TestQuestion } from "@/types/accreditation";
 import HintButton from "@/components/feed/HintButton";
 import AutoExplain from "@/components/feed/AutoExplain";
 import { useMedMind } from "@/contexts/MedMindContext";
+import { getPictureUrl } from "@/lib/accreditation-client";
 
 interface Props {
   question: TestQuestion;
@@ -114,11 +115,45 @@ export default function QuestionView({
   // В browse — кнопка доступна всегда, чтобы листать без выбора.
   const showNextButton = selected !== null || mode === "learn" || isBrowse || hasExisting;
 
+  const pictureUrl = useMemo(
+    () => getPictureUrl(question.picture ?? null),
+    [question.picture]
+  );
+
+  // Разделяем текст вопроса на части по маркеру "\n\n" — в том месте была
+  // картинка в источнике. Если картинки нет, рендерим текст одним блоком.
+  const [textBefore, textAfter] = useMemo(() => {
+    if (!pictureUrl) return [question.question, ""];
+    const idx = question.question.indexOf("\n\n");
+    if (idx < 0) return [question.question, ""];
+    return [question.question.slice(0, idx).trim(), question.question.slice(idx).trim()];
+  }, [pictureUrl, question.question]);
+
   return (
     <div className="px-6 py-5">
-      <p className="text-sm text-foreground leading-relaxed mb-6">
-        {question.question}
+      <p className="text-sm text-foreground leading-relaxed mb-3">
+        {textBefore}
       </p>
+
+      {pictureUrl && (
+        <div className="mb-3 rounded-2xl overflow-hidden border border-border bg-surface">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={pictureUrl}
+            alt="Изображение к вопросу"
+            loading="lazy"
+            className="w-full h-auto"
+          />
+        </div>
+      )}
+
+      {textAfter && (
+        <p className="text-sm text-foreground leading-relaxed mb-6">
+          {textAfter}
+        </p>
+      )}
+
+      {!pictureUrl && !textAfter && <div className="mb-3" />}
 
       <div className="space-y-2">
         {question.options.map((option, index) => {
