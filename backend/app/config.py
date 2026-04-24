@@ -32,7 +32,6 @@ class Settings(BaseSettings):
             "http://127.0.0.1:3000",
         ]
     )
-    cors_origin_regex: str | None = Field(default=None)
 
     def is_production(self) -> bool:
         return self.environment.lower() in ("production", "prod") and not self.testing
