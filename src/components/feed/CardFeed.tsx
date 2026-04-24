@@ -76,9 +76,10 @@ const FeedCardItem = memo(function FeedCardItem({
       ref={(el) => onRef(card.id, el)}
       className="feed-card px-3 py-3"
     >
+      <div className="w-full max-w-lg mx-auto h-full rounded-3xl aurora-hairline bg-white">
       <div
         ref={(el) => onInnerRef(card.id, el)}
-        className="w-full max-w-lg mx-auto h-full rounded-3xl card-protected aurora-hairline bg-white overflow-y-auto"
+        className="h-full w-full rounded-3xl card-protected overflow-y-auto"
         onContextMenu={(e) => e.preventDefault()}
         onCopy={(e) => e.preventDefault()}
         onDragStart={(e) => e.preventDefault()}
@@ -127,6 +128,7 @@ const FeedCardItem = memo(function FeedCardItem({
             <PostAnswerActions onAction={(action) => onPostAction(card, action)} />
           </div>
         )}
+      </div>
       </div>
     </div>
   );
