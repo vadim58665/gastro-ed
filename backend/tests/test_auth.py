@@ -55,4 +55,23 @@ def test_decode_rejects_missing_audience(settings):
         algorithm="HS256",
     )
     with pytest.raises(TokenError):
-        decode_supabase_jwt(token, settings.supabase_jwt_secret)
+        decode_supabase_jwt(token, settings)
+
+
+def test_decode_rejects_unsupported_algorithm(settings):
+    import time
+
+    import jwt
+
+    token = jwt.encode(
+        {
+            "sub": "u",
+            "aud": "authenticated",
+            "iat": int(time.time()),
+            "exp": int(time.time()) + 60,
+        },
+        settings.supabase_jwt_secret,
+        algorithm="HS384",
+    )
+    with pytest.raises(TokenError, match="Unsupported JWT algorithm"):
+        decode_supabase_jwt(token, settings)
