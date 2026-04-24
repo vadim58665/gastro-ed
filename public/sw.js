@@ -1,4 +1,4 @@
-const CACHE_NAME = "smartdoc-v2";
+const CACHE_NAME = "smartdoc-v3";
 const PRECACHE_URLS = [
   "/",
   "/topics",
@@ -32,6 +32,9 @@ self.addEventListener("fetch", (event) => {
   // Skip non-GET and API requests
   if (request.method !== "GET") return;
   if (request.url.includes("/api/")) return;
+  // Пропускаем cross-origin (бэкенд Amvera, Supabase, PostHog): браузер
+  // с CORS сам разбирается, а наш "Offline" fallback маскирует реальные ошибки.
+  if (new URL(request.url).origin !== self.location.origin) return;
 
   event.respondWith(
     fetch(request)
