@@ -14,6 +14,7 @@ import time
 from collections import defaultdict
 
 from app.models.readiness import (
+    BlockLevel,
     BlockReport,
     ComputeReadinessRequest,
     QuestionStats,
@@ -98,7 +99,7 @@ def exam_readiness(
     return max(0.0, min(1.0, 1.0 - normal_cdf(z)))
 
 
-def classify_block(avg_p: float, coverage: float) -> str:
+def classify_block(avg_p: float, coverage: float) -> BlockLevel:
     if coverage <= 0.0:
         return "not_started"
     if coverage < BLOCK_STARTED_COVERAGE_MIN:

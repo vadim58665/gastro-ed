@@ -5,7 +5,11 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
+BlockLevel = Literal["not_started", "started", "weak", "ready", "strong"]
 
 
 class QuestionStats(BaseModel):
@@ -33,7 +37,7 @@ class ComputeReadinessRequest(BaseModel):
 
 class BlockReport(BaseModel):
     block_number: int
-    level: str  # not_started | started | weak | ready | strong
+    level: BlockLevel
     average_strength: float
     coverage: float
     size: int
