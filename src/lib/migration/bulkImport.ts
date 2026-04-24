@@ -25,7 +25,14 @@ import type { BatchAnswersRequest, FsrsStateDelta, FsrsSource } from "@/lib/back
 import { BackendSync, isBackendEnabled } from "@/lib/backend";
 
 const BATCH_SIZE = 200;
-const DONE_FLAG = "umnyvrach-bulk-import-done-v2";
+const DONE_FLAG_BASE = "umnyvrach-bulk-import-done-v2";
+
+function doneFlagKey(userId: string | null): string {
+  // Per-user флаг: два разных аккаунта на одном устройстве получают
+  // собственные импорты (общий ключ привёл бы к пропуску миграции для
+  // второго пользователя).
+  return userId ? `${DONE_FLAG_BASE}:${userId}` : DONE_FLAG_BASE;
+}
 
 interface LegacyFsrsCard {
   cardId: string;
@@ -51,17 +58,17 @@ export interface BulkImportResult {
   errors: string[];
 }
 
-function alreadyDone(): boolean {
+function alreadyDone(userId: string | null): boolean {
   try {
-    return localStorage.getItem(DONE_FLAG) === "1";
+    return localStorage.getItem(doneFlagKey(userId)) === "1";
   } catch {
     return false;
   }
 }
 
-function markDone(): void {
+function markDone(userId: string | null): void {
   try {
-    localStorage.setItem(DONE_FLAG, "1");
+    localStorage.setItem(doneFlagKey(userId), "1");
   } catch {
     // Safari private mode и прочие случаи - игнорируем, не критично.
   }
@@ -122,10 +129,22 @@ function collectFsrsUpdates(): FsrsStateDelta[] {
   return deltas;
 }
 
+export interface BulkImportOptions {
+  /** Принудительно запустить импорт даже если done-флаг уже установлен. */
+  force?: boolean;
+  /**
+   * ID пользователя для per-user done-флага. Если null, используется общий
+   * ключ (для обратной совместимости со старыми вызовами без auth контекста).
+   */
+  userId?: string | null;
+}
+
 export async function bulkImportLocalProgress(
-  options: { force?: boolean } = {},
+  options: BulkImportOptions = {},
 ): Promise<BulkImportResult> {
-  if (!options.force && alreadyDone()) {
+  const { force = false, userId = null } = options;
+
+  if (!force && alreadyDone(userId)) {
     return {
       skipped: true,
       reason: "already_done",
@@ -146,7 +165,7 @@ export async function bulkImportLocalProgress(
 
   const updates = collectFsrsUpdates();
   if (updates.length === 0) {
-    markDone();
+    markDone(userId);
     return {
       skipped: true,
       reason: "no_data",
@@ -178,7 +197,7 @@ export async function bulkImportLocalProgress(
   }
 
   if (errors.length === 0) {
-    markDone();
+    markDone(userId);
   }
 
   return {
@@ -189,9 +208,9 @@ export async function bulkImportLocalProgress(
   };
 }
 
-export function resetBulkImportFlag(): void {
+export function resetBulkImportFlag(userId: string | null = null): void {
   try {
-    localStorage.removeItem(DONE_FLAG);
+    localStorage.removeItem(doneFlagKey(userId));
   } catch {
     // ignore
   }
