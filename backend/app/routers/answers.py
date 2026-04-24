@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
 from app.auth.jwt import CurrentUser, get_current_user
+from app.middleware.rate_limit import ANSWERS_BATCH_LIMIT, limiter
 from app.models.sync import (
     AnswersSinceResponse,
     BatchAnswersRequest,
@@ -25,7 +26,9 @@ router = APIRouter(tags=["sync"])
 
 
 @router.post("/api/answers/batch", response_model=BatchAnswersResponse)
+@limiter.limit(ANSWERS_BATCH_LIMIT)
 async def submit_batch(
+    request: Request,
     payload: BatchAnswersRequest,
     user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> BatchAnswersResponse:
@@ -40,6 +43,7 @@ async def submit_batch(
 
 @router.get("/api/fsrs/state", response_model=FsrsStateResponse)
 async def fsrs_state(
+    request: Request,
     user: Annotated[CurrentUser, Depends(get_current_user)],
     since: Annotated[int | None, Query(ge=0, description="Unix ms cutoff")] = None,
     source: Annotated[FsrsSource | None, Query()] = None,
@@ -50,6 +54,7 @@ async def fsrs_state(
 
 @router.get("/api/answers/since", response_model=AnswersSinceResponse)
 async def answers_since(
+    request: Request,
     user: Annotated[CurrentUser, Depends(get_current_user)],
     since: Annotated[int | None, Query(ge=0)] = None,
     limit: Annotated[int, Query(ge=1, le=1000)] = 1000,

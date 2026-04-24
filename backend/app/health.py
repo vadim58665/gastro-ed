@@ -35,12 +35,17 @@ async def readiness(response: Response) -> dict[str, object]:
         checks["supabase"] = f"error: {exc!r}"[:200]
         log.warning("supabase healthcheck failed: %s", exc)
 
-    # Redis: PING
+    # Redis: PING (явно закрываем соединение, чтобы /health/ready не
+    # утекал connection'ами при частом опросе от Railway/LB)
     try:
         from redis import Redis
 
         settings = get_settings()
-        Redis.from_url(settings.redis_url, socket_timeout=2).ping()
+        client = Redis.from_url(settings.redis_url, socket_timeout=2)
+        try:
+            client.ping()
+        finally:
+            client.close()
         checks["redis"] = "ok"
     except Exception as exc:
         all_ok = False

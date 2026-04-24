@@ -27,8 +27,8 @@ describe("bulkImportLocalProgress", () => {
   it("skips when backend disabled", async () => {
     hoisted.isBackendEnabled.mockReturnValue(false);
     localStorage.setItem(
-      "sd-progress",
-      JSON.stringify({ cardHistory: [{ cardId: "c1", isCorrect: true, timestamp: 1 }] }),
+      "sd-review",
+      JSON.stringify([{ cardId: "c1", fsrs: { stability: 2.5 } }]),
     );
 
     const result = await bulkImportLocalProgress();
@@ -40,7 +40,7 @@ describe("bulkImportLocalProgress", () => {
 
   it("skips when already done", async () => {
     hoisted.isBackendEnabled.mockReturnValue(true);
-    localStorage.setItem("umnyvrach-bulk-import-done-v1", "1");
+    localStorage.setItem("umnyvrach-bulk-import-done-v2", "1");
 
     const result = await bulkImportLocalProgress();
 
@@ -48,115 +48,160 @@ describe("bulkImportLocalProgress", () => {
     expect(result.reason).toBe("already_done");
   });
 
-  it("skips with no_data when localStorage empty", async () => {
+  it("skips with no_data when sd-review missing", async () => {
     hoisted.isBackendEnabled.mockReturnValue(true);
 
     const result = await bulkImportLocalProgress();
 
     expect(result.skipped).toBe(true);
     expect(result.reason).toBe("no_data");
+    expect(localStorage.getItem("umnyvrach-bulk-import-done-v2")).toBe("1");
   });
 
-  it("uploads card history in a single batch and marks done", async () => {
+  it("uploads FSRS state from sd-review in a single batch and marks done", async () => {
     hoisted.isBackendEnabled.mockReturnValue(true);
     hoisted.submitBatch.mockResolvedValue({
-      answers_accepted: 3,
+      answers_accepted: 0,
       answers_duplicates: 0,
-      fsrs_upserts: 0,
+      fsrs_upserts: 2,
     });
+
     localStorage.setItem(
-      "sd-progress",
-      JSON.stringify({
-        cardHistory: [
-          { cardId: "c1", isCorrect: true, timestamp: 1_700_000_000_000 },
-          { cardId: "c2", isCorrect: false, timestamp: 1_700_000_100_000 },
-          { cardId: "c3", isCorrect: true, timestamp: 1_700_000_200_000 },
-        ],
-      }),
+      "sd-review",
+      JSON.stringify([
+        {
+          cardId: "c1",
+          source: "feed",
+          fsrs: {
+            stability: 3.1,
+            difficulty: 5.4,
+            due: "2026-05-01T10:00:00.000Z",
+            last_review: "2026-04-20T10:00:00.000Z",
+            reps: 2,
+            lapses: 0,
+            state: 2,
+          },
+        },
+        {
+          cardId: "c2",
+          source: "prep",
+          fsrs: {
+            stability: 1.5,
+            difficulty: 7.0,
+            last_review: 1_700_000_000_000,
+          },
+        },
+      ]),
     );
 
     const result = await bulkImportLocalProgress();
 
     expect(result.skipped).toBe(false);
     expect(result.batches_sent).toBe(1);
-    expect(result.total_uploaded).toBe(3);
+    expect(result.fsrs_uploaded).toBe(2);
     expect(hoisted.submitBatch).toHaveBeenCalledOnce();
 
     const payload = hoisted.submitBatch.mock.calls[0][0];
-    expect(payload.answers.length).toBe(3);
-    expect(payload.answers[0]).toMatchObject({
-      entity_type: "card",
+    expect(payload.answers).toEqual([]);
+    expect(payload.fsrs_updates.length).toBe(2);
+    expect(payload.fsrs_updates[0]).toMatchObject({
       entity_id: "c1",
-      is_correct: true,
-      answered_at_ms: 1_700_000_000_000,
-      idempotency_key: "local:card:c1:1700000000000",
+      source: "feed",
+      updated_at_ms: Date.parse("2026-04-20T10:00:00.000Z"),
     });
-    expect(localStorage.getItem("umnyvrach-bulk-import-done-v1")).toBe("1");
+    expect(payload.fsrs_updates[0].state).toMatchObject({
+      stability: 3.1,
+      difficulty: 5.4,
+      reps: 2,
+      lapses: 0,
+    });
+    expect(payload.fsrs_updates[1].source).toBe("prep");
+    expect(localStorage.getItem("umnyvrach-bulk-import-done-v2")).toBe("1");
   });
 
-  it("includes accreditation mistakes", async () => {
+  it("defaults source=feed for cards without explicit source", async () => {
     hoisted.isBackendEnabled.mockReturnValue(true);
     hoisted.submitBatch.mockResolvedValue({
-      answers_accepted: 1,
+      answers_accepted: 0,
       answers_duplicates: 0,
-      fsrs_upserts: 0,
+      fsrs_upserts: 1,
     });
     localStorage.setItem(
-      "sd-accreditation",
-      JSON.stringify({
-        gastro: {
-          mistakes: [
-            { questionId: "q-42", isCorrect: false, timestamp: 1_700_000_500_000 },
-          ],
-        },
-      }),
+      "sd-review",
+      JSON.stringify([{ cardId: "c1", fsrs: { stability: 1.0 } }]),
     );
 
-    const result = await bulkImportLocalProgress();
+    await bulkImportLocalProgress();
 
-    expect(result.skipped).toBe(false);
     const payload = hoisted.submitBatch.mock.calls[0][0];
-    expect(payload.answers[0]).toMatchObject({
-      entity_type: "accreditation_question",
-      entity_id: "q-42",
-      is_correct: false,
-      source: "prep",
-      idempotency_key: "local:accred:q-42:1700000500000",
+    expect(payload.fsrs_updates[0].source).toBe("feed");
+  });
+
+  it("ignores entries without cardId or fsrs", async () => {
+    hoisted.isBackendEnabled.mockReturnValue(true);
+    hoisted.submitBatch.mockResolvedValue({
+      answers_accepted: 0,
+      answers_duplicates: 0,
+      fsrs_upserts: 1,
     });
+    localStorage.setItem(
+      "sd-review",
+      JSON.stringify([
+        { cardId: "c1", fsrs: { stability: 1 } },
+        { cardId: "c2" }, // нет fsrs
+        { fsrs: { stability: 2 } }, // нет cardId
+        null, // совсем сломанный элемент
+      ]),
+    );
+
+    await bulkImportLocalProgress();
+
+    const payload = hoisted.submitBatch.mock.calls[0][0];
+    expect(payload.fsrs_updates.length).toBe(1);
+    expect(payload.fsrs_updates[0].entity_id).toBe("c1");
   });
 
   it("does not mark done when a batch fails", async () => {
     hoisted.isBackendEnabled.mockReturnValue(true);
     hoisted.submitBatch.mockRejectedValue(new Error("network"));
     localStorage.setItem(
-      "sd-progress",
-      JSON.stringify({
-        cardHistory: [{ cardId: "c1", isCorrect: true, timestamp: 1 }],
-      }),
+      "sd-review",
+      JSON.stringify([{ cardId: "c1", fsrs: { stability: 1 } }]),
     );
 
     const result = await bulkImportLocalProgress();
 
     expect(result.errors.length).toBe(1);
-    expect(localStorage.getItem("umnyvrach-bulk-import-done-v1")).toBeNull();
+    expect(localStorage.getItem("umnyvrach-bulk-import-done-v2")).toBeNull();
   });
 
   it("force=true bypasses already_done flag", async () => {
     hoisted.isBackendEnabled.mockReturnValue(true);
     hoisted.submitBatch.mockResolvedValue({
-      answers_accepted: 1,
+      answers_accepted: 0,
       answers_duplicates: 0,
-      fsrs_upserts: 0,
+      fsrs_upserts: 1,
     });
-    localStorage.setItem("umnyvrach-bulk-import-done-v1", "1");
+    localStorage.setItem("umnyvrach-bulk-import-done-v2", "1");
     localStorage.setItem(
-      "sd-progress",
-      JSON.stringify({ cardHistory: [{ cardId: "c1", isCorrect: true, timestamp: 1 }] }),
+      "sd-review",
+      JSON.stringify([{ cardId: "c1", fsrs: { stability: 1 } }]),
     );
 
     const result = await bulkImportLocalProgress({ force: true });
 
     expect(result.skipped).toBe(false);
     expect(hoisted.submitBatch).toHaveBeenCalledOnce();
+  });
+
+  it("handles malformed localStorage gracefully", async () => {
+    hoisted.isBackendEnabled.mockReturnValue(true);
+    localStorage.setItem("sd-review", "not json {");
+
+    const result = await bulkImportLocalProgress();
+
+    expect(result.skipped).toBe(true);
+    expect(result.reason).toBe("no_data");
+    expect(hoisted.submitBatch).not.toHaveBeenCalled();
   });
 });

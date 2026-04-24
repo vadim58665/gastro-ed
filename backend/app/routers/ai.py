@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from redis import Redis
 from rq import Queue
 from rq.exceptions import NoSuchJobError
@@ -13,6 +13,7 @@ from rq.job import Job
 
 from app.auth.jwt import CurrentUser, get_current_user
 from app.config import Settings, get_settings
+from app.middleware.rate_limit import AI_ENQUEUE_LIMIT, limiter
 from app.models.ai import BatchEnqueueRequest, BatchStatus, EnqueueResponse
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
@@ -35,7 +36,9 @@ def _queue(settings: Settings) -> Queue:
 
 
 @router.post("/enqueue", response_model=EnqueueResponse)
+@limiter.limit(AI_ENQUEUE_LIMIT)
 async def enqueue_batch(
+    request: Request,
     payload: BatchEnqueueRequest,
     settings: Annotated[Settings, Depends(get_settings)],
     user: Annotated[CurrentUser, Depends(get_current_user)],
@@ -51,6 +54,7 @@ async def enqueue_batch(
 
 @router.get("/status/{job_id}", response_model=BatchStatus)
 async def job_status(
+    request: Request,
     job_id: str,
     settings: Annotated[Settings, Depends(get_settings)],
     user: Annotated[CurrentUser, Depends(get_current_user)],

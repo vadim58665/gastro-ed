@@ -31,6 +31,10 @@ def _ms_to_iso(ms: int) -> str:
     return datetime.fromtimestamp(ms / 1000.0, tz=UTC).isoformat()
 
 
+DEFAULT_MISTAKES_WINDOW_DAYS = 90
+MAX_ANSWERS_PER_AGGREGATION = 50_000
+
+
 def aggregate_mistakes(
     user_id: str,
     entity_type: str | None = None,
@@ -43,11 +47,13 @@ def aggregate_mistakes(
         .select("entity_type,entity_id,is_correct,answered_at")
         .eq("user_id", user_id)
     )
-    cutoff_ms: int | None = None
-    if period_days is not None and period_days > 0:
-        cutoff = datetime.now(tz=UTC) - timedelta(days=period_days)
-        cutoff_ms = int(cutoff.timestamp() * 1000)
-        query = query.gte("answered_at", cutoff.isoformat())
+    # Фильтр по дате всегда есть: даже если клиент не прислал period_days,
+    # берём последние 90 дней, чтобы не поднимать всю историю пользователя.
+    effective_days = period_days if period_days is not None else DEFAULT_MISTAKES_WINDOW_DAYS
+    cutoff = datetime.now(tz=UTC) - timedelta(days=effective_days)
+    cutoff_ms = int(cutoff.timestamp() * 1000)
+    query = query.gte("answered_at", cutoff.isoformat())
+
     if entity_type is not None:
         query = query.eq("entity_type", entity_type)
 
@@ -62,6 +68,8 @@ def aggregate_mistakes(
         if len(data) < PAGE_SIZE:
             break
         offset += PAGE_SIZE
+        if offset >= MAX_ANSWERS_PER_AGGREGATION:
+            break
 
     # Агрегация в памяти: по (entity_type, entity_id)
     buckets: dict[tuple[str, str], dict] = defaultdict(
