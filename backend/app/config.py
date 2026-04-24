@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     supabase_url: str = Field(default="https://example.supabase.co")
     supabase_service_role_key: str = Field(default="mock-service-role-key")
     supabase_jwt_secret: str = Field(default="mock-jwt-secret-for-local-dev-only")
+    supabase_jwks_url: str | None = Field(default=None)
 
     anthropic_api_key: str = Field(default="mock-anthropic-key")
 
@@ -34,6 +35,12 @@ class Settings(BaseSettings):
 
     def is_production(self) -> bool:
         return self.environment.lower() in ("production", "prod") and not self.testing
+
+    @property
+    def jwks_url(self) -> str:
+        if self.supabase_jwks_url:
+            return self.supabase_jwks_url
+        return f"{self.supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"
 
     def validate_production_secrets(self) -> list[str]:
         """Возвращает список критичных secrets с мок-значениями в prod. Пустой = ок."""
