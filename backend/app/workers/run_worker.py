@@ -1,7 +1,4 @@
-"""RQ worker entrypoint. Фаза 0: заглушка, чтобы docker-compose worker стартовал.
-
-Фаза 1 добавит реальные задачи (AI pipeline).
-"""
+"""RQ worker entrypoint: слушает очередь `ai` и выполняет генерации."""
 
 from __future__ import annotations
 
@@ -22,7 +19,7 @@ def main() -> int:
     log.info("starting worker, redis=%s", settings.redis_url)
 
     redis_conn = Redis.from_url(settings.redis_url)
-    queues = [Queue("default", connection=redis_conn)]
+    queues = [Queue(name, connection=redis_conn) for name in ("ai", "default")]
 
     worker = Worker(queues, connection=redis_conn)
     worker.work(with_scheduler=True)

@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth.jwt import CurrentUser, get_current_user
 from app.config import Settings, get_settings
+from app.routers import ai as ai_router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -12,7 +13,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     application = FastAPI(
         title="УмныйВрач Backend",
-        version="0.1.0",
+        version="0.2.0",
         description="Перенос тяжёлой логики с фронта: AI-очередь, readiness, FSRS, аналитика.",
     )
 
@@ -38,6 +39,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "email": user.email,
             "role": user.role,
         }
+
+    application.include_router(ai_router.router)
 
     return application
 

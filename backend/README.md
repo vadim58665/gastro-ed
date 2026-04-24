@@ -8,8 +8,8 @@ FastAPI-сервис, на который поэтапно переезжает 
 
 | Фаза | Цель | Статус |
 |---|---|---|
-| 0 | Инфраструктура: FastAPI скелет, JWT, Docker, pytest, CI | ✅ в работе |
-| 1 | AI-pipeline: генерация подсказок и объяснений через RQ | планируется |
+| 0 | Инфраструктура: FastAPI скелет, JWT, Docker, pytest, CI | ✅ готово |
+| 1 | AI-pipeline: генерация подсказок и объяснений через RQ | ✅ в работе |
 | 2 | Readiness: формула P(pass) | планируется |
 | 3 | Синхронизация progress (user_answers, fsrs_state) | планируется |
 | 4 | Аналитика: /mistakes, leaderboard, графики | планируется |
@@ -103,8 +103,55 @@ curl http://localhost:8000/me
 # 403 — нужен Bearer-токен
 ```
 
+## AI pipeline (Фаза 1)
+
+Эндпойнты (все требуют Supabase JWT):
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| POST | `/api/ai/enqueue` | Поставить батч на генерацию (до 200 элементов) |
+| GET | `/api/ai/status/{job_id}` | Статус и результат батча |
+
+Формат тела запроса:
+
+```json
+{
+  "items": [
+    {
+      "entity_type": "card",
+      "entity_id": "cc-hep-3",
+      "content_type": "hint",
+      "prompt": "Тип карточки: ...\nВопрос: ...\nВарианты: ..."
+    }
+  ]
+}
+```
+
+Ответ POST `/enqueue`: `{"job_id": "...", "enqueued": N}`.
+Ответ GET `/status/...`: `{"status": "finished|queued|started|failed", "total", "completed", "failed", "cost_usd"}`.
+
+### Локальный прогон пачкой без HTTP
+
+```bash
+cd backend
+source .venv/bin/activate
+python -m app.cli generate /tmp/batch.json --limit=5 --dry-run
+```
+
+Формат файла: `{"items": [GenerationRequest, ...]}`. Без `--dry-run` реально
+вызывает Anthropic API - используйте осторожно (по правилам проекта - только с
+согласования на каждый прогон).
+
+### Модели и цены
+
+| Тип контента | Модель | Стоимость (input/output per 1M) |
+|---|---|---|
+| hint | claude-haiku-4-5-20251001 | $1 / $5 |
+| explain_short | claude-sonnet-4-6 | $3 / $15 |
+| explain_long | claude-sonnet-4-6 | $3 / $15 |
+
 ## Что дальше
 
-Когда Фаза 0 пройдёт review и merge в main:
+Когда Фазы 0 и 1 пройдут review и merge в main:
 1. Поднимаем Railway-проект и подключаем GitHub auto-deploy
-2. Переходим к Фазе 1 (порт `scripts/prebuild-content.ts` в `app/workers/ai_pipeline.py`)
+2. Фаза 2: readiness-формула P(pass) в `app/services/readiness.py`
