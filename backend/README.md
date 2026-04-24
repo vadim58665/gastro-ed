@@ -10,8 +10,8 @@ FastAPI-сервис, на который поэтапно переезжает 
 |---|---|---|
 | 0 | Инфраструктура: FastAPI скелет, JWT, Docker, pytest, CI | ✅ готово |
 | 1 | AI-pipeline: генерация подсказок и объяснений через RQ | ✅ готово |
-| 2 | Readiness: формула P(pass) | ✅ в работе |
-| 3 | Синхронизация progress (user_answers, fsrs_state) | планируется |
+| 2 | Readiness: формула P(pass) | ✅ готово |
+| 3 | Синхронизация progress (user_answers, fsrs_state) - backend | ✅ в работе |
 | 4 | Аналитика: /mistakes, leaderboard, графики | планируется |
 | 5 | Уборка дубликатов на клиенте | планируется |
 
@@ -194,8 +194,25 @@ python -m app.cli generate /tmp/batch.json --limit=5 --dry-run
 
 На Фазе 2 Python не хранит прогресс - клиент передаёт снимок localStorage. В Фазе 3 прогресс переедет в Supabase, и endpoint станет самодостаточным.
 
+## Sync progress (Фаза 3, backend-сторона)
+
+Endpoints (все требуют JWT, пишут под `auth.uid()`):
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| POST | `/api/answers/batch` | Принять батч ответов + FSRS-состояний |
+| GET | `/api/fsrs/state?since=ms&source=feed` | Дельта FSRS-состояний |
+| GET | `/api/answers/since?since=ms&limit=1000` | Журнал ответов с timestamp |
+
+Идемпотентность: каждый ответ содержит `idempotency_key` (генерирует клиент), UPSERT игнорирует дубликаты. Безопасно переотправлять.
+
+FSRS math остаётся на клиенте (Web Worker). Сервер хранит зеркало `fsrs_state` как JSON и возвращает дельты для синхронизации.
+
+Миграция: `supabase/migrations/012_user_answers_and_fsrs.sql` создаёт таблицы с RLS под `auth.uid() = user_id`. Применяется через `supabase migration up` или Supabase Dashboard.
+
 ## Что дальше
 
-Когда Фазы 0-2 пройдут review и merge в main:
+Когда Фазы 0-3 пройдут review и merge в main:
 1. Поднимаем Railway-проект и подключаем GitHub auto-deploy
-2. Фаза 3: синхронизация прогресса в Supabase (`user_answers`, `fsrs_state`)
+2. Клиентская сторона Фазы 3 (Service Worker + BackgroundSync + IndexedDB) - отдельный PR на фронт
+3. Фаза 4: аналитика `/mistakes`, leaderboard, `/stats/monthly` как server-side aggregation

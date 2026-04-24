@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.auth.jwt import CurrentUser, get_current_user
 from app.config import Settings, get_settings
 from app.routers import ai as ai_router
+from app.routers import answers as answers_router
 from app.routers import readiness as readiness_router
 
 
@@ -43,6 +44,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     application.include_router(ai_router.router)
     application.include_router(readiness_router.router)
+    application.include_router(answers_router.router)
 
     return application
 
