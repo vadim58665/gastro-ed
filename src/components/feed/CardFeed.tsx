@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useCallback, useState, useRef, useEffect } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Card } from "@/types/card";
 import { useGamification } from "@/hooks/useGamification";
 import { useMedMind } from "@/contexts/MedMindContext";
 import { useMedMindCompanion } from "@/hooks/useMedMindCompanion";
+import { useVirtualWindow } from "@/hooks/useVirtualWindow";
 import CardRenderer from "./CardRenderer";
 import DailyGoalCelebration from "@/components/ui/DailyGoalCelebration";
 import AchievementUnlock from "@/components/ui/AchievementUnlock";
@@ -12,6 +13,7 @@ import { hapticCorrect, hapticWrong } from "@/lib/feedback";
 import { isStruggling } from "@/lib/adaptive";
 import KeyFactBanner from "@/components/ui/KeyFactBanner";
 import type { AchievementDef } from "@/types/gamification";
+import type { CardHistoryEntry } from "@/types/user";
 import { useFatigueDetection } from "@/hooks/useFatigueDetection";
 import FatigueBanner from "@/components/ui/FatigueBanner";
 import PostAnswerActions, { type PostAction } from "@/components/medmind/PostAnswerActions";
@@ -42,6 +44,94 @@ function stableShuffle<T extends { id: string }>(arr: T[], seed: string): T[] {
     .map((x) => x.c);
 }
 
+interface FeedCardItemProps {
+  card: Card;
+  struggling: boolean;
+  keyFact: string | null | undefined;
+  isAnswered: boolean;
+  isWrong: boolean;
+  history: CardHistoryEntry | undefined;
+  onAnswer: (card: Card, isCorrect: boolean) => void;
+  onRef: (id: string, el: HTMLDivElement | null) => void;
+  onInnerRef: (id: string, el: HTMLDivElement | null) => void;
+  onPostAction: (card: Card, action: PostAction) => void;
+}
+
+const FeedCardItem = memo(function FeedCardItem({
+  card,
+  struggling,
+  keyFact,
+  isAnswered,
+  isWrong,
+  history,
+  onAnswer,
+  onRef,
+  onInnerRef,
+  onPostAction,
+}: FeedCardItemProps) {
+  return (
+    <div
+      data-card-id={card.id}
+      data-answered={isAnswered}
+      ref={(el) => onRef(card.id, el)}
+      className="feed-card px-3 py-3"
+    >
+      <div
+        ref={(el) => onInnerRef(card.id, el)}
+        className="w-full max-w-lg mx-auto h-full rounded-3xl card-protected aurora-hairline bg-white overflow-y-auto"
+        onContextMenu={(e) => e.preventDefault()}
+        onCopy={(e) => e.preventDefault()}
+        onDragStart={(e) => e.preventDefault()}
+      >
+        <div className="flex items-center justify-between px-6 pt-5 pb-1">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted">
+            {card.topic}
+          </span>
+          {struggling && (
+            <span
+              className="w-2 h-2 rounded-full"
+              title="Сложная карточка"
+              style={{ background: "var(--color-aurora-violet)", boxShadow: "0 0 8px rgba(139, 92, 246, 0.7)" }}
+            />
+          )}
+        </div>
+        {struggling && keyFact && <KeyFactBanner keyFact={keyFact} />}
+        <CardRenderer
+          card={card}
+          onAnswer={(isCorrect) => onAnswer(card, isCorrect)}
+          cardHistory={history}
+        />
+        {!isAnswered && (
+          <div className="px-6 pb-2">
+            <HintButton
+              entityId={card.id}
+              entityType="card"
+              topic={card.topic}
+              specialty={card.specialty}
+            />
+          </div>
+        )}
+        {isWrong && (
+          <div className="px-6 pb-2">
+            <AutoExplain
+              entityId={card.id}
+              entityType="card"
+              trigger={true}
+              topic={card.topic}
+              specialty={card.specialty}
+            />
+          </div>
+        )}
+        {isAnswered && (
+          <div className="px-6 pb-4">
+            <PostAnswerActions onAction={(action) => onPostAction(card, action)} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
 export default function CardFeed({ cards }: Props) {
   const { progress, recordAnswerWithGamification } = useGamification();
   const { setCurrentCard } = useMedMind();
@@ -63,6 +153,24 @@ export default function CardFeed({ cards }: Props) {
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const innerRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  const { startIndex, endIndex, currentIndex, topSpacerPx, bottomSpacerPx } =
+    useVirtualWindow({
+      itemCount: shuffled.length,
+      itemHeight: null,
+      containerRef: scrollRef,
+      overscanBefore: 2,
+      overscanAfter: 3,
+    });
+
+  // Обновляем текущую карточку в MedMindContext по скролл-индексу.
+  // Раньше это делалось через IntersectionObserver по всем cardRefs —
+  // при виртуализации observer наблюдал бы только за refs из Map
+  // на момент mount, пропуская появляющиеся при скролле карточки.
+  useEffect(() => {
+    const card = shuffled[currentIndex];
+    if (card) setCurrentCard(card);
+  }, [currentIndex, shuffled, setCurrentCard]);
 
   // После ответа прокручиваем inner-контейнер карточки к низу, чтобы блок
   // «Верно/Неверно + объяснение» (animate-result) оказался в кадре. Без
@@ -90,7 +198,6 @@ export default function CardFeed({ cards }: Props) {
 
     const observer = new ResizeObserver(() => scrollToBottom(false));
     observer.observe(inner);
-    // Также следим за ростом прямого ребёнка (где animate-result).
     const child = inner.firstElementChild;
     if (child) observer.observe(child as Element);
 
@@ -122,24 +229,15 @@ export default function CardFeed({ cards }: Props) {
     };
   }, [snapLocked]);
 
-  // Отслеживаем видимую карточку через IntersectionObserver
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const cardId = entry.target.getAttribute("data-card-id");
-            const card = shuffled.find((c) => c.id === cardId);
-            if (card) setCurrentCard(card);
-          }
-        }
-      },
-      { threshold: 0.6 }
-    );
+  const setCardRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) cardRefs.current.set(id, el);
+    else cardRefs.current.delete(id);
+  }, []);
 
-    cardRefs.current.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [shuffled, setCurrentCard]);
+  const setInnerRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) innerRefs.current.set(id, el);
+    else innerRefs.current.delete(id);
+  }, []);
 
   const handleAnswer = useCallback(
     (card: Card, isCorrect: boolean) => {
@@ -173,6 +271,18 @@ export default function CardFeed({ cards }: Props) {
     [recordAnswerWithGamification, recordFatigue, onCorrectAnswer, onWrongAnswer]
   );
 
+  const handlePostAction = useCallback((card: Card, action: PostAction) => {
+    const topic = card.topic;
+    const q = encodeURIComponent(
+      "question" in card ? (card as any).question ?? "" :
+      "statement" in card ? (card as any).statement ?? "" :
+      "scenario" in card ? (card as any).scenario ?? "" : ""
+    );
+    window.location.href = `/companion?topic=${encodeURIComponent(topic)}&q=${q}&action=${action}`;
+  }, []);
+
+  const visibleCards = shuffled.slice(startIndex, endIndex);
+
   return (
     <div
       ref={scrollRef}
@@ -194,86 +304,30 @@ export default function CardFeed({ cards }: Props) {
           onClose={() => setShowCelebration(false)}
         />
       )}
-      {shuffled.map((card) => {
+      {topSpacerPx > 0 && (
+        <div aria-hidden style={{ height: `${topSpacerPx}px` }} />
+      )}
+      {visibleCards.map((card) => {
         const history = progress.cardHistory?.[card.id];
-        const struggling = isStruggling(history);
         return (
-          <div
+          <FeedCardItem
             key={card.id}
-            data-card-id={card.id}
-            data-answered={answeredCardId === card.id}
-            ref={(el) => {
-              if (el) cardRefs.current.set(card.id, el);
-              else cardRefs.current.delete(card.id);
-            }}
-            className="feed-card px-3 py-3"
-          >
-            <div
-              ref={(el) => {
-                if (el) innerRefs.current.set(card.id, el);
-                else innerRefs.current.delete(card.id);
-              }}
-              className="w-full max-w-lg mx-auto h-full rounded-3xl card-protected aurora-hairline bg-white overflow-y-auto"
-              onContextMenu={(e) => e.preventDefault()}
-              onCopy={(e) => e.preventDefault()}
-              onDragStart={(e) => e.preventDefault()}
-            >
-              <div className="flex items-center justify-between px-6 pt-5 pb-1">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted">
-                  {card.topic}
-                </span>
-                {struggling && (
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    title="Сложная карточка"
-                    style={{ background: "var(--color-aurora-violet)", boxShadow: "0 0 8px rgba(139, 92, 246, 0.7)" }}
-                  />
-                )}
-              </div>
-              {struggling && card.keyFact && (
-                <KeyFactBanner keyFact={card.keyFact} />
-              )}
-              <CardRenderer card={card} onAnswer={(isCorrect) => handleAnswer(card, isCorrect)} cardHistory={history} />
-              {answeredCardId !== card.id && (
-                <div className="px-6 pb-2">
-                  <HintButton
-                    entityId={card.id}
-                    entityType="card"
-                    topic={card.topic}
-                    specialty={card.specialty}
-                  />
-                </div>
-              )}
-              {wrongCardId === card.id && (
-                <div className="px-6 pb-2">
-                  <AutoExplain
-                    entityId={card.id}
-                    entityType="card"
-                    trigger={true}
-                    topic={card.topic}
-                    specialty={card.specialty}
-                  />
-                </div>
-              )}
-              {answeredCardId === card.id && (
-                <div className="px-6 pb-4">
-                  <PostAnswerActions
-                    onAction={(action) => {
-                      const topic = card.topic;
-                      const q = encodeURIComponent(
-                        "question" in card ? (card as any).question ?? "" :
-                        "statement" in card ? (card as any).statement ?? "" :
-                        "scenario" in card ? (card as any).scenario ?? "" : ""
-                      );
-                      window.location.href = `/companion?topic=${encodeURIComponent(topic)}&q=${q}&action=${action}`;
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+            card={card}
+            struggling={isStruggling(history)}
+            keyFact={card.keyFact}
+            isAnswered={answeredCardId === card.id}
+            isWrong={wrongCardId === card.id}
+            history={history}
+            onAnswer={handleAnswer}
+            onRef={setCardRef}
+            onInnerRef={setInnerRef}
+            onPostAction={handlePostAction}
+          />
         );
       })}
+      {bottomSpacerPx > 0 && (
+        <div aria-hidden style={{ height: `${bottomSpacerPx}px` }} />
+      )}
     </div>
   );
 }
