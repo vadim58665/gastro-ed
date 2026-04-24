@@ -12,6 +12,7 @@ import type { User } from "@supabase/supabase-js";
 import posthog from "posthog-js";
 import { getSupabase } from "@/lib/supabase/client";
 import { fullSync } from "@/lib/supabase/sync";
+import { useBackendSync } from "@/hooks/useBackendSync";
 
 export interface UserProfile {
   nickname: string | null;
@@ -78,6 +79,8 @@ function clearCachedProfile() {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  // No-op пока NEXT_PUBLIC_BACKEND_URL не задан — хук сам себя крутит.
+  useBackendSync(user?.id ?? null);
   // undefined = ещё не загружали; null = загружено, но профиля нет; объект = есть
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const [profileConfirmed, setProfileConfirmed] = useState(false);
