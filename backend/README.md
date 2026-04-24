@@ -12,7 +12,8 @@ FastAPI-сервис, на который поэтапно переезжает 
 | 1 | AI-pipeline: генерация подсказок и объяснений через RQ | ✅ готово |
 | 2 | Readiness: формула P(pass) | ✅ готово |
 | 3 | Синхронизация progress (user_answers, fsrs_state) - backend | ✅ готово |
-| 4 | Аналитика: /mistakes, leaderboard, графики | ✅ в работе |
+| 4 | Аналитика: /mistakes, leaderboard, графики | ✅ готово |
+| 4.5 | Production-readiness: logging, rate limits, healthchecks, Procfile | ✅ в работе |
 | 5 | Уборка дубликатов на клиенте | планируется |
 
 Полный план: `docs/superpowers/specs/*-python-backend-design.md` (после утверждения брифа).
@@ -223,9 +224,18 @@ Endpoints (все требуют JWT):
 Источник данных - `user_answers` (Фаза 3) и `daily_case_results` (миграция 007).
 Для 100-1000 пользователей агрегация в Python ок; при росте заменяется SQL RPC.
 
+## Production-readiness (Фаза 4.5)
+
+- **Logging**: `RequestLoggingMiddleware` вешает `X-Request-ID` на каждый ответ, пишет в лог method/path/status/duration
+- **Healthchecks**: `/health` (liveness) и `/health/ready` (проверяет Supabase + Redis, возвращает 503 если что-то недоступно)
+- **Rate limiting**: `slowapi` с in-memory storage, ключ по JWT или IP. Лимиты: AI enqueue 30/мин, readiness 60/мин, answers 60/мин, analytics 120/мин
+- **Exception handlers**: все ошибки возвращаются как JSON с `{error, detail, request_id}`
+- **Config validation**: в `environment=production` отказываемся стартовать с мок-secret'ами или коротким JWT секретом
+- **Railway**: `Procfile` с сервисами `web` (uvicorn --workers 2) и `worker` (RQ), плюс `railway.toml` с healthcheck путём
+
 ## Что дальше
 
-Когда Фазы 0-4 пройдут review и merge в main:
-1. Поднимаем Railway-проект и подключаем GitHub auto-deploy
-2. Клиентская сторона (Service Worker, BackgroundSync, замена хуков на fetch) - Фаза 5 отдельным PR на фронт
-3. Первый реальный прогон AI pipeline на 10-50 карт для валидации качества подсказок
+Когда Фазы 0-4.5 пройдут review и merge в main:
+1. Поднимаем Railway-проект, привязываем GitHub repo, добавляем Redis плагин, пробрасываем secrets
+2. Клиентская сторона Фазы 5 (Service Worker, BackgroundSync, замена хуков на fetch) - отдельным PR на фронт с реальным `NEXT_PUBLIC_BACKEND_URL`
+3. Первый реальный прогон AI pipeline на 10-50 карт для валидации качества подсказок (по правилу проекта - только с явного согласования)
