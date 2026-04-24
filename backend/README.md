@@ -9,8 +9,8 @@ FastAPI-сервис, на который поэтапно переезжает 
 | Фаза | Цель | Статус |
 |---|---|---|
 | 0 | Инфраструктура: FastAPI скелет, JWT, Docker, pytest, CI | ✅ готово |
-| 1 | AI-pipeline: генерация подсказок и объяснений через RQ | ✅ в работе |
-| 2 | Readiness: формула P(pass) | планируется |
+| 1 | AI-pipeline: генерация подсказок и объяснений через RQ | ✅ готово |
+| 2 | Readiness: формула P(pass) | ✅ в работе |
 | 3 | Синхронизация progress (user_answers, fsrs_state) | планируется |
 | 4 | Аналитика: /mistakes, leaderboard, графики | планируется |
 | 5 | Уборка дубликатов на клиенте | планируется |
@@ -150,8 +150,52 @@ python -m app.cli generate /tmp/batch.json --limit=5 --dry-run
 | explain_short | claude-sonnet-4-6 | $3 / $15 |
 | explain_long | claude-sonnet-4-6 | $3 / $15 |
 
+## Readiness (Фаза 2)
+
+Эндпойнт: `POST /api/readiness/compute` (требует JWT).
+
+Вход - снимок `questionStats` из клиента + список вопросов с `block_number`:
+
+```json
+{
+  "specialty": "gastroenterologiya",
+  "questions": [
+    {
+      "question_id": "q1",
+      "block_number": 1,
+      "stats": {
+        "attempts": 3,
+        "wrong": 1,
+        "last_seen_ms": 1700000000000,
+        "was_ever_correct": true,
+        "last_answer_correct": true,
+        "correct_streak": 2
+      }
+    }
+  ],
+  "now_ms": 1700000500000
+}
+```
+
+Выход - отчёт готовности:
+
+- `exam_readiness` и `exam_readiness_percent` (P(≥70% на экзамене из 80 вопросов))
+- `coverage` (доля вопросов с attempts > 0)
+- `average_strength` (средняя p_correct)
+- `weak_count` (count p < 0.4)
+- `blocks[]` с уровнями `not_started | started | weak | ready | strong`
+
+Формула по [спеке readiness 2026-04-20](../docs/superpowers/specs/2026-04-20-readiness-formula-design.md):
+
+- `p_correct(q) = 0.25 + 0.75 × exp(-days_since_seen / S)` при streak ≥ 1
+- `S = 3 × 2^(streak-1)` (базовая стабильность удваивается за каждый правильный подряд)
+- При последнем неверном ответе - возврат к baseline 0.25
+- `P(sum_of_correct ≥ 56) = 1 - Φ((55.5 - μ) / σ)` (CLT)
+
+На Фазе 2 Python не хранит прогресс - клиент передаёт снимок localStorage. В Фазе 3 прогресс переедет в Supabase, и endpoint станет самодостаточным.
+
 ## Что дальше
 
-Когда Фазы 0 и 1 пройдут review и merge в main:
+Когда Фазы 0-2 пройдут review и merge в main:
 1. Поднимаем Railway-проект и подключаем GitHub auto-deploy
-2. Фаза 2: readiness-формула P(pass) в `app/services/readiness.py`
+2. Фаза 3: синхронизация прогресса в Supabase (`user_answers`, `fsrs_state`)
