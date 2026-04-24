@@ -13,8 +13,9 @@ FastAPI-сервис, на который поэтапно переезжает 
 | 2 | Readiness: формула P(pass) | ✅ готово |
 | 3 | Синхронизация progress (user_answers, fsrs_state) - backend | ✅ готово |
 | 4 | Аналитика: /mistakes, leaderboard, графики | ✅ готово |
-| 4.5 | Production-readiness: logging, rate limits, healthchecks, Procfile | ✅ в работе |
-| 5 | Уборка дубликатов на клиенте | планируется |
+| 4.5 | Production-readiness: logging, rate limits, healthchecks, Procfile | ✅ готово |
+| 5a | Фронт-клиент: HTTP-обёртка, типизированные wrappers, feature flag | ✅ в работе |
+| 5b | Замена хуков на fetch, Service Worker, bulk-import localStorage | ждёт Railway |
 
 Полный план: `docs/superpowers/specs/*-python-backend-design.md` (после утверждения брифа).
 
@@ -233,9 +234,43 @@ Endpoints (все требуют JWT):
 - **Config validation**: в `environment=production` отказываемся стартовать с мок-secret'ами или коротким JWT секретом
 - **Railway**: `Procfile` с сервисами `web` (uvicorn --workers 2) и `worker` (RQ), плюс `railway.toml` с healthcheck путём
 
+## Фронт-клиент (Фаза 5a)
+
+В `src/lib/backendClient.ts` и `src/lib/backend/*.ts`:
+
+- `backendFetch<T>(path, options)` - универсальная обёртка с авто-подставкой Supabase JWT, timeout'ом, `X-Request-ID` tracking
+- `BackendReadiness.computeReadinessRemote(payload)` - POST `/api/readiness/compute`
+- `BackendAnalytics.fetchMistakes()`, `fetchDailyCaseLeaderboard()`, `fetchMonthlyStats()`
+- `BackendSync.submitBatch()`, `fetchFsrsState()`, `fetchAnswersSince()`
+- `BackendAi.enqueueBatch()`, `fetchJobStatus()`
+
+**Feature flag.** Все функции проверяют `NEXT_PUBLIC_BACKEND_URL`:
+- Пусто (default) → `BackendDisabledError` → вызывающий код делает fallback на старую локальную логику
+- Задано → обычный HTTP-запрос
+
+Это позволяет коммитить фронтовую интеграцию БЕЗ живого Railway. После деплоя просто задаётся env в Vercel и все новые пути начинают работать.
+
+Пример использования в компоненте:
+
+```tsx
+import { isBackendEnabled, BackendReadiness } from "@/lib/backend";
+
+async function getReadiness(payload) {
+  if (isBackendEnabled()) {
+    try {
+      return await BackendReadiness.computeReadinessRemote(payload);
+    } catch (err) {
+      console.warn("Backend unavailable, falling back to local", err);
+    }
+  }
+  return computeReadinessLocal(payload); // старая логика
+}
+```
+
 ## Что дальше
 
-Когда Фазы 0-4.5 пройдут review и merge в main:
+Когда Фазы 0-5a пройдут review и merge в main:
 1. Поднимаем Railway-проект, привязываем GitHub repo, добавляем Redis плагин, пробрасываем secrets
-2. Клиентская сторона Фазы 5 (Service Worker, BackgroundSync, замена хуков на fetch) - отдельным PR на фронт с реальным `NEXT_PUBLIC_BACKEND_URL`
-3. Первый реальный прогон AI pipeline на 10-50 карт для валидации качества подсказок (по правилу проекта - только с явного согласования)
+2. В Vercel задаём `NEXT_PUBLIC_BACKEND_URL=https://<railway-url>`
+3. Фаза 5b - замена `useAccreditation`/`useReview` вычислений на fetch, Service Worker + BackgroundSync, одноразовый bulk-import localStorage
+4. Первый реальный прогон AI pipeline на 10-50 карт (требует явного согласования)
