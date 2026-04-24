@@ -7,7 +7,13 @@ import logging
 from dataclasses import dataclass
 from typing import Protocol
 
-from anthropic import AsyncAnthropic, RateLimitError
+from anthropic import (
+    APIConnectionError,
+    APITimeoutError,
+    AsyncAnthropic,
+    InternalServerError,
+    RateLimitError,
+)
 
 from app.config import get_settings
 from app.models.ai import GenerationRequest, GenerationResult
@@ -89,6 +95,21 @@ class AIClient:
                     "rate limited on %s/%s, retry in %.1fs (attempt %d)",
                     req.entity_type.value,
                     req.entity_id,
+                    wait_s,
+                    attempt,
+                )
+                await asyncio.sleep(wait_s)
+            except (APIConnectionError, APITimeoutError, InternalServerError) as err:
+                last_err = err
+                if attempt >= max_retries:
+                    raise
+                # Экспоненциальный backoff для транзиентных сетевых/5xx ошибок.
+                wait_s = min(30.0, 1.0 * 2 ** (attempt - 1))
+                log.warning(
+                    "transient error on %s/%s (%s), retry in %.1fs (attempt %d)",
+                    req.entity_type.value,
+                    req.entity_id,
+                    type(err).__name__,
                     wait_s,
                     attempt,
                 )

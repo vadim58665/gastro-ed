@@ -5,9 +5,10 @@ from __future__ import annotations
 import re
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from app.auth.jwt import CurrentUser, get_current_user
+from app.middleware.rate_limit import ANALYTICS_LIMIT, limiter
 from app.models.analytics import (
     LeaderboardResponse,
     MistakesResponse,
@@ -25,7 +26,9 @@ DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 @router.get("/mistakes", response_model=MistakesResponse)
+@limiter.limit(ANALYTICS_LIMIT)
 async def mistakes(
+    request: Request,
     user: Annotated[CurrentUser, Depends(get_current_user)],
     entity_type: Annotated[str | None, Query(pattern=r"^(card|accreditation_question)$")] = None,
     period_days: Annotated[int | None, Query(ge=1, le=365)] = None,
@@ -40,7 +43,9 @@ async def mistakes(
 
 
 @router.get("/leaderboard/daily-case", response_model=LeaderboardResponse)
+@limiter.limit(ANALYTICS_LIMIT)
 async def leaderboard(
+    request: Request,
     user: Annotated[CurrentUser, Depends(get_current_user)],
     case_date: Annotated[str, Query(description="YYYY-MM-DD")],
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
@@ -54,7 +59,9 @@ async def leaderboard(
 
 
 @router.get("/stats/monthly", response_model=MonthlyStatsResponse)
+@limiter.limit(ANALYTICS_LIMIT)
 async def monthly(
+    request: Request,
     user: Annotated[CurrentUser, Depends(get_current_user)],
     year: Annotated[int, Query(ge=2024, le=2100)],
     month: Annotated[int, Query(ge=1, le=12)],

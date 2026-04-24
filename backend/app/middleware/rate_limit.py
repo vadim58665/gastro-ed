@@ -6,6 +6,8 @@ in-memory. При scale-out потребуется переход на Redis-sto
 
 from __future__ import annotations
 
+import hashlib
+
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from starlette.requests import Request
@@ -14,12 +16,17 @@ from app.auth.jwt import bearer_scheme
 
 
 def _key_by_user_then_ip(request: Request) -> str:
-    """Ключ лимита: user_id из JWT если есть, иначе IP."""
+    """Ключ лимита: стабильный хеш токена если есть, иначе IP.
+
+    Используется SHA256 вместо встроенного hash() чтобы ключ был
+    детерминированным между рестартами Python-процесса (иначе лимит
+    обходится простым перезапуском сервера).
+    """
     auth = request.headers.get("authorization") or ""
     if auth.startswith("Bearer "):
-        # Простое хеширование токена без верификации подписи - цель лишь
-        # стабильный ключ. Не используется для авторизации.
-        return f"user:{hash(auth[7:]) & 0xFFFFFFFF}"
+        token = auth[7:].encode("utf-8")
+        digest = hashlib.sha256(token).hexdigest()[:16]
+        return f"user:{digest}"
     return f"ip:{get_remote_address(request)}"
 
 

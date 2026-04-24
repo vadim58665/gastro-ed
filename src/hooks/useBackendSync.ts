@@ -89,13 +89,16 @@ export function useBackendSync(
     }
   }, [enabled, refreshCounts]);
 
-  // Один раз при получении userId - bulk-import из localStorage
+  // Один раз при получении userId - bulk-import из localStorage.
+  // userId пробрасывается в bulkImport чтобы флаг "уже мигрировано"
+  // был per-user: два аккаунта на одном устройстве получают независимые
+  // миграции.
   useEffect(() => {
     if (!enabled || !userId || !runBulkImport) return;
     let cancelled = false;
     (async () => {
       try {
-        const result = await bulkImportLocalProgress();
+        const result = await bulkImportLocalProgress({ userId });
         if (!cancelled) setBulkImportResult(result);
       } catch (err) {
         if (!cancelled) {

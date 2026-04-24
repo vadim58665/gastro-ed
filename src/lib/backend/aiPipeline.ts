@@ -23,9 +23,20 @@ export interface EnqueueResponse {
   enqueued: number;
 }
 
+/** RQ job status. См. rq.job.JobStatus для полного списка. */
+export type JobStatus =
+  | "queued"
+  | "started"
+  | "finished"
+  | "failed"
+  | "deferred"
+  | "scheduled"
+  | "stopped"
+  | "canceled";
+
 export interface BatchStatus {
   job_id: string;
-  status: "queued" | "started" | "finished" | "failed" | "deferred" | "scheduled" | "stopped";
+  status: JobStatus | string;
   total: number;
   completed: number;
   failed: number;

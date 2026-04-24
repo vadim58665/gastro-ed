@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
+EntityTypeStr = Literal["card", "accreditation_question"]
 
 
 class MistakeRow(BaseModel):
-    entity_type: str
+    entity_type: EntityTypeStr
     entity_id: str
     wrong_count: int
     total_attempts: int

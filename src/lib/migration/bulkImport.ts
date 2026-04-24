@@ -1,59 +1,76 @@
 /**
- * Одноразовый импорт прогресса из localStorage в Supabase при первом входе
- * пользователя после деплоя Python-бэкенда.
+ * Одноразовая миграция FSRS-состояния из localStorage в Supabase при первом
+ * входе пользователя после деплоя Python-бэкенда.
+ *
+ * Что мигрируем:
+ * - `sd-review` (массив ReviewCard с FSRS state) → POST /api/answers/batch
+ *   в виде `fsrs_updates[]`. Это позволяет пользователю видеть свой прогресс
+ *   по карточкам с любого устройства после миграции.
+ *
+ * Что НЕ мигрируем и почему:
+ * - `sd-progress` (useProgress): хранит агрегаты (streak, xp, totalPoints),
+ *   а не историю ответов. Восстанавливать синтетические ответы с
+ *   выдуманными timestamp'ами вреднее чем оставить пустую историю.
+ * - `sd-accreditation.questionStats` / `mistakes[]`: хранит только
+ *   агрегаты (attempts, wrong, lastSeen), не полную историю. Аналогично.
  *
  * Ключевые свойства:
- * - **Идемпотентность**: каждая запись получает стабильный `idempotency_key`
- *   в формате `local:<entity_id>:<answered_at_ms>`. Повторный вызов безопасен.
- * - **Один раз на пользователя**: флаг `umnyvrach-bulk-import-done-v1` в
- *   localStorage отмечает что импорт завершён.
- * - **Batch**: отправляется пачками по 200, чтобы не упереться в лимит API.
- * - **Resumable**: прерванный импорт можно запустить снова; дубликаты
- *   игнорируются на уровне БД.
+ * - **Идемпотентность**: UPSERT по (user_id, entity_id, source) на сервере.
+ * - **Один раз на устройство**: флаг `umnyvrach-bulk-import-done-v2`.
+ *   Версия v2 поставлена из-за смены стратегии по сравнению с первичным
+ *   вариантом (ранее пытались импортировать синтетические ответы).
  */
 
-import type { AnswerRecord, AnswerSource, EntityType } from "@/lib/backend/sync";
+import type { BatchAnswersRequest, FsrsStateDelta, FsrsSource } from "@/lib/backend/sync";
 import { BackendSync, isBackendEnabled } from "@/lib/backend";
 
 const BATCH_SIZE = 200;
-const DONE_FLAG = "umnyvrach-bulk-import-done-v1";
+const DONE_FLAG_BASE = "umnyvrach-bulk-import-done-v2";
 
-interface LegacyCardHistoryEntry {
-  cardId: string;
-  isCorrect: boolean;
-  timestamp: number;
-  source?: "feed" | "prep" | "exam" | "browse";
-  timeSpentMs?: number;
+function doneFlagKey(userId: string | null): string {
+  // Per-user флаг: два разных аккаунта на одном устройстве получают
+  // собственные импорты (общий ключ привёл бы к пропуску миграции для
+  // второго пользователя).
+  return userId ? `${DONE_FLAG_BASE}:${userId}` : DONE_FLAG_BASE;
 }
 
-interface LegacyAccreditationAttempt {
-  questionId: string;
-  isCorrect: boolean;
-  timestamp: number;
+interface LegacyFsrsCard {
+  cardId: string;
+  fsrs?: {
+    stability?: number;
+    difficulty?: number;
+    due?: string | number | Date;
+    last_review?: string | number | Date;
+    reps?: number;
+    lapses?: number;
+    state?: number;
+    elapsed_days?: number;
+    scheduled_days?: number;
+  };
+  source?: string;
 }
 
 export interface BulkImportResult {
   skipped: boolean;
   reason?: "already_done" | "backend_disabled" | "no_data";
-  total_uploaded: number;
-  total_duplicates: number;
+  fsrs_uploaded: number;
   batches_sent: number;
   errors: string[];
 }
 
-function alreadyDone(): boolean {
+function alreadyDone(userId: string | null): boolean {
   try {
-    return localStorage.getItem(DONE_FLAG) === "1";
+    return localStorage.getItem(doneFlagKey(userId)) === "1";
   } catch {
     return false;
   }
 }
 
-function markDone(): void {
+function markDone(userId: string | null): void {
   try {
-    localStorage.setItem(DONE_FLAG, "1");
+    localStorage.setItem(doneFlagKey(userId), "1");
   } catch {
-    // ignore (Safari private mode)
+    // Safari private mode и прочие случаи - игнорируем, не критично.
   }
 }
 
@@ -66,59 +83,72 @@ function safeParse<T>(raw: string | null): T | null {
   }
 }
 
-function collectCardAnswers(): AnswerRecord[] {
-  const raw = (typeof localStorage !== "undefined" && localStorage.getItem("sd-progress")) || null;
-  const progress = safeParse<{ cardHistory?: LegacyCardHistoryEntry[] }>(raw);
-  const history = progress?.cardHistory ?? [];
-  return history.map<AnswerRecord>((entry) => ({
-    entity_type: "card",
-    entity_id: entry.cardId,
-    is_correct: entry.isCorrect,
-    answered_at_ms: entry.timestamp,
-    time_spent_ms: entry.timeSpentMs,
-    source: (entry.source ?? "feed") as AnswerSource,
-    idempotency_key: `local:card:${entry.cardId}:${entry.timestamp}`,
-  }));
-}
-
-function collectAccreditationAnswers(): AnswerRecord[] {
-  const raw = (typeof localStorage !== "undefined" && localStorage.getItem("sd-accreditation")) || null;
-  const rootRecord = safeParse<Record<string, { mistakes?: LegacyAccreditationAttempt[] }>>(raw);
-  if (!rootRecord) return [];
-  const answers: AnswerRecord[] = [];
-  for (const [, data] of Object.entries(rootRecord)) {
-    const mistakes = data?.mistakes ?? [];
-    for (const attempt of mistakes) {
-      const ts =
-        typeof (attempt as LegacyAccreditationAttempt).timestamp === "number"
-          ? (attempt as LegacyAccreditationAttempt).timestamp
-          : 0;
-      if (!ts) continue;
-      answers.push({
-        entity_type: "accreditation_question",
-        entity_id: (attempt as LegacyAccreditationAttempt).questionId,
-        is_correct: (attempt as LegacyAccreditationAttempt).isCorrect,
-        answered_at_ms: ts,
-        source: "prep",
-        idempotency_key: `local:accred:${(attempt as LegacyAccreditationAttempt).questionId}:${ts}`,
-      });
-    }
+function toMillis(value: string | number | Date | undefined): number | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (value instanceof Date) {
+    const t = value.getTime();
+    return Number.isFinite(t) ? t : null;
   }
-  return answers;
+  const parsed = Date.parse(String(value));
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
-type EntityTypeLiteral = EntityType;
-void (null as EntityTypeLiteral | null); // reference to avoid unused-import
+function normalizeSource(raw: string | undefined): FsrsSource {
+  return raw === "prep" ? "prep" : "feed";
+}
+
+function collectFsrsUpdates(): FsrsStateDelta[] {
+  if (typeof localStorage === "undefined") return [];
+  const raw = localStorage.getItem("sd-review");
+  const cards = safeParse<LegacyFsrsCard[]>(raw);
+  if (!Array.isArray(cards)) return [];
+
+  const now = Date.now();
+  const deltas: FsrsStateDelta[] = [];
+  for (const card of cards) {
+    if (!card?.cardId || !card.fsrs) continue;
+    const lastReviewMs = toMillis(card.fsrs.last_review);
+    deltas.push({
+      entity_id: String(card.cardId),
+      source: normalizeSource(card.source),
+      state: {
+        stability: card.fsrs.stability ?? 0,
+        difficulty: card.fsrs.difficulty ?? 0,
+        due: toMillis(card.fsrs.due),
+        last_review: lastReviewMs,
+        reps: card.fsrs.reps ?? 0,
+        lapses: card.fsrs.lapses ?? 0,
+        state: card.fsrs.state ?? 0,
+        elapsed_days: card.fsrs.elapsed_days,
+        scheduled_days: card.fsrs.scheduled_days,
+      },
+      updated_at_ms: lastReviewMs ?? now,
+    });
+  }
+  return deltas;
+}
+
+export interface BulkImportOptions {
+  /** Принудительно запустить импорт даже если done-флаг уже установлен. */
+  force?: boolean;
+  /**
+   * ID пользователя для per-user done-флага. Если null, используется общий
+   * ключ (для обратной совместимости со старыми вызовами без auth контекста).
+   */
+  userId?: string | null;
+}
 
 export async function bulkImportLocalProgress(
-  options: { force?: boolean } = {},
+  options: BulkImportOptions = {},
 ): Promise<BulkImportResult> {
-  if (!options.force && alreadyDone()) {
+  const { force = false, userId = null } = options;
+
+  if (!force && alreadyDone(userId)) {
     return {
       skipped: true,
       reason: "already_done",
-      total_uploaded: 0,
-      total_duplicates: 0,
+      fsrs_uploaded: 0,
       batches_sent: 0,
       errors: [],
     };
@@ -127,40 +157,37 @@ export async function bulkImportLocalProgress(
     return {
       skipped: true,
       reason: "backend_disabled",
-      total_uploaded: 0,
-      total_duplicates: 0,
+      fsrs_uploaded: 0,
       batches_sent: 0,
       errors: [],
     };
   }
 
-  const all = [...collectCardAnswers(), ...collectAccreditationAnswers()];
-  if (all.length === 0) {
-    markDone();
+  const updates = collectFsrsUpdates();
+  if (updates.length === 0) {
+    markDone(userId);
     return {
       skipped: true,
       reason: "no_data",
-      total_uploaded: 0,
-      total_duplicates: 0,
+      fsrs_uploaded: 0,
       batches_sent: 0,
       errors: [],
     };
   }
 
   let uploaded = 0;
-  let duplicates = 0;
   let batches = 0;
   const errors: string[] = [];
 
-  for (let i = 0; i < all.length; i += BATCH_SIZE) {
-    const batch = all.slice(i, i + BATCH_SIZE);
+  for (let i = 0; i < updates.length; i += BATCH_SIZE) {
+    const batchSlice = updates.slice(i, i + BATCH_SIZE);
+    const payload: BatchAnswersRequest = {
+      answers: [],
+      fsrs_updates: batchSlice,
+    };
     try {
-      const response = await BackendSync.submitBatch({
-        answers: batch,
-        fsrs_updates: [],
-      });
-      uploaded += response.answers_accepted;
-      duplicates += response.answers_duplicates;
+      const response = await BackendSync.submitBatch(payload);
+      uploaded += response.fsrs_upserts;
       batches += 1;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -170,21 +197,20 @@ export async function bulkImportLocalProgress(
   }
 
   if (errors.length === 0) {
-    markDone();
+    markDone(userId);
   }
 
   return {
     skipped: false,
-    total_uploaded: uploaded,
-    total_duplicates: duplicates,
+    fsrs_uploaded: uploaded,
     batches_sent: batches,
     errors,
   };
 }
 
-export function resetBulkImportFlag(): void {
+export function resetBulkImportFlag(userId: string | null = null): void {
   try {
-    localStorage.removeItem(DONE_FLAG);
+    localStorage.removeItem(doneFlagKey(userId));
   } catch {
     // ignore
   }

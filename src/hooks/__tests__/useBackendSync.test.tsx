@@ -58,8 +58,7 @@ describe("useBackendSync", () => {
     hoisted.isBackendEnabled.mockReturnValue(true);
     hoisted.bulkImport.mockResolvedValue({
       skipped: false,
-      total_uploaded: 5,
-      total_duplicates: 0,
+      fsrs_uploaded: 5,
       batches_sent: 1,
       errors: [],
     });
@@ -67,7 +66,7 @@ describe("useBackendSync", () => {
     const { result } = renderHook(() => useBackendSync("user-42"));
 
     await waitFor(() => expect(hoisted.bulkImport).toHaveBeenCalledOnce());
-    await waitFor(() => expect(result.current.bulkImportResult?.total_uploaded).toBe(5));
+    await waitFor(() => expect(result.current.bulkImportResult?.fsrs_uploaded).toBe(5));
   });
 
   it("sync() is a no-op when backend disabled", async () => {
@@ -87,8 +86,7 @@ describe("useBackendSync", () => {
     hoisted.bulkImport.mockResolvedValue({
       skipped: true,
       reason: "already_done",
-      total_uploaded: 0,
-      total_duplicates: 0,
+      fsrs_uploaded: 0,
       batches_sent: 0,
       errors: [],
     });
@@ -115,8 +113,7 @@ describe("useBackendSync", () => {
     hoisted.bulkImport.mockResolvedValue({
       skipped: true,
       reason: "already_done",
-      total_uploaded: 0,
-      total_duplicates: 0,
+      fsrs_uploaded: 0,
       batches_sent: 0,
       errors: [],
     });
