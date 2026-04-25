@@ -29,6 +29,12 @@ interface Props {
    * активной специальности пользователя.
    */
   specialty?: string;
+  /**
+   * Когда несколько HintButton отрисованы в ленте (BrowseFeed) —
+   * клик по неактивной карточке не должен запускать запрос. Карточка
+   * становится активной, когда оказывается в центре viewport.
+   */
+  inactive?: boolean;
 }
 
 async function getAuthToken(): Promise<string> {
@@ -41,12 +47,19 @@ async function getAuthToken(): Promise<string> {
 /**
  * Достаёт из результата /api/medmind/generate полезную строку подсказки.
  * Промпт типа `tip` просит JSON `{ tip: "..." }`, но Claude иногда
- * возвращает plain-text или весь объект JSON в `content_ru`. Аккуратно
- * вытаскиваем строку; если не получилось — возвращаем исходник.
+ * возвращает plain-text или весь объект JSON в ```json fence```. Сначала
+ * снимаем markdown-fence, потом пробуем JSON.parse; в крайнем случае
+ * отдаём text-fallback.
  */
 function extractTip(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const trimmed = raw.trim();
+  let trimmed = raw.trim();
+
+  const fence = trimmed.match(/^```(?:json|JSON)?\s*\n?([\s\S]*?)\n?```$/);
+  if (fence) {
+    trimmed = fence[1].trim();
+  }
+
   try {
     const parsed = JSON.parse(trimmed);
     if (typeof parsed === "string") return parsed;
@@ -60,7 +73,14 @@ function extractTip(raw: string | null | undefined): string | null {
   return trimmed;
 }
 
-export default function HintButton({ entityId, entityType = "card", context, topic, specialty }: Props) {
+export default function HintButton({
+  entityId,
+  entityType = "card",
+  context,
+  topic,
+  specialty,
+  inactive = false,
+}: Props) {
   const { isPro } = useSubscription();
   const router = useRouter();
   const [hint, setHint] = useState<string | null>(null);
@@ -69,6 +89,7 @@ export default function HintButton({ entityId, entityType = "card", context, top
   const [showPaywall, setShowPaywall] = useState(false);
 
   const handleClick = useCallback(async () => {
+    if (inactive) return;
     if (!isPro) {
       setShowPaywall(true);
       return;
@@ -177,7 +198,7 @@ export default function HintButton({ entityId, entityType = "card", context, top
       setError("Ошибка соединения");
     }
     setLoading(false);
-  }, [isPro, hint, loading, entityId, entityType, context, topic, specialty]);
+  }, [inactive, isPro, hint, loading, entityId, entityType, context, topic, specialty]);
 
   if (showPaywall) {
     return (
@@ -233,10 +254,30 @@ export default function HintButton({ entityId, entityType = "card", context, top
     );
   }
 
+  // Для не-Pro пользователей показываем замок рядом с кнопкой —
+  // сразу видно, что фича есть, но требует подписки. По клику —
+  // paywall (как и раньше).
+  const lockIcon = !isPro ? (
+    <svg
+      width="11"
+      height="11"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ opacity: 0.7 }}
+    >
+      <rect x="4" y="11" width="16" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  ) : null;
+
   return (
     <button
       onClick={handleClick}
-      disabled={loading}
+      disabled={loading || inactive}
       className="mt-3 inline-flex items-center gap-1.5 text-xs btn-press disabled:opacity-50"
       style={{ color: "var(--color-aurora-violet)" }}
       aria-label="Показать подсказку"
@@ -255,6 +296,7 @@ export default function HintButton({ entityId, entityType = "card", context, top
         <line x1="9" y1="21" x2="15" y2="21" />
       </svg>
       <span>{loading ? "Генерирую подсказку..." : error ?? "Подсказка"}</span>
+      {lockIcon}
     </button>
   );
 }

@@ -212,6 +212,10 @@ export default function QuestionView({
           context={question.question}
           topic={specialtyId ? `${specialtyId}:${question.id}` : question.id}
           specialty={question.specialty}
+          // Превращаем кнопку в no-op пока карточка не в фокусе — иначе
+          // в browse-режиме 100 одновременных кликов невозможны, но
+          // расход rate-limit при пред-загрузке (если она появится) будет.
+          inactive={!isActive}
         />
       )}
 
@@ -226,12 +230,17 @@ export default function QuestionView({
       {/* Auto-explain для подписчиков после ЛЮБОГО ответа (не только
           ошибочного). В exam-режиме не раскрываем правильный вариант
           до конца экзамена. В browse — показываем сразу, без ожидания
-          ответа: режим и есть просмотр с полным разбором. */}
+          ответа: режим и есть просмотр с полным разбором.
+          ВАЖНО: в browse-ленте триггерим запрос только для активной
+          карточки. Иначе все 100 QuestionView одновременно стучатся в
+          /api/medmind/prebuilt и выбивают rate-limit (500/сутки), после
+          чего HintButton начинает показывать «Не удалось загрузить
+          подсказку». */}
       {mode !== "exam" && (showResult || isBrowse) && (selected !== null || isBrowse) && (
         <AutoExplain
           entityId={question.id}
           entityType="accreditation_question"
-          trigger={true}
+          trigger={isActive}
           context={question.question}
           topic={specialtyId ? `${specialtyId}:${question.id}` : question.id}
           specialty={question.specialty}

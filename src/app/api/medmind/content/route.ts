@@ -112,7 +112,7 @@ export async function POST(req: Request) {
       contentType !== "image" &&
       PREBUILT_CONTENT_TYPES.has(contentType)
     ) {
-      await supabase
+      const { error: prebuiltError } = await supabase
         .from("prebuilt_content")
         .upsert(
           {
@@ -126,11 +126,19 @@ export async function POST(req: Request) {
             updated_at: new Date().toISOString(),
           },
           { onConflict: "entity_type,entity_id,content_type", ignoreDuplicates: true }
-        )
-        .then(
-          () => undefined,
-          () => undefined // silent: миграция 010 могла быть ещё не применена
         );
+      if (prebuiltError) {
+        // Не валим запрос — у пользователя сохранение в личной коллекции
+        // (user_saved_content) уже прошло. Но логируем, чтобы видеть, почему
+        // кэш не наполняется. Пример: миграция 010 не применена, RLS-ошибка,
+        // невалидный contentType и т.п.
+        console.error("[medmind/content] prebuilt upsert failed:", {
+          entityType,
+          entityId,
+          contentType,
+          error: prebuiltError.message,
+        });
+      }
     }
 
     return Response.json({ id: data?.id, saved: true });
