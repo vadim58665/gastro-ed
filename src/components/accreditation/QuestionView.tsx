@@ -23,6 +23,15 @@ interface Props {
   onPrevious?: () => void;
   canGoPrevious?: boolean;
   existingSelectedIndex?: number | null;
+  /**
+   * Когда несколько QuestionView рендерятся в одной ленте (BrowseFeed),
+   * только активная (видимая) карточка должна публиковать свой контекст
+   * в MedMind — иначе последний смонтированный QuestionView перезатирает
+   * screen для всех остальных и MedMind покажет подсказку не к тому вопросу.
+   * По умолчанию true для совместимости со старыми вызовами в одиночном
+   * режиме.
+   */
+  isActive?: boolean;
 }
 
 export default function QuestionView({
@@ -34,6 +43,7 @@ export default function QuestionView({
   onPrevious,
   canGoPrevious,
   existingSelectedIndex = null,
+  isActive = true,
 }: Props) {
   const hasExisting = existingSelectedIndex !== null && existingSelectedIndex !== undefined;
   const isBrowse = mode === "browse";
@@ -50,7 +60,10 @@ export default function QuestionView({
 
   // Publish current screen context to MedMind so the AI assistant knows
   // which question is open, in which mode, and whether it's been answered.
+  // В лентах (BrowseFeed) активна только видимая карточка — иначе
+  // последний смонтированный QuestionView перезатирает screen.
   useEffect(() => {
+    if (!isActive) return;
     setScreen({
       kind: "accred_question",
       question,
@@ -59,7 +72,7 @@ export default function QuestionView({
       isAnswered: selected !== null,
       selectedIndex: selected ?? undefined,
     });
-  }, [question, mode, specialtyId, selected, setScreen]);
+  }, [isActive, question, mode, specialtyId, selected, setScreen]);
 
   const handleNext = () => {
     if (autoAdvanceRef.current) {

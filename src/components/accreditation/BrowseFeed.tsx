@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import type { TestQuestion } from "@/types/accreditation";
 import QuestionView from "./QuestionView";
 
@@ -19,6 +19,7 @@ interface BrowseItemProps {
   index: number;
   total: number;
   specialtyId?: string;
+  isActive: boolean;
 }
 
 const BrowseItem = memo(function BrowseItem({
@@ -26,6 +27,7 @@ const BrowseItem = memo(function BrowseItem({
   index,
   total,
   specialtyId,
+  isActive,
 }: BrowseItemProps) {
   return (
     <div
@@ -43,6 +45,7 @@ const BrowseItem = memo(function BrowseItem({
         mode="browse"
         specialtyId={specialtyId}
         canGoPrevious={false}
+        isActive={isActive}
       />
     </div>
   );
@@ -58,10 +61,61 @@ const BrowseItem = memo(function BrowseItem({
  * картинки внутри ленятся через `loading="lazy"`. React.memo на каждой
  * карточке предотвращает лишние перерисовки при изменении состояния
  * соседей.
+ *
+ * Активная карточка определяется по IntersectionObserver — это нужно,
+ * чтобы только одна (видимая) карточка публиковала свой контекст в
+ * MedMind. Иначе все 100 mounted QuestionView дёргают setScreen, и
+ * подсказка показывается не к тому вопросу, который видит пользователь.
  */
 export default function BrowseFeed({ questions, specialtyId, label }: Props) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const root = containerRef.current;
+    if (!root) return;
+    const els = Array.from(
+      root.querySelectorAll<HTMLDivElement>("[data-browse-index]")
+    );
+    if (els.length === 0) return;
+
+    // Храним последние ratios всех элементов и выбираем максимальный.
+    const ratios = new Map<number, number>();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const idx = Number(
+            (entry.target as HTMLElement).dataset.browseIndex ?? "0"
+          );
+          ratios.set(idx, entry.intersectionRatio);
+        }
+        let bestIdx = 0;
+        let bestRatio = -1;
+        for (const [idx, ratio] of ratios) {
+          if (ratio > bestRatio) {
+            bestRatio = ratio;
+            bestIdx = idx;
+          }
+        }
+        if (bestRatio > 0) {
+          setActiveIndex((prev) => (prev === bestIdx ? prev : bestIdx));
+        }
+      },
+      {
+        root,
+        // Порог 50% — карточка активна, когда она видна хотя бы наполовину.
+        // Несколько порогов дают плавное переключение при скролле.
+        threshold: [0, 0.25, 0.5, 0.75, 1],
+      }
+    );
+
+    els.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [questions.length]);
+
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div ref={containerRef} className="flex-1 overflow-y-auto">
       {label && (
         <div className="px-6 pt-4 pb-1">
           <p
@@ -87,6 +141,7 @@ export default function BrowseFeed({ questions, specialtyId, label }: Props) {
             index={i}
             total={questions.length}
             specialtyId={specialtyId}
+            isActive={i === activeIndex}
           />
         ))}
       </div>
