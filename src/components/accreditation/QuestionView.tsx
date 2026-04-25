@@ -227,16 +227,12 @@ export default function QuestionView({
         </div>
       )}
 
-      {/* Auto-explain для подписчиков после ЛЮБОГО ответа (не только
-          ошибочного). В exam-режиме не раскрываем правильный вариант
-          до конца экзамена. В browse — показываем сразу, без ожидания
-          ответа: режим и есть просмотр с полным разбором.
-          ВАЖНО: в browse-ленте триггерим запрос только для активной
-          карточки. Иначе все 100 QuestionView одновременно стучатся в
-          /api/medmind/prebuilt и выбивают rate-limit (500/сутки), после
-          чего HintButton начинает показывать «Не удалось загрузить
-          подсказку». */}
-      {mode !== "exam" && (showResult || isBrowse) && (selected !== null || isBrowse) && (
+      {/* Auto-explain (краткий разбор) показываем после ответа в
+          test/learn/mistakes/training. В browse — НЕ показываем: лента
+          в режиме просмотра должна быть стабильной по высоте, чтобы
+          карточки не «прыгали» при смене активной. Разбор там доступен
+          через подсказку (HintButton) по клику. */}
+      {mode !== "exam" && !isBrowse && showResult && selected !== null && (
         <AutoExplain
           entityId={question.id}
           entityType="accreditation_question"

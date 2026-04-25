@@ -119,7 +119,7 @@ export default function HintButton({
         return;
       }
       if (cacheRes.status !== 404) {
-        setError("Не удалось загрузить подсказку");
+        setError("Подсказка отсутствует");
         setLoading(false);
         return;
       }
@@ -128,7 +128,7 @@ export default function HintButton({
       // Claude сгенерировать подсказку и одновременно засеиваем общий
       // кэш, чтобы следующие пользователи получили её бесплатно.
       if (!context) {
-        setError("Подсказка скоро появится");
+        setError("Подсказка отсутствует");
         setLoading(false);
         return;
       }
@@ -159,7 +159,7 @@ export default function HintButton({
         return;
       }
       if (!genRes.ok) {
-        setError("Не удалось сгенерировать подсказку");
+        setError("Подсказка отсутствует");
         setLoading(false);
         return;
       }
@@ -167,7 +167,7 @@ export default function HintButton({
       const genData = await genRes.json();
       const tip = extractTip(genData.contentRu);
       if (!tip) {
-        setError("Пустой ответ, попробуйте ещё раз");
+        setError("Подсказка отсутствует");
         setLoading(false);
         return;
       }
@@ -195,7 +195,7 @@ export default function HintButton({
         }),
       }).catch(() => undefined);
     } catch {
-      setError("Ошибка соединения");
+      setError("Подсказка отсутствует");
     }
     setLoading(false);
   }, [inactive, isPro, hint, loading, entityId, entityType, context, topic, specialty]);

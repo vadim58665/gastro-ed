@@ -157,14 +157,11 @@ export default function AutoExplain({
   }, [isPro, trigger, entityId, entityType, text, context, topic, specialty]);
 
   if (!isPro || !trigger) return null;
-  if (loading) {
-    return (
-      <div className="mt-3 text-[10px] uppercase tracking-[0.15em] text-muted">
-        Разбираю ответ...
-      </div>
-    );
-  }
-  if (!text) return null;
+  // Во время загрузки ничего не рендерим — иначе карточка вырастает на
+  // высоту лоадера, а соседние карточки в browse-ленте «прыгают» при
+  // смене активной. Готовый разбор появляется одним блоком, без промежуточных
+  // изменений высоты.
+  if (loading || !text) return null;
 
   return (
     <div
