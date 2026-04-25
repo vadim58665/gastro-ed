@@ -47,13 +47,22 @@ next-env.d.ts
 # scraped data & scripts (keep classify-cards.ts)
 /scraped_data/
 /scripts/*.py
+/scripts/__pycache__/
 /scripts/captured_data/
 /scripts/run_capture.sh
 /тесты/
+/тесты_backup_*.tar.gz
 /задачи/
 /public/download_images.sh
 /public/images/
 .superpowers/
+
+# playwright MCP artifacts
+/.playwright-mcp/
+
+# batch-generation outputs (LLM scripts)
+/hint-batch-*-result.json
+/explain-batch-*-result.json
 
 # wiki raw binaries (markdown sources committed, binaries not)
 wiki/raw/**/*.pdf
