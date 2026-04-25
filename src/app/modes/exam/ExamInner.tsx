@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
@@ -11,6 +11,7 @@ import ExamResultView from "@/components/accreditation/ExamResult";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
 import { useAccreditation } from "@/hooks/useAccreditation";
 import { getQuestionsForSpecialty } from "@/data/accreditation/index";
+import { getQuestionsByIds, rowToTestQuestion } from "@/lib/accreditation-client";
 import type { TestQuestion, ExamResult } from "@/types/accreditation";
 
 interface ExamAnswer {
@@ -62,29 +63,93 @@ export default function ExamInner() {
   const [marathonFailed, setMarathonFailed] = useState(false);
   const [examAnswers, setExamAnswers] = useState<ExamAnswer[]>([]);
 
-  const allQuestions = useMemo(
-    () => getQuestionsForSpecialty(specialtyId),
-    [specialtyId]
-  );
-
   // Снапшот набора вопросов фиксируется один раз при монтировании —
   // иначе recordAnswer/markQuestionLearned в handleAnswer меняют
-  // progress.blocks/mistakes → useMemo перезапускает shuffle →
-  // questions[currentIndex] подменяется на другой вопрос, хотя индекс
-  // тот же. Визуально это выглядит как «клик по ответу → другой вопрос,
-  // счётчик тот же».
-  const [questions] = useState<TestQuestion[]>(() => {
-    let pool: TestQuestion[];
+  // progress.blocks/mistakes → пересчёт пула → questions[currentIndex]
+  // подменяется на другой вопрос, хотя индекс тот же. Визуально это
+  // выглядит как «клик по ответу → другой вопрос, счётчик тот же».
+  //
+  // На ветке Supabase-виртуализации режимы mistakes / topic тянут
+  // вопросы из БД (для специальностей вне локального словаря в
+  // src/data/accreditation/* других вопросов просто нет), остальные
+  // режимы пока ходят в локальный словарь — fallback до полной
+  // виртуализации всех режимов.
+  const [questions, setQuestions] = useState<TestQuestion[] | null>(null);
+  const initializedRef = useRef(false);
 
-    // ?ids= — явный whitelist id-вопросов (используется для «По темам»
-    // на /tests и в режимах /accreditation/mistakes). Применяется
-    // поверх examType-фильтра если указан.
+  useEffect(() => {
+    if (initializedRef.current) return;
+    if (!hydrated || !specialtyId) return;
+    initializedRef.current = true;
+
     const idsParam = searchParams.get("ids");
     const idWhitelist =
       idsParam && idsParam.length > 0
         ? new Set(idsParam.split(",").filter(Boolean))
         : null;
 
+    const finalize = (pool: TestQuestion[]) => {
+      let next = pool;
+      if (idWhitelist && examType !== "topic") {
+        next = next.filter((q) => idWhitelist.has(q.id));
+      }
+      setQuestions(shuffle(next).slice(0, config.count));
+    };
+
+    const allQuestions = getQuestionsForSpecialty(specialtyId);
+
+    if (examType === "mistakes") {
+      // Если у специальности есть локальный банк вопросов — фильтруем по
+      // mistake-id-сету без сетевого похода (быстрый путь для 6
+      // specialty из src/data/accreditation/*). Иначе идём в Supabase
+      // по списку id — это работает для всех специальностей из
+      // useSpecialties(), включая «Медицинская биохимия» и т.п.
+      if (allQuestions.length > 0) {
+        const mistakeSet = new Set(progress.mistakes);
+        finalize(
+          allQuestions.filter(
+            (q) =>
+              mistakeSet.has(q.id) &&
+              (blockFilter === null || q.blockNumber === blockFilter)
+          )
+        );
+        return;
+      }
+      getQuestionsByIds(progress.mistakes)
+        .then((rows) => {
+          const mapped = rows.map(rowToTestQuestion);
+          const filtered =
+            blockFilter === null
+              ? mapped
+              : mapped.filter((q) => q.blockNumber === blockFilter);
+          finalize(filtered);
+        })
+        .catch((err) => {
+          console.error("ExamInner: getQuestionsByIds failed", err);
+          setQuestions([]);
+        });
+      return;
+    }
+
+    if (examType === "topic" && idWhitelist) {
+      if (allQuestions.length > 0) {
+        finalize(allQuestions.filter((q) => idWhitelist.has(q.id)));
+        return;
+      }
+      getQuestionsByIds(Array.from(idWhitelist))
+        .then((rows) => finalize(rows.map(rowToTestQuestion)))
+        .catch((err) => {
+          console.error("ExamInner: getQuestionsByIds failed", err);
+          setQuestions([]);
+        });
+      return;
+    }
+
+    // trial / learned / accreditation / random / marathon — пока только
+    // локальный словарь. Для специальностей не из него пользователь
+    // увидит «Недостаточно вопросов» (полная виртуализация всех режимов
+    // — отдельная задача).
+    let pool: TestQuestion[];
     switch (examType) {
       case "learned": {
         const learnedBlocks = new Set(
@@ -93,35 +158,20 @@ export default function ExamInner() {
         pool = allQuestions.filter((q) => learnedBlocks.has(q.blockNumber));
         break;
       }
-      case "mistakes": {
-        const mistakeSet = new Set(progress.mistakes);
-        pool = allQuestions.filter(
-          (q) =>
-            mistakeSet.has(q.id) &&
-            (blockFilter === null || q.blockNumber === blockFilter)
-        );
-        break;
-      }
-      case "topic": {
-        // «По теме» = строгий набор id-вопросов из ?ids=
-        pool = idWhitelist
-          ? allQuestions.filter((q) => idWhitelist.has(q.id))
-          : allQuestions;
-        break;
-      }
       default:
         pool = allQuestions;
     }
-
-    // Применяем ids-whitelist поверх уже отфильтрованного пула (актуально
-    // для type=mistakes + ids=, если нужна тема внутри ошибок).
-    if (idWhitelist && examType !== "topic") {
-      pool = pool.filter((q) => idWhitelist.has(q.id));
-    }
-
-    const shuffled = shuffle(pool);
-    return shuffled.slice(0, config.count);
-  });
+    finalize(pool);
+  }, [
+    hydrated,
+    specialtyId,
+    examType,
+    blockFilter,
+    config.count,
+    progress.blocks,
+    progress.mistakes,
+    searchParams,
+  ]);
 
   useEffect(() => {
     // Wait for SpecialtyContext to rehydrate; otherwise direct deep links
@@ -133,6 +183,7 @@ export default function ExamInner() {
 
   const handleAnswer = useCallback(
     (isCorrect: boolean, selectedIndex: number) => {
+      if (!questions) return;
       const q = questions[currentIndex];
       if (isCorrect) {
         setCorrectCount((c) => c + 1);
@@ -156,6 +207,7 @@ export default function ExamInner() {
   );
 
   const handleNext = useCallback(() => {
+    if (!questions) return;
     if (marathonFailed || currentIndex + 1 >= questions.length) {
       const duration = Math.round((Date.now() - startTime) / 1000);
       const total = marathonFailed ? currentIndex + 1 : questions.length;
@@ -173,9 +225,27 @@ export default function ExamInner() {
     } else {
       setCurrentIndex((i) => i + 1);
     }
-  }, [currentIndex, questions.length, startTime, correctCount, saveExamResult, marathonFailed]);
+  }, [currentIndex, questions, startTime, correctCount, saveExamResult, marathonFailed]);
 
   if (!hydrated || !activeSpecialty) return null;
+
+  if (questions === null) {
+    return (
+      <div className="h-screen flex flex-col">
+        <TopBar showBack />
+        <main className="flex-1 pt-20 pb-20 flex items-center justify-center">
+          <div
+            className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+            style={{
+              borderColor: "var(--color-aurora-violet)",
+              borderTopColor: "transparent",
+            }}
+          />
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
 
   // Режим просмотра (`?mode=browse`) — лента всех подобранных вопросов с
   // подсвеченными правильными ответами, без прорешивания. Родительский
