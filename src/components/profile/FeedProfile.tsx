@@ -279,7 +279,7 @@ export default function FeedProfile() {
 
       <div className="px-6 mb-2.5 flex justify-between items-baseline">
         <span className="text-[9px] tracking-[0.22em] uppercase text-muted font-medium">
-          Готовность к экзамену
+          Уровень врача
         </span>
       </div>
       <div className="px-6 mb-5">

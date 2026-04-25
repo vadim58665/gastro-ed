@@ -36,7 +36,16 @@ async function getAuthToken(): Promise<string> {
 
 function extractExplanation(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const trimmed = raw.trim();
+  let trimmed = raw.trim();
+
+  // Снимаем markdown code-fence: ```json ... ``` или ``` ... ```
+  // Claude иногда оборачивает ответ в fence, а старые prebuilt_content
+  // записи приходят с ним как есть (см. /api/medmind/prebuilt).
+  const fence = trimmed.match(/^```(?:json|JSON)?\s*\n?([\s\S]*?)\n?```$/);
+  if (fence) {
+    trimmed = fence[1].trim();
+  }
+
   try {
     const parsed = JSON.parse(trimmed);
     if (typeof parsed === "string") return parsed;
@@ -45,7 +54,7 @@ function extractExplanation(raw: string | null | undefined): string | null {
       if (typeof candidate === "string") return candidate;
     }
   } catch {
-    /* not JSON */
+    /* not JSON — возвращаем trimmed как есть */
   }
   return trimmed;
 }
@@ -86,7 +95,11 @@ export default function AutoExplain({
         if (cancelled) return;
         if (res.ok) {
           const data = await res.json();
-          setText(data.content);
+          // Старые записи в prebuilt_content иногда содержат markdown JSON
+          // fence (```json {...} ```) — приводим к чистому тексту через тот
+          // же экстрактор, что и для свежей генерации.
+          const explanation = extractExplanation(data.content);
+          if (explanation) setText(explanation);
           return;
         }
         // Cache miss: пытаемся on-demand генерацию только если нам
@@ -144,14 +157,11 @@ export default function AutoExplain({
   }, [isPro, trigger, entityId, entityType, text, context, topic, specialty]);
 
   if (!isPro || !trigger) return null;
-  if (loading) {
-    return (
-      <div className="mt-3 text-[10px] uppercase tracking-[0.15em] text-muted">
-        Разбираю ответ...
-      </div>
-    );
-  }
-  if (!text) return null;
+  // Во время загрузки ничего не рендерим — иначе карточка вырастает на
+  // высоту лоадера, а соседние карточки в browse-ленте «прыгают» при
+  // смене активной. Готовый разбор появляется одним блоком, без промежуточных
+  // изменений высоты.
+  if (loading || !text) return null;
 
   return (
     <div

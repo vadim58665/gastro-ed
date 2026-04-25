@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
@@ -12,7 +12,7 @@ import BlockResults from "@/components/tests/BlockResults";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
 import { useAccreditation } from "@/hooks/useAccreditation";
 import { useTestMode, type TestMode } from "@/hooks/useTestMode";
-import { getBlockQuestions } from "@/data/accreditation/index";
+import { useBlockQuestions } from "@/hooks/useTestQuestions";
 
 export default function BlockPage() {
   const params = useParams();
@@ -23,9 +23,11 @@ export default function BlockPage() {
   const { progress, markQuestionLearned, recordAnswer } =
     useAccreditation(specialtyId);
 
-  const allQuestions = useMemo(
-    () => getBlockQuestions(specialtyId, blockNumber),
-    [specialtyId, blockNumber]
+  // Async-фетч блока из Supabase с shuffle'ом внутри блока (стабильный seed
+  // на время mount — пользователь не теряет место после ответов).
+  const { data: allQuestions, isLoading: questionsLoading } = useBlockQuestions(
+    specialtyId,
+    Number.isNaN(blockNumber) ? null : blockNumber
   );
 
   const testMode = useTestMode();
@@ -54,10 +56,10 @@ export default function BlockPage() {
     testMode.startTest(allQuestions, progress.mistakes, "mistakes");
   }, [allQuestions, progress.mistakes, testMode]);
 
-  // Wait for SpecialtyContext to restore the saved id from localStorage.
-  // Without this, a direct URL (e.g. reload on /tests/1) bounces to /tests
-  // before `activeSpecialty` is set, breaking shareable links.
-  if (!hydrated) {
+  // Wait for SpecialtyContext to restore the saved id from localStorage AND
+  // for the block questions to arrive from Supabase. Без hydrated прямая
+  // ссылка (/tests/1) бросает к /tests до того, как восстановится специальность.
+  if (!hydrated || questionsLoading) {
     return (
       <div className="h-screen flex flex-col">
         <TopBar showBack />
@@ -128,17 +130,20 @@ export default function BlockPage() {
 
   // Browse mode: лента всех вопросов с подсвеченными правильными
   // ответами. Ничего не прорешивается, прогресс не меняется.
+  // BrowseFeed сам управляет scroll-контейнером (нужен useVirtualWindow'у),
+  // поэтому не оборачиваем в overflow-y-auto <main> — иначе scroll уйдёт
+  // наверх и виртуализация не сработает.
   if (testMode.mode === "browse") {
     return (
       <div className="h-screen flex flex-col">
         <TopBar showBack />
-        <main className="flex-1 pt-20 pb-20 overflow-y-auto">
+        <div className="flex-1 pt-20 pb-20 flex flex-col min-h-0">
           <BrowseFeed
             questions={testMode.questions}
             specialtyId={specialtyId}
             label={`Блок ${blockNumber}`}
           />
-        </main>
+        </div>
         <BottomNav />
       </div>
     );

@@ -83,15 +83,15 @@ const feedTabs: TabDef[] = [
 ];
 
 const prepTabs: TabDef[] = [
-  { href: "/tests", label: "Тесты", icon: listIcon },
+  // /modes (хаб режимов экзамена) логически часть подготовки к тестам,
+  // поэтому подсвечиваем его на табе «Тесты».
+  { href: "/tests", label: "Тесты", icon: listIcon, matches: ["/modes"] },
   { href: "/cases", label: "Задачи", icon: checkIcon },
   {
     href: "/accreditation/mistakes",
     label: "Ошибки",
     icon: errorIcon,
-    // Включаем подсветку таба и на legacy /mistakes, и на /modes/mistakes —
-    // на случай прямых ссылок из других мест prep-режима.
-    matches: ["/mistakes", "/modes/mistakes"],
+    matches: ["/mistakes"],
   },
   { href: "/stations", label: "Станции", icon: stationIcon },
   { href: "/profile", label: "Профиль", icon: userIcon },

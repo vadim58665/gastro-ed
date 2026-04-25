@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import type { TestQuestion } from "@/types/accreditation";
 import HintButton from "@/components/feed/HintButton";
 import AutoExplain from "@/components/feed/AutoExplain";
 import { useMedMind } from "@/contexts/MedMindContext";
+import { getPictureUrl } from "@/lib/accreditation-client";
 
 interface Props {
   question: TestQuestion;
@@ -22,6 +23,15 @@ interface Props {
   onPrevious?: () => void;
   canGoPrevious?: boolean;
   existingSelectedIndex?: number | null;
+  /**
+   * Когда несколько QuestionView рендерятся в одной ленте (BrowseFeed),
+   * только активная (видимая) карточка должна публиковать свой контекст
+   * в MedMind — иначе последний смонтированный QuestionView перезатирает
+   * screen для всех остальных и MedMind покажет подсказку не к тому вопросу.
+   * По умолчанию true для совместимости со старыми вызовами в одиночном
+   * режиме.
+   */
+  isActive?: boolean;
 }
 
 export default function QuestionView({
@@ -33,6 +43,7 @@ export default function QuestionView({
   onPrevious,
   canGoPrevious,
   existingSelectedIndex = null,
+  isActive = true,
 }: Props) {
   const hasExisting = existingSelectedIndex !== null && existingSelectedIndex !== undefined;
   const isBrowse = mode === "browse";
@@ -49,7 +60,10 @@ export default function QuestionView({
 
   // Publish current screen context to MedMind so the AI assistant knows
   // which question is open, in which mode, and whether it's been answered.
+  // В лентах (BrowseFeed) активна только видимая карточка — иначе
+  // последний смонтированный QuestionView перезатирает screen.
   useEffect(() => {
+    if (!isActive) return;
     setScreen({
       kind: "accred_question",
       question,
@@ -58,7 +72,7 @@ export default function QuestionView({
       isAnswered: selected !== null,
       selectedIndex: selected ?? undefined,
     });
-  }, [question, mode, specialtyId, selected, setScreen]);
+  }, [isActive, question, mode, specialtyId, selected, setScreen]);
 
   const handleNext = () => {
     if (autoAdvanceRef.current) {
@@ -114,11 +128,45 @@ export default function QuestionView({
   // В browse — кнопка доступна всегда, чтобы листать без выбора.
   const showNextButton = selected !== null || mode === "learn" || isBrowse || hasExisting;
 
+  const pictureUrl = useMemo(
+    () => getPictureUrl(question.picture ?? null),
+    [question.picture]
+  );
+
+  // Разделяем текст вопроса на части по маркеру "\n\n" — в том месте была
+  // картинка в источнике. Если картинки нет, рендерим текст одним блоком.
+  const [textBefore, textAfter] = useMemo(() => {
+    if (!pictureUrl) return [question.question, ""];
+    const idx = question.question.indexOf("\n\n");
+    if (idx < 0) return [question.question, ""];
+    return [question.question.slice(0, idx).trim(), question.question.slice(idx).trim()];
+  }, [pictureUrl, question.question]);
+
   return (
     <div className="px-6 py-5">
-      <p className="text-sm text-foreground leading-relaxed mb-6">
-        {question.question}
+      <p className="text-sm text-foreground leading-relaxed mb-3">
+        {textBefore}
       </p>
+
+      {pictureUrl && (
+        <div className="mb-3 rounded-2xl overflow-hidden border border-border bg-surface">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={pictureUrl}
+            alt="Изображение к вопросу"
+            loading="lazy"
+            className="w-full h-auto"
+          />
+        </div>
+      )}
+
+      {textAfter && (
+        <p className="text-sm text-foreground leading-relaxed mb-6">
+          {textAfter}
+        </p>
+      )}
+
+      {!pictureUrl && !textAfter && <div className="mb-3" />}
 
       <div className="space-y-2">
         {question.options.map((option, index) => {
@@ -164,6 +212,10 @@ export default function QuestionView({
           context={question.question}
           topic={specialtyId ? `${specialtyId}:${question.id}` : question.id}
           specialty={question.specialty}
+          // Превращаем кнопку в no-op пока карточка не в фокусе — иначе
+          // в browse-режиме 100 одновременных кликов невозможны, но
+          // расход rate-limit при пред-загрузке (если она появится) будет.
+          inactive={!isActive}
         />
       )}
 
@@ -175,15 +227,16 @@ export default function QuestionView({
         </div>
       )}
 
-      {/* Auto-explain для подписчиков после ЛЮБОГО ответа (не только
-          ошибочного). В exam-режиме не раскрываем правильный вариант
-          до конца экзамена. В browse — показываем сразу, без ожидания
-          ответа: режим и есть просмотр с полным разбором. */}
-      {mode !== "exam" && (showResult || isBrowse) && (selected !== null || isBrowse) && (
+      {/* Auto-explain (краткий разбор) показываем после ответа в
+          test/learn/mistakes/training. В browse — НЕ показываем: лента
+          в режиме просмотра должна быть стабильной по высоте, чтобы
+          карточки не «прыгали» при смене активной. Разбор там доступен
+          через подсказку (HintButton) по клику. */}
+      {mode !== "exam" && !isBrowse && showResult && selected !== null && (
         <AutoExplain
           entityId={question.id}
           entityType="accreditation_question"
-          trigger={true}
+          trigger={isActive}
           context={question.question}
           topic={specialtyId ? `${specialtyId}:${question.id}` : question.id}
           specialty={question.specialty}

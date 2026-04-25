@@ -1,9 +1,15 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { AccreditationProgress, ExamResult, QuestionStats } from "@/types/accreditation";
 
 const STORAGE_KEY = "sd-accreditation";
+// Каждый компонент, вызывающий useAccreditation, держит свою копию state
+// (useState — per-instance). Без явного broadcast'а recordAnswer в ExamInner
+// обновлял бы только локальный state, а BottomNav/accreditation/mistakes
+// видели бы старое значение «75 ошибок» до полного перемонтажа.
+// Шлём CustomEvent после каждого save — все инстансы хука синхронизируются.
+const UPDATE_EVENT = "sd-accreditation:update";
 
 function loadProgress(): Record<string, AccreditationProgress> {
   try {
@@ -17,6 +23,9 @@ function loadProgress(): Record<string, AccreditationProgress> {
 function saveProgress(data: Record<string, AccreditationProgress>) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(UPDATE_EVENT, { detail: data }));
+    }
   } catch (e) {
     console.error("Failed to save accreditation progress", e);
   }
@@ -26,6 +35,15 @@ export function useAccreditation(specialty: string) {
   const [allProgress, setAllProgress] = useState(loadProgress);
   const progressRef = useRef(allProgress);
   progressRef.current = allProgress;
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<Record<string, AccreditationProgress>>).detail;
+      if (detail) setAllProgress(detail);
+    };
+    window.addEventListener(UPDATE_EVENT, handler);
+    return () => window.removeEventListener(UPDATE_EVENT, handler);
+  }, []);
 
   const raw = allProgress[specialty];
   const progress: AccreditationProgress = raw

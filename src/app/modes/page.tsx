@@ -103,7 +103,7 @@ export default function ModesPage() {
     {
       title: "Работа над ошибками",
       description: `Ответы и разбор сразу · ${progress.mistakes.length} ${progress.mistakes.length === 1 ? "вопрос" : "вопросов"}`,
-      href: "/modes/mistakes",
+      href: "/accreditation/mistakes",
       available: hasMistakes,
       icon: ICON_REFRESH,
     },

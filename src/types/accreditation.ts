@@ -16,6 +16,12 @@ export interface TestQuestion {
   correctIndex: number;
   explanation?: string;
   difficulty?: DifficultyLevel;
+  /**
+   * Имя файла картинки в Supabase Storage bucket `test-images`.
+   * Заполняется, если вопрос требует изображения (КТ-снимок, график и т.п.).
+   * URL получается через getPictureUrl() из @/lib/accreditation-client.
+   */
+  picture?: string;
 }
 
 export interface CaseQuestion {

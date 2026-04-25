@@ -2,7 +2,6 @@
 
 import { useMemo, useState, type ReactElement } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
 import MagicCard from "@/components/ui/MagicCard";
@@ -10,15 +9,43 @@ import GradientRing from "@/components/ui/GradientRing";
 import IconBadge from "@/components/ui/IconBadge";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
 import { useAccreditation } from "@/hooks/useAccreditation";
-import {
-  getQuestionsForSpecialty,
-  getBlockCount,
-  getTotalQuestionCount,
-} from "@/data/accreditation/index";
-import { accreditationCategories } from "@/data/specialties";
-import { clusterQuestionsByTopic } from "@/lib/accreditationTopics";
+import { useSpecialties, useSpecialtyMeta } from "@/hooks/useTestQuestions";
+import type { SpecialtyMeta } from "@/lib/accreditation-client";
 
-// Per-category SVG icons (gradient stroke via parent .icon-aurora-stroke)
+// Порядок и человекочитаемые названия секций.
+const SECTION_ORDER: { id: string; shortName: string; description: string }[] = [
+  {
+    id: "ПСА_ординатура",
+    shortName: "Ординатура / ДПО",
+    description: "Первичная специализированная аккредитация после ординатуры или профпереподготовки",
+  },
+  {
+    id: "Первичная_аккредитация_специалитет",
+    shortName: "Специалитет",
+    description: "Первичная аккредитация для выпускников медицинских вузов",
+  },
+  {
+    id: "Высшее_образование_профпереподготовка",
+    shortName: "Высшее ПП",
+    description: "Профессиональная переподготовка на другую специалитет-специальность",
+  },
+  {
+    id: "ПСА_немедицинское",
+    shortName: "Немедицинское",
+    description: "Для специалистов с немедицинским высшим образованием",
+  },
+  {
+    id: "Первичная_аккредитация_бакалавриат",
+    shortName: "Бакалавриат",
+    description: "Сестринское дело — бакалавриат",
+  },
+  {
+    id: "Первичная_аккредитация_магистратура",
+    shortName: "Магистратура",
+    description: "Управление сестринской деятельностью",
+  },
+];
+
 const CATEGORY_ICONS: Record<number, ReactElement> = {
   0: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -53,8 +80,29 @@ function FallbackIcon() {
   );
 }
 
-// Level 1: pick accreditation category
-function CategoryListView({ onSelect }: { onSelect: (catId: string) => void }) {
+function SpinnerFull() {
+  return (
+    <div className="h-screen flex flex-col">
+      <TopBar />
+      <main className="flex-1 pt-24 pb-20 flex items-center justify-center">
+        <div
+          className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+          style={{ borderColor: "var(--color-aurora-violet)", borderTopColor: "transparent" }}
+        />
+      </main>
+      <BottomNav />
+    </div>
+  );
+}
+
+// Уровень 1: секция
+function CategoryListView({
+  specialtiesBySection,
+  onSelect,
+}: {
+  specialtiesBySection: Record<string, SpecialtyMeta[]>;
+  onSelect: (sectionId: string) => void;
+}) {
   return (
     <div className="h-screen flex flex-col">
       <TopBar />
@@ -71,13 +119,15 @@ function CategoryListView({ onSelect }: { onSelect: (catId: string) => void }) {
         </div>
 
         <div className="px-4 pb-8 space-y-3">
-          {accreditationCategories.map((category, i) => {
-            const hasSpecs = category.specialties.length > 0;
+          {SECTION_ORDER.map((cat, i) => {
+            const specs = specialtiesBySection[cat.id] ?? [];
+            const hasSpecs = specs.length > 0;
+            const totalQs = specs.reduce((sum, s) => sum + s.total_questions, 0);
             const icon = CATEGORY_ICONS[i] ?? <FallbackIcon />;
             return (
               <button
-                key={category.id}
-                onClick={() => hasSpecs ? onSelect(category.id) : undefined}
+                key={cat.id}
+                onClick={() => hasSpecs ? onSelect(cat.id) : undefined}
                 disabled={!hasSpecs}
                 className="w-full text-left btn-press disabled:opacity-50 disabled:cursor-default"
               >
@@ -92,7 +142,7 @@ function CategoryListView({ onSelect }: { onSelect: (catId: string) => void }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3">
                         <h2 className="text-sm font-semibold text-foreground leading-snug">
-                          {category.name}
+                          {cat.shortName}
                         </h2>
                         {!hasSpecs && (
                           <span
@@ -106,9 +156,12 @@ function CategoryListView({ onSelect }: { onSelect: (catId: string) => void }) {
                           </span>
                         )}
                       </div>
-                      {category.description && (
-                        <p className="text-xs text-muted mt-1.5 leading-relaxed">
-                          {category.description}
+                      <p className="text-xs text-muted mt-1.5 leading-relaxed">
+                        {cat.description}
+                      </p>
+                      {hasSpecs && (
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-muted mt-2 font-medium">
+                          {specs.length} специальностей · {totalQs.toLocaleString("ru-RU")} вопросов
                         </p>
                       )}
                     </div>
@@ -137,25 +190,27 @@ function CategoryListView({ onSelect }: { onSelect: (catId: string) => void }) {
   );
 }
 
-// Level 2: pick specialty within a category
+// Уровень 2: специальности внутри секции
 function SpecialtyListView({
-  categoryId,
-  onBack: _onBack,
+  sectionId,
+  specialties,
+  onBack,
 }: {
-  categoryId: string;
+  sectionId: string;
+  specialties: SpecialtyMeta[];
   onBack: () => void;
 }) {
   const { setActiveSpecialty } = useSpecialty();
-  const category = accreditationCategories.find((c) => c.id === categoryId)!;
+  const sectionMeta = SECTION_ORDER.find((c) => c.id === sectionId);
 
-  const handleSelect = (specId: string, hasQuestions: boolean) => {
-    if (!hasQuestions) return;
-    setActiveSpecialty(specId);
-  };
+  const sorted = useMemo(
+    () => [...specialties].sort((a, b) => a.specialty_name.localeCompare(b.specialty_name, "ru")),
+    [specialties]
+  );
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar showBack />
+      <TopBar showBack onBack={onBack} />
       <main className="flex-1 pt-24 pb-20 overflow-y-auto">
         <div className="aurora-welcome-band" />
         <div className="px-6 pt-6 pb-6 text-center">
@@ -163,22 +218,23 @@ function SpecialtyListView({
             Выберите специальность
           </p>
           <h1 className="text-2xl font-extralight aurora-text tracking-tight leading-snug">
-            {category.name}
+            {sectionMeta?.shortName ?? sectionId}
           </h1>
         </div>
 
         <div className="px-6 pb-8 space-y-2">
-          {category.specialties.map((spec) => {
-            const qCount = getTotalQuestionCount(spec.id);
-            const hasQuestions = qCount > 0;
-            const initial = spec.name.trim()[0]?.toUpperCase() ?? "";
-
+          {sorted.map((spec) => {
+            const initial = spec.specialty_name.trim()[0]?.toUpperCase() ?? "";
             return (
               <button
-                key={spec.id}
-                onClick={() => handleSelect(spec.id, hasQuestions)}
-                disabled={!hasQuestions}
-                className="w-full text-left btn-press disabled:opacity-50 disabled:cursor-default"
+                key={spec.specialty_id}
+                onClick={() =>
+                  setActiveSpecialty({
+                    id: spec.specialty_id,
+                    name: spec.specialty_name,
+                  })
+                }
+                className="w-full text-left btn-press"
               >
                 <MagicCard
                   className="rounded-2xl aurora-hairline"
@@ -187,7 +243,6 @@ function SpecialtyListView({
                   spotlightColor="color-mix(in srgb, var(--color-aurora-pink) 12%, transparent)"
                 >
                   <div className="flex items-center gap-4 px-4 py-3.5">
-                    {/* Aurora-glow initial badge */}
                     <div
                       className="shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-base font-semibold tracking-tight aurora-hairline"
                       style={{
@@ -201,24 +256,13 @@ function SpecialtyListView({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-foreground truncate">
-                        {spec.name}
-                        {!hasQuestions && (
-                          <span
-                            className="ml-2 text-[9px] uppercase tracking-wider font-medium px-1.5 py-0.5 rounded"
-                            style={{
-                              color: "var(--color-aurora-violet)",
-                              background: "var(--aurora-violet-soft)",
-                            }}
-                          >
-                            Скоро
-                          </span>
-                        )}
+                        {spec.specialty_name}
                       </div>
-                      {hasQuestions && (
-                        <div className="text-[11px] text-muted mt-0.5 truncate">
-                          {qCount} вопросов
-                        </div>
-                      )}
+                      <div className="text-[11px] text-muted mt-0.5 truncate">
+                        {spec.total_questions.toLocaleString("ru-RU")} вопросов
+                        {spec.block_count > 0 && ` · ${spec.block_count} блоков`}
+                        {spec.picture_count > 0 && ` · ${spec.picture_count} с фото`}
+                      </div>
                     </div>
                     <svg
                       width="16"
@@ -245,88 +289,51 @@ function SpecialtyListView({
   );
 }
 
-type BlocksViewMode = "circles" | "list" | "topics";
-
+// Уровень 3: список блоков одной специальности
 function BlocksView({ specialtyId }: { specialtyId: string }) {
-  const router = useRouter();
   const { progress, totalLearned } = useAccreditation(specialtyId);
-  const [viewMode, setViewMode] = useState<BlocksViewMode>("circles");
-
-  const questions = useMemo(
-    () => getQuestionsForSpecialty(specialtyId),
-    [specialtyId]
-  );
-
-  const blockCount = useMemo(() => getBlockCount(specialtyId), [specialtyId]);
-
-  // Кластеризация вопросов по темам (ключевые слова из текста вопросов),
-  // поскольку в TestQuestion нет явного поля topic. Считается один раз
-  // на основе всех вопросов специальности.
-  const topics = useMemo(
-    () =>
-      clusterQuestionsByTopic(questions, {
-        maxClusters: 20,
-        minClusterSize: 3,
-      }),
-    [questions]
-  );
-
-  // Для каждой темы — сколько изучено (хоть раз правильно).
-  const topicProgress = useMemo(() => {
-    const learnedSet = new Set<string>();
-    for (const [qId, stats] of Object.entries(progress.questionStats)) {
-      if (stats.wasEverCorrect) learnedSet.add(qId);
-    }
-    return topics.map((t) => {
-      const learned = t.questionIds.filter((id) => learnedSet.has(id)).length;
-      return {
-        ...t,
-        learned,
-        pct: t.count > 0 ? Math.round((learned / t.count) * 100) : 0,
-      };
-    });
-  }, [topics, progress.questionStats]);
-
-  function launchTopic(questionIds: string[]) {
-    const params = new URLSearchParams();
-    params.set("type", "topic");
-    params.set("ids", questionIds.join(","));
-    router.push(`/modes/exam?${params.toString()}`);
-  }
+  const { clearSpecialty } = useSpecialty();
+  const { data: meta, isLoading } = useSpecialtyMeta(specialtyId);
+  const [viewMode, setViewMode] = useState<"circles" | "list">("circles");
 
   const blocks = useMemo(() => {
-    return Array.from({ length: blockCount }, (_, i) => {
+    if (!meta) return [];
+    const n = meta.block_count;
+    const totalQs = meta.total_questions;
+    return Array.from({ length: n }, (_, i) => {
       const num = i + 1;
-      const blockQuestions = questions.filter((q) => q.blockNumber === num);
-      const blockProgress = progress.blocks.find((b) => b.blockNumber === num);
       const firstQ = (num - 1) * 100 + 1;
-      const lastQ = firstQ + blockQuestions.length - 1;
+      const isLast = num === n;
+      const blockSize = isLast ? totalQs - (n - 1) * 100 : 100;
+      const lastQ = firstQ + blockSize - 1;
+      const blockProgress = progress.blocks.find((b) => b.blockNumber === num);
       return {
         number: num,
-        total: blockQuestions.length,
-        learned: blockProgress?.learned || 0,
+        total: blockSize,
+        learned: blockProgress?.learned ?? 0,
         rangeStart: firstQ,
         rangeEnd: lastQ,
       };
     });
-  }, [blockCount, questions, progress.blocks]);
+  }, [meta, progress.blocks]);
 
-  if (questions.length === 0) {
+  if (isLoading || !meta) {
+    return <SpinnerFull />;
+  }
+
+  if (meta.total_questions === 0) {
     return (
       <div className="h-screen flex flex-col">
-        <TopBar showBack />
+        <TopBar showBack onBack={clearSpecialty } />
         <main className="flex-1 pt-20 pb-20 flex flex-col items-center justify-center">
           <div className="text-center px-6">
-            <div className="text-6xl font-extralight aurora-text tracking-tight leading-none mb-3">
-              0
-            </div>
+            <div className="text-6xl font-extralight aurora-text tracking-tight leading-none mb-3">0</div>
             <p className="text-xs uppercase tracking-[0.2em] text-muted font-medium mb-8">
               тестовых вопросов
             </p>
             <div className="w-12 h-px bg-border mx-auto mb-8" />
             <p className="text-sm text-muted leading-relaxed max-w-[260px] mx-auto">
-              Тестовые вопросы для этой специальности будут добавлены в ближайшее
-              время
+              Тестовые вопросы для этой специальности пока не добавлены
             </p>
           </div>
         </main>
@@ -335,12 +342,12 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
     );
   }
 
-  const learnedBlocks = blocks.filter((b) => b.learned === b.total && b.total > 0).length;
-  const overallPct = Math.round((totalLearned / questions.length) * 100);
+  const learnedBlocks = blocks.filter((b) => b.total > 0 && b.learned === b.total).length;
+  const overallPct = Math.round((totalLearned / Math.max(1, meta.total_questions)) * 100);
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar showBack />
+      <TopBar showBack onBack={clearSpecialty} />
       <main className="flex-1 pt-20 pb-20 overflow-y-auto">
         <div className="aurora-welcome-band" />
         <div className="px-6 pt-4 pb-2 text-center">
@@ -348,35 +355,18 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
             Подготовка
           </p>
           <h1 className="text-2xl font-extralight aurora-text tracking-tight">
-            Тесты
+            {meta.specialty_name}
           </h1>
         </div>
 
-        {/* View mode aurora-pill toggle */}
+        {/* View mode toggle */}
         <div className="px-6 mt-5 mb-5 flex justify-center">
-          <div
-            className="inline-flex p-1 rounded-full aurora-hairline"
-            style={{ background: "var(--color-card)" }}
-          >
-            <ViewModePill
-              active={viewMode === "circles"}
-              onClick={() => setViewMode("circles")}
-              label="Блоки"
-            />
-            <ViewModePill
-              active={viewMode === "topics"}
-              onClick={() => setViewMode("topics")}
-              label="Темы"
-            />
-            <ViewModePill
-              active={viewMode === "list"}
-              onClick={() => setViewMode("list")}
-              label="Список"
-            />
+          <div className="inline-flex p-1 rounded-full aurora-hairline" style={{ background: "var(--color-card)" }}>
+            <ViewModePill active={viewMode === "circles"} onClick={() => setViewMode("circles")} label="Блоки" />
+            <ViewModePill active={viewMode === "list"} onClick={() => setViewMode("list")} label="Список" />
           </div>
         </div>
 
-        {/* Progress summary */}
         <div className="px-6 mb-6 text-center">
           <div className="flex items-baseline justify-center gap-2">
             <span className="text-4xl font-extralight aurora-text tracking-tight tabular-nums">
@@ -384,7 +374,7 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
             </span>
           </div>
           <p className="text-[10px] uppercase tracking-[0.2em] text-muted font-medium mt-1">
-            изучено · {learnedBlocks} из {blockCount} блоков
+            изучено · {learnedBlocks} из {meta.block_count} блоков · {meta.total_questions} вопросов
           </p>
           <div className="w-full max-w-xs mx-auto mt-3">
             <div className="w-full h-1.5 bg-border/70 rounded-full overflow-hidden">
@@ -399,91 +389,21 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
           </div>
         </div>
 
-        {viewMode === "topics" ? (
-          /* Topics view — clusters of related questions */
-          <div className="px-6 pb-8">
-            {topicProgress.length === 0 ? (
-              <p className="text-xs text-muted text-center max-w-[280px] mx-auto leading-relaxed">
-                Тем пока недостаточно для группировки. Начните с блоков.
-              </p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {topicProgress.map((t) => (
-                  <button
-                    key={t.topic}
-                    onClick={() => launchTopic(t.questionIds)}
-                    className="btn-press text-left rounded-2xl aurora-hairline px-4 py-3 transition-colors"
-                    style={{ background: "var(--color-card)" }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <GradientRing value={t.pct} size={40} thickness={3} />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline justify-between mb-1">
-                          <span className="text-sm font-medium text-foreground truncate pr-3">
-                            {t.label}
-                          </span>
-                          <span
-                            className="text-[10px] tabular-nums shrink-0"
-                            style={{
-                              color:
-                                t.pct >= 70
-                                  ? "var(--color-aurora-indigo)"
-                                  : t.pct > 0
-                                    ? "var(--color-aurora-violet)"
-                                    : "var(--color-muted)",
-                            }}
-                          >
-                            {t.learned}/{t.count}
-                          </span>
-                        </div>
-                        <div
-                          className="h-1 rounded-full overflow-hidden"
-                          style={{
-                            background:
-                              "color-mix(in srgb, var(--color-border) 60%, transparent)",
-                          }}
-                        >
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${t.pct}%`,
-                              background:
-                                "linear-gradient(90deg, var(--color-aurora-indigo), var(--color-aurora-violet), var(--color-aurora-pink))",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : viewMode === "circles" ? (
-          /* Circle grid view - aurora GradientRing per block */
+        {viewMode === "circles" ? (
           <div className="px-4 pb-8">
             <div className="flex flex-wrap justify-center gap-3">
               {blocks.map((block) => {
-                const pct =
-                  block.total > 0
-                    ? Math.round((block.learned / block.total) * 100)
-                    : 0;
+                const pct = block.total > 0 ? Math.round((block.learned / block.total) * 100) : 0;
                 const isComplete = pct === 100;
                 return (
-                  <Link
-                    key={block.number}
-                    href={`/tests/${block.number}`}
-                    className="btn-press"
-                  >
+                  <Link key={block.number} href={`/tests/${block.number}`} className="btn-press">
                     <div className="relative w-20 h-20 flex items-center justify-center">
                       <GradientRing value={pct} size={80} thickness={4} />
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span
                           className="text-[11px] font-semibold leading-none tabular-nums"
                           style={{
-                            color: isComplete
-                              ? "var(--color-aurora-violet)"
-                              : "var(--color-foreground)",
+                            color: isComplete ? "var(--color-aurora-violet)" : "var(--color-foreground)",
                           }}
                         >
                           {block.rangeStart}
@@ -499,19 +419,11 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
             </div>
           </div>
         ) : (
-          /* List view */
           <div className="px-6 space-y-3 pb-8">
             {blocks.map((block) => {
-              const pct =
-                block.total > 0
-                  ? Math.round((block.learned / block.total) * 100)
-                  : 0;
+              const pct = block.total > 0 ? Math.round((block.learned / block.total) * 100) : 0;
               return (
-                <Link
-                  key={block.number}
-                  href={`/tests/${block.number}`}
-                  className="block btn-press"
-                >
+                <Link key={block.number} href={`/tests/${block.number}`} className="block btn-press">
                   <MagicCard
                     className="rounded-2xl aurora-hairline"
                     gradientFrom="var(--color-aurora-indigo)"
@@ -563,8 +475,7 @@ function ViewModePill({
           ? {
               background: "var(--aurora-gradient-primary)",
               color: "#fff",
-              boxShadow:
-                "inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px -4px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 12px -4px color-mix(in srgb, var(--color-aurora-violet) 55%, transparent)",
             }
           : { color: "var(--color-muted)" }
       }
@@ -575,24 +486,47 @@ function ViewModePill({
 }
 
 export default function TestsPage() {
-  const { activeSpecialty } = useSpecialty();
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { activeSpecialty, hydrated } = useSpecialty();
+  const { data: specialties, isLoading: specLoading } = useSpecialties();
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
-  // If specialty is already selected, show blocks
-  if (activeSpecialty) {
+  const specialtiesBySection = useMemo(() => {
+    const map: Record<string, SpecialtyMeta[]> = {};
+    if (specialties) {
+      for (const s of specialties) {
+        if (!map[s.section]) map[s.section] = [];
+        map[s.section].push(s);
+      }
+    }
+    return map;
+  }, [specialties]);
+
+  // Специальность выбрана — показать блоки
+  if (hydrated && activeSpecialty) {
     return <BlocksView specialtyId={activeSpecialty.id} />;
   }
 
-  // If category is selected, show specialties within it
-  if (selectedCategory) {
+  // Загружается
+  if (!hydrated || specLoading || !specialties) {
+    return <SpinnerFull />;
+  }
+
+  // Секция выбрана — показать её специальности
+  if (selectedSection) {
     return (
       <SpecialtyListView
-        categoryId={selectedCategory}
-        onBack={() => setSelectedCategory(null)}
+        sectionId={selectedSection}
+        specialties={specialtiesBySection[selectedSection] ?? []}
+        onBack={() => setSelectedSection(null)}
       />
     );
   }
 
-  // Top level: show accreditation categories
-  return <CategoryListView onSelect={setSelectedCategory} />;
+  // Верхний уровень — список секций
+  return (
+    <CategoryListView
+      specialtiesBySection={specialtiesBySection}
+      onSelect={setSelectedSection}
+    />
+  );
 }

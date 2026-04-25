@@ -77,28 +77,32 @@ function questionToPrompt(q: TestQuestion): string {
     .join("\n");
 }
 
-function loadAllEntities(): Entity[] {
+function loadAllEntities(entity: "card" | "accred" | "all" = "all"): Entity[] {
   const entities: Entity[] = [];
 
-  for (const card of demoCards) {
-    entities.push({
-      entity_type: "card",
-      entity_id: card.id,
-      specialty: card.specialty,
-      topic: card.topic,
-      prompt: cardToPrompt(card),
-    });
+  if (entity === "card" || entity === "all") {
+    for (const card of demoCards) {
+      entities.push({
+        entity_type: "card",
+        entity_id: card.id,
+        specialty: card.specialty,
+        topic: card.topic,
+        prompt: cardToPrompt(card),
+      });
+    }
   }
 
-  for (const specId of ACCREDITATION_SPECIALTY_IDS) {
-    const questions = getQuestionsForSpecialty(specId);
-    for (const q of questions) {
-      entities.push({
-        entity_type: "accreditation_question",
-        entity_id: q.id,
-        specialty: q.specialty,
-        prompt: questionToPrompt(q),
-      });
+  if (entity === "accred" || entity === "all") {
+    for (const specId of ACCREDITATION_SPECIALTY_IDS) {
+      const questions = getQuestionsForSpecialty(specId);
+      for (const q of questions) {
+        entities.push({
+          entity_type: "accreditation_question",
+          entity_id: q.id,
+          specialty: q.specialty,
+          prompt: questionToPrompt(q),
+        });
+      }
     }
   }
 
@@ -111,6 +115,7 @@ interface Args {
   size: number;
   out: string;
   total?: number;
+  entity: "card" | "accred" | "all";
 }
 
 function parseArgs(): Args {
@@ -119,6 +124,7 @@ function parseArgs(): Args {
     batches: 3,
     size: 100,
     out: "/tmp/prebuild-batches",
+    entity: "all",
   };
   for (const arg of process.argv.slice(2)) {
     const [k, v] = arg.replace(/^--/, "").split("=");
@@ -127,6 +133,7 @@ function parseArgs(): Args {
     else if (k === "size") args.size = Number(v);
     else if (k === "out") args.out = v;
     else if (k === "total") args.total = Number(v);
+    else if (k === "entity") args.entity = v as Args["entity"];
   }
   return args;
 }
@@ -140,8 +147,8 @@ async function main() {
   if (!url || !key) throw new Error("Missing Supabase env");
   const supabase = createClient(url, key);
 
-  const all = loadAllEntities();
-  console.log(`Loaded ${all.length} total entities`);
+  const all = loadAllEntities(args.entity);
+  console.log(`Loaded ${all.length} total entities (entity=${args.entity})`);
 
   // Fetch already-done entity_ids for this content_type
   const done = new Set<string>();

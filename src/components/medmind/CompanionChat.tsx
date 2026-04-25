@@ -2,7 +2,14 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import QuickActions, { type QuickAction } from "./QuickActions";
+import type { PostAction } from "./PostAnswerActions";
 import MarkdownResponse from "./MarkdownResponse";
+
+async function getAuthToken(): Promise<string | null> {
+  const { getSupabase } = await import("@/lib/supabase/client");
+  const { data } = await getSupabase().auth.getSession();
+  return data.session?.access_token ?? null;
+}
 
 interface ChatMessage {
   id: string;
@@ -14,11 +21,37 @@ interface ChatMessage {
 interface CompanionChatProps {
   contextTopic?: string;
   contextQuestion?: string;
+  initialAction?: PostAction;
+}
+
+function buildInitialPrompt(action: PostAction, question?: string): string {
+  const q = question?.trim();
+  switch (action) {
+    case "explain":
+      return q ? `Объясни подробно этот вопрос:\n\n${q}` : "Объясни последний вопрос подробно";
+    case "mnemonic":
+      return q
+        ? `Создай мнемонику для запоминания ответа на этот вопрос:\n\n${q}`
+        : "Создай мнемонику для последней темы";
+    case "poem":
+      return q
+        ? `Придумай стишок для запоминания:\n\n${q}`
+        : "Придумай стишок для запоминания последней темы";
+    case "image":
+      return q
+        ? `Опиши визуальную ассоциацию для запоминания:\n\n${q}`
+        : "Опиши визуальную ассоциацию для последней темы";
+    case "plan":
+      return q
+        ? `Составь короткий план изучения темы на основе этого вопроса:\n\n${q}`
+        : "Составь короткий план изучения последней темы";
+  }
 }
 
 export default function CompanionChat({
   contextTopic,
   contextQuestion,
+  initialAction,
 }: CompanionChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -41,6 +74,8 @@ export default function CompanionChat({
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  const didAutoSendRef = useRef(false);
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -72,9 +107,17 @@ export default function CompanionChat({
           content: m.content,
         }));
 
+        const token = await getAuthToken();
+        if (!token) {
+          throw new Error("Для работы MedMind нужно войти в аккаунт");
+        }
+
         const res = await fetch("/api/medmind/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({
             message: text.trim(),
             contextTopic,
@@ -134,6 +177,13 @@ export default function CompanionChat({
     },
     [isStreaming, messages, contextTopic]
   );
+
+  useEffect(() => {
+    if (didAutoSendRef.current) return;
+    if (!initialAction) return;
+    didAutoSendRef.current = true;
+    sendMessage(buildInitialPrompt(initialAction, contextQuestion));
+  }, [initialAction, contextQuestion, sendMessage]);
 
   const handleQuickAction = useCallback(
     (action: QuickAction) => {
