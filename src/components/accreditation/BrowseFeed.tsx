@@ -1,9 +1,8 @@
 "use client";
 
-import { memo, useRef } from "react";
+import { memo } from "react";
 import type { TestQuestion } from "@/types/accreditation";
 import QuestionView from "./QuestionView";
-import { useVirtualWindow } from "@/hooks/useVirtualWindow";
 
 interface Props {
   questions: TestQuestion[];
@@ -50,34 +49,19 @@ const BrowseItem = memo(function BrowseItem({
 });
 
 /**
- * Вертикальная лента вопросов в режиме просмотра. Каждый вопрос —
- * самодостаточная карточка с подсвеченным правильным ответом, доступной
- * подсказкой и разбором.
+ * Вертикальная лента всех вопросов блока (до 100 карточек) в режиме
+ * просмотра. Каждая карточка — самодостаточная: подсвеченный правильный
+ * ответ, доступная подсказка, разбор.
  *
- * Виртуализация: для больших блоков (до 100 вопросов) рендерится только
- * окно ±5 вокруг видимой карточки, остальные — пустые распорки.
- * Используется тот же `useVirtualWindow`, что и в основной ленте /feed.
+ * Без виртуализации: блок ограничен 100 вопросами, и пользователю удобнее
+ * быстрый скролл без подгрузки на лету. Все 100 карточек рендерятся сразу,
+ * картинки внутри ленятся через `loading="lazy"`. React.memo на каждой
+ * карточке предотвращает лишние перерисовки при изменении состояния
+ * соседей.
  */
 export default function BrowseFeed({ questions, specialtyId, label }: Props) {
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const { startIndex, endIndex, topSpacerPx, bottomSpacerPx } = useVirtualWindow({
-    itemCount: questions.length,
-    // Высота карточек в browse-режиме переменная (зависит от длины вопроса,
-    // наличия картинки, раскрытого AutoExplain). `itemHeight: null` сообщает
-    // хуку измерять контейнер; внутри хук всё равно считает индекс через
-    // округление scrollTop/h, что для разновысоких элементов даёт
-    // приблизительную, но плавную навигацию — виртуализатор подстроится
-    // когда карточка попадёт в viewport.
-    itemHeight: null,
-    containerRef: scrollRef,
-    overscanBefore: 3,
-    overscanAfter: 4,
-  });
-
-  const visible = questions.slice(startIndex, endIndex);
-
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto">
       {label && (
         <div className="px-6 pt-4 pb-1">
           <p
@@ -96,24 +80,15 @@ export default function BrowseFeed({ questions, specialtyId, label }: Props) {
       )}
 
       <div className="flex flex-col gap-4 px-3 pb-8">
-        {topSpacerPx > 0 && (
-          <div aria-hidden style={{ height: `${topSpacerPx}px` }} />
-        )}
-        {visible.map((q, relIdx) => {
-          const i = startIndex + relIdx;
-          return (
-            <BrowseItem
-              key={q.id}
-              q={q}
-              index={i}
-              total={questions.length}
-              specialtyId={specialtyId}
-            />
-          );
-        })}
-        {bottomSpacerPx > 0 && (
-          <div aria-hidden style={{ height: `${bottomSpacerPx}px` }} />
-        )}
+        {questions.map((q, i) => (
+          <BrowseItem
+            key={q.id}
+            q={q}
+            index={i}
+            total={questions.length}
+            specialtyId={specialtyId}
+          />
+        ))}
       </div>
     </div>
   );

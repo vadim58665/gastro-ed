@@ -194,9 +194,11 @@ function CategoryListView({
 function SpecialtyListView({
   sectionId,
   specialties,
+  onBack,
 }: {
   sectionId: string;
   specialties: SpecialtyMeta[];
+  onBack: () => void;
 }) {
   const { setActiveSpecialty } = useSpecialty();
   const sectionMeta = SECTION_ORDER.find((c) => c.id === sectionId);
@@ -208,7 +210,7 @@ function SpecialtyListView({
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar showBack />
+      <TopBar showBack onBack={onBack} />
       <main className="flex-1 pt-24 pb-20 overflow-y-auto">
         <div className="aurora-welcome-band" />
         <div className="px-6 pt-6 pb-6 text-center">
@@ -290,6 +292,7 @@ function SpecialtyListView({
 // Уровень 3: список блоков одной специальности
 function BlocksView({ specialtyId }: { specialtyId: string }) {
   const { progress, totalLearned } = useAccreditation(specialtyId);
+  const { clearSpecialty } = useSpecialty();
   const { data: meta, isLoading } = useSpecialtyMeta(specialtyId);
   const [viewMode, setViewMode] = useState<"circles" | "list">("circles");
 
@@ -321,7 +324,7 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
   if (meta.total_questions === 0) {
     return (
       <div className="h-screen flex flex-col">
-        <TopBar showBack />
+        <TopBar showBack onBack={clearSpecialty } />
         <main className="flex-1 pt-20 pb-20 flex flex-col items-center justify-center">
           <div className="text-center px-6">
             <div className="text-6xl font-extralight aurora-text tracking-tight leading-none mb-3">0</div>
@@ -344,7 +347,7 @@ function BlocksView({ specialtyId }: { specialtyId: string }) {
 
   return (
     <div className="h-screen flex flex-col">
-      <TopBar showBack />
+      <TopBar showBack onBack={clearSpecialty} />
       <main className="flex-1 pt-20 pb-20 overflow-y-auto">
         <div className="aurora-welcome-band" />
         <div className="px-6 pt-4 pb-2 text-center">
@@ -514,6 +517,7 @@ export default function TestsPage() {
       <SpecialtyListView
         sectionId={selectedSection}
         specialties={specialtiesBySection[selectedSection] ?? []}
+        onBack={() => setSelectedSection(null)}
       />
     );
   }
