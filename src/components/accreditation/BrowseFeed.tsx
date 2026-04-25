@@ -79,39 +79,58 @@ export default function BrowseFeed({ questions, specialtyId, label }: Props) {
     );
     if (els.length === 0) return;
 
-    // Храним последние ratios всех элементов и выбираем максимальный.
-    const ratios = new Map<number, number>();
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const idx = Number(
-            (entry.target as HTMLElement).dataset.browseIndex ?? "0"
-          );
-          ratios.set(idx, entry.intersectionRatio);
+    // IO просто подписывает нас на «что-то изменилось в видимости» —
+    // дальше сами выбираем активную карточку по близости её центра
+    // к центру viewport. Это даёт детерминированный ответ, когда
+    // две карточки видны 50/50: побеждает та, что ближе к центру.
+    const recompute = () => {
+      const rootRect = root.getBoundingClientRect();
+      const viewportCenter = (rootRect.top + rootRect.bottom) / 2;
+      let bestIdx = 0;
+      let bestDist = Number.POSITIVE_INFINITY;
+      for (const el of els) {
+        const r = el.getBoundingClientRect();
+        // Карточка совсем за пределами — пропускаем.
+        if (r.bottom < rootRect.top || r.top > rootRect.bottom) continue;
+        const cardCenter = (r.top + r.bottom) / 2;
+        const dist = Math.abs(cardCenter - viewportCenter);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIdx = Number(el.dataset.browseIndex ?? "0");
         }
-        let bestIdx = 0;
-        let bestRatio = -1;
-        for (const [idx, ratio] of ratios) {
-          if (ratio > bestRatio) {
-            bestRatio = ratio;
-            bestIdx = idx;
-          }
-        }
-        if (bestRatio > 0) {
-          setActiveIndex((prev) => (prev === bestIdx ? prev : bestIdx));
-        }
-      },
-      {
-        root,
-        // Порог 50% — карточка активна, когда она видна хотя бы наполовину.
-        // Несколько порогов дают плавное переключение при скролле.
-        threshold: [0, 0.25, 0.5, 0.75, 1],
       }
-    );
+      setActiveIndex((prev) => (prev === bestIdx ? prev : bestIdx));
+    };
 
+    let rafId: number | null = null;
+    const onChange = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        recompute();
+      });
+    };
+
+    // IO даёт нам сигнал «что-то въехало/выехало», без бесконечного цикла
+    // scroll-listener'а. Сам выбор активной карточки — выше, по геометрии.
+    const observer = new IntersectionObserver(onChange, {
+      root,
+      threshold: [0, 0.5, 1],
+    });
     els.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+
+    // Дополнительно слушаем сам скролл — IO срабатывает только на
+    // пересечении порогов, а быстрый скролл между ними не двинет активную.
+    root.addEventListener("scroll", onChange, { passive: true });
+
+    // Первичный расчёт.
+    recompute();
+
+    return () => {
+      observer.disconnect();
+      root.removeEventListener("scroll", onChange);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, [questions.length]);
 
   return (
