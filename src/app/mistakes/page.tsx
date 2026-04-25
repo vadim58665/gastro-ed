@@ -17,6 +17,7 @@ import {
 } from "@/lib/mistakes";
 import { hapticCorrect, hapticWrong } from "@/lib/feedback";
 import { useSpecialty } from "@/contexts/SpecialtyContext";
+import { useMedMind } from "@/contexts/MedMindContext";
 import { allSpecialties } from "@/data/specialties";
 import type { Card } from "@/types/card";
 
@@ -58,6 +59,7 @@ const TARGET_SVG = (
 export default function MistakesPage() {
   const { progress, recordAnswerWithGamification } = useGamification();
   const { activeSpecialty, setActiveSpecialty } = useSpecialty();
+  const { setScreen } = useMedMind();
 
   const [pageState, setPageState] = useState<PageState>("idle");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
@@ -109,6 +111,14 @@ export default function MistakesPage() {
   }, []);
 
   const currentCard = pageState === "session" ? sessionCards[currentIndex] : null;
+
+  useEffect(() => {
+    if (currentCard) {
+      setScreen({ kind: "feed_card", card: currentCard });
+    } else {
+      setScreen({ kind: "other", label: "Работа над ошибками" });
+    }
+  }, [currentCard, setScreen]);
 
   const handleAnswer = useCallback(
     (isCorrect: boolean) => {
